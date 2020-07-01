@@ -1,0 +1,54 @@
+# Default values for mysql-master.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+registry: docker.io
+org: tiswanso
+tag: unified_api_ipam
+pullPolicy: Always
+vppMetricsPort: 9191
+
+cnns:
+  nsr:
+    port: 5005
+    addr: vl3-service.cnns-cisco.com
+    cd: vl3-service-connectivity-domain
+#  domain: nsr.foo.com
+  ipam:
+    defaultPrefixPool: 192.168.0.0/16
+    prefixLength: 28
+    serverAddress: ipam-vl3-service:50051
+
+nsm:
+  serviceName: vl3-service
+
+global:
+  
+replicaCount: 1
+
+image:
+  repository: tiswanso
+  tag: master
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
