@@ -8,6 +8,6 @@ RUN  git clone $nsm_repo /go/src/github.com/networkservicemesh/networkservicemes
 RUN mkdir -p /go/src/github.com/cisco-app-networking/nsm-nse
 COPY . /go/src/github.com/cisco-app-networking/nsm-nse
 
-COPY kubeconfigs/config /go/src/kubeconfigs/config
+#COPY kubeconfigs/config /go/src/kubeconfigs/config
 
-ENV KUBECONFIG=/go/src/kubeconfigs/config
+#ENV KUBECONFIG=/go/src/kubeconfigs/config
