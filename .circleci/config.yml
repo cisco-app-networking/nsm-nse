@@ -10,7 +10,6 @@ defaults: &defaults
     ORG: tiswanso
 
 e2e-kind-test: &e2e-kind-test
-  resource_class: large
   steps:
     - setup_remote_docker
     - checkout:
@@ -72,6 +71,40 @@ e2e-kind-test: &e2e-kind-test
     - store_artifacts:
         path: /tmp/cluster_state
 
+e2e-kind-kiknos-test: &e2e-kind-kiknos-test
+  steps:
+    - setup_remote_docker
+    - checkout:
+        path: /go/src/github.com/cisco-app-networking/nsm-nse
+    - run:
+        name: Clone networkservicemesh
+        working_directory: /go/src/github.com/networkservicemesh
+        command: |
+          git clone https://github.com/networkservicemesh/networkservicemesh.git
+    - attach_workspace:
+        at: /go/src/_save
+    - run:
+        name: Build runner container
+        working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
+        command: |
+          docker build --build-arg vl3_branch=${CIRCLE_SHA1:-master} --build-arg nsm_branch=v0.2.0-vl3 -t kiknos-runner:latest -f build/nse/ucnf-kiknos/Dockerfile.runner .
+
+    - run:
+        name: Start common runner container
+        working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/build/nse/ucnf-kiknos
+        command: |
+          docker run -d --rm --name=kiknos-run --network=host -e GOPATH=/go kiknos-runner:latest bash -c "while [[ 1 ]]; do sleep 900; done"
+
+    - run:
+        name: deploy kiknos in cluster 1
+        command: |
+          docker exec -t kiknos-run bash -c "cd /go/src/github.com/cisco-app-networking/nsm-nse; CURDIR=/go/src/github.com/cisco-app-networking/nsm-nse make deploy-kiknos-clients CLUSTER=kiknos-demo-1"
+
+    - run:
+        name: deploy & test kiknos
+        command: |
+          docker exec -t kiknos-run bash -c "cd /go/src/github.com/cisco-app-networking/nsm-nse; CURDIR=/go/src/github.com/cisco-app-networking/nsm-nse make deploy-kiknos-start-vpn BUILD_IMAGE=true DEPLOY_ISTIO=false CLUSTER=kiknos-demo-2 CLUSTER_REF=kiknos-demo-1"
+
 publish-steps: &publish-steps
   steps:
     - checkout
@@ -131,7 +164,6 @@ jobs:
           - images.tar
 
   sanity-check:
-    resource_class: large
     working_directory: ~/project/nsm-nse
     docker:
       - image: circleci/golang
@@ -297,6 +329,10 @@ jobs:
     <<: *defaults
     <<: *e2e-kind-test
 
+  e2e-kiknos-integration:
+    <<: *defaults
+    <<: *e2e-kind-kiknos-test
+
   publish-NSEs:
     <<: *defaults
     <<: *publish-steps
@@ -310,6 +346,9 @@ workflows:
     jobs:
       - build-NSEs
       - e2e-kind-integration:
+          requires:
+            - build-NSEs
+      - e2e-kiknos-integration:
           requires:
             - build-NSEs
       - publish-NSEs:
