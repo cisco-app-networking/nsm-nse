@@ -87,7 +87,7 @@ publish-steps: &publish-steps
         command: |
           TAGSUFFIX=$(date +%Y%m%d)
           docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
-          for image in "vl3_ucnf-vl3-nse" "ucnf-kiknos-vppagent"; do
+          for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent"; do
               docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
               docker push ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
               docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
@@ -122,7 +122,7 @@ jobs:
           name: Save docker images
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            images_to_save+=("tiswanso/vl3_ucnf-vl3-nse:${CIRCLE_SHA1}" "tiswanso/ucnf-kiknos-vppagent:${CIRCLE_SHA1}")
+            images_to_save+=("tiswanso/vl3_ucnf-nse:${CIRCLE_SHA1}" "tiswanso/ucnf-kiknos-vppagent:${CIRCLE_SHA1}")
             mkdir -p _save
             docker save "${images_to_save[@]}" >_save/images.tar
       - persist_to_workspace:

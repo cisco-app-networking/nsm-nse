@@ -1,6 +1,6 @@
 # virtual layer 3
 
-This example is an NSE that creates a L3 routing domain between NSC workloads.  Each NSE
+This is an NSE that creates a L3 routing domain between NSC workloads.  Each NSE
 performs the following:
 
 1. Creates an IPAM composite endpoint with a /24 prefix pulled from the /16 prefix given in
@@ -31,18 +31,8 @@ performs the following:
 
 1. This currently only works with a custom version of the NSM installation.
 
-   ```bash
-   $ cd $GOPATH/src/github.com/
-   $ mkdir networkservicemesh
-   $ cd networkservicemesh
-   $ git clone https://github.com/tiswanso/networkservicemesh
-   $ cd networkservicemesh
-   $ git checkout vl3_api_rebase
-      $
-   $ cd $GOPATH/src/github.com/networkservicemesh
-   $ git clone https://github.com/tiswanso/examples
-   $ cd examples
-   $ git checkout <this branch >
+   $ mkdir -p $GOPATH/src/github.com/cisco-app-networking
+   $ git clone https://github.com/cisco-app-networking/nsm-nse
    ```
    
 2. The `demo_*.sh` scripts in this repo work with `demo-magic` which has a dependency on `pv` (ie. `brew install pv`)
@@ -52,25 +42,25 @@ performs the following:
 #### Helloworld example
 
 ```
-$ examples/vl3_basic/scripts/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --hello
+$ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --hello
 ```
 
 #### Mysql example
 
 ```
-$ examples/vl3_basic/scripts/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql
+$ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql
 ```
 
 #### Validate vl3 helloworld client inter-connectivity
 
 ```
-KCONF=<path to your kubeconfig> ./examples/vl3_basic/scripts/check_vl3.sh
+KCONF=<path to your kubeconfig> ./scripts/vl3/check_vl3.sh
 ```
 
 #### Cleanup example
 
 ```
-$ examples/vl3_basic/scripts/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql --hello --nowait --delete
+$ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql --hello --nowait --delete
 ```
 
 
@@ -83,8 +73,8 @@ $ examples/vl3_basic/scripts/demo_vl3_single.sh --kconf_clus1=<path to your kube
 1. Use script to install inter-domain NSM & helloworld.
 
    ```bash
-   $ cd $GOPATH/src/github.com/networkservicemesh/examples
-   $ examples/vl3_basic/scripts/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --hello --nowait
+   $ cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
+   $ scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --hello --nowait
    ```
 
 1. Validation:
@@ -109,8 +99,8 @@ $ examples/vl3_basic/scripts/demo_vl3_single.sh --kconf_clus1=<path to your kube
 1. Use script to install inter-domain NSM & mysql DB replication.
 
    ```bash
-   $ cd $GOPATH/src/github.com/networkservicemesh/examples
-   $ examples/vl3_basic/scripts/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --mysql --nowait
+   $ cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
+   $ scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --mysql --nowait
    ```
 
 The result is NSM & vL3 interdomain deployed on AWS EKS and GKE clusters with a mysql-master on the EKS cluster
@@ -205,13 +195,13 @@ and mysql-slave on the GKE cluster.  DB replication should be operational betwee
 1. Run the following script to test db replication:
 
    ```bash
-   $ examples/vl3_basic/scripts/check_mysql.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --populate
+   $ scripts/vl3/check_mysql.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --populate
    ```
 
 
 ### Install vL3 NSEs and helloworld NSCs
 
-The script `examples/vl3_basic/scripts/vl3_interdomain.sh` will install the virtual L3 NSE
+The script `scripts/vl3/vl3_interdomain.sh` will install the virtual L3 NSE
 daemonset in a cluster, wait for the pods to come up, and install the `helloworld` pods as
 NSCs.
 
@@ -220,9 +210,9 @@ list of IPs that act as the remote cluster's NSM API endpoints.  Its value is th
 the `nsmgr` Kubernetes service created in the `nsm_install_interdomain.sh` NSM installation step.
 
 ```bash
-REMOTE_IP=${cluster2_nsmgr_ip},${cluster3_nsmgr_ip} KCONF=cluster1.kconf examples/vl3_basic/scripts/vl3_interdomain.sh
-REMOTE_IP=${cluster1_nsmgr_ip},${cluster3_nsmgr_ip} KCONF=cluster2.kconf examples/vl3_basic/scripts/vl3_interdomain.sh
-REMOTE_IP=${cluster1_nsmgr_ip},${cluster2_nsmgr_ip} KCONF=cluster3.kconf examples/vl3_basic/scripts/vl3_interdomain.sh
+REMOTE_IP=${cluster2_nsmgr_ip},${cluster3_nsmgr_ip} KCONF=cluster1.kconf scripts/vl3/vl3_interdomain.sh
+REMOTE_IP=${cluster1_nsmgr_ip},${cluster3_nsmgr_ip} KCONF=cluster2.kconf scripts/vl3/vl3_interdomain.sh
+REMOTE_IP=${cluster1_nsmgr_ip},${cluster2_nsmgr_ip} KCONF=cluster3.kconf scripts/vl3/vl3_interdomain.sh
 
 ```
 
@@ -309,7 +299,7 @@ to run the vL3 demos.
    $ cd ..
    $ git clone https://github.com/tiswanso/networkservicemesh 
    $ cd networkservicemesh
-   $ git checkout vl3_api_rebase
+   $ git checkout vl3_latest
    ```
 
 ### GKE
@@ -418,7 +408,7 @@ for access to each cluster's NSM Jaeger UI (NodePort service).
    ```
    $ KIND1="$(kind get kubeconfig-path --name="kind1")"
    $ KIND2="$(kind get kubeconfig-path --name="kind2")"
-   $ examples/vl3_basic/scripts/demo_vl3.sh --kconf_clus1=${KIND1} --kconf_clus2=${KIND2} --hello
+   $ scripts/vl3/demo_vl3.sh --kconf_clus1=${KIND1} --kconf_clus2=${KIND2} --hello
    ```
 
    __NOTE:__  The latest versions of `kind` no longer support the `kubeconfig-path` option.

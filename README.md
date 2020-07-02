@@ -15,4 +15,3 @@
 
 [Info and Usage](build/nse/ucnf-kiknos/README.md)
 
-Please refer to [examples/README.md](examples/README.md)

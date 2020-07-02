@@ -40,10 +40,7 @@ DOCKERBUILD=docker build --network="host" --build-arg VPP_AGENT=$(VPP_AGENT) ${H
 define generate-docker-targets
 .PHONY: docker-$1-$2-build
 docker-$1-$2-build:
-	@${DOCKERBUILD} -t ${ORG}/$1-$2 -f build/nse/$1/$2/Dockerfile .
-	@if [ "x${TAG}" != "x" ] ; then \
-		docker tag ${ORG}/$1-$2 ${ORG}/$1-$2:${TAG} ;\
-	fi
+	@${DOCKERBUILD} -t ${ORG}/$1-$2:${TAG} -f build/nse/$1/$2/Dockerfile .
 
 .PHONY: docker-%-save
 docker-$1-$2-save: docker-$1-$2-build
