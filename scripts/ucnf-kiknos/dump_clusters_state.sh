@@ -5,7 +5,7 @@ CLUSTER1=${CLUSTER1:-kiknos-demo-1}
 CLUSTER2=${CLUSTER2:-kiknos-demo-2}
 SERVICE_NAME=${SERVICE_NAME:-hello-world}
 
-pushd "$(dirname "$0")/../../../"
+pushd "$(dirname "$0")/../../"
 
 print_usage() {
   echo "$(basename "$0") - Deploy NSM Kiknos topology. All properties can also be provided through env variables
