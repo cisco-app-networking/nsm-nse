@@ -5,7 +5,7 @@ SERVICE_NAME=${SERVICE_NAME:-hello-world}
 ISTIO_CLIENT=${ISTIO_CLIENT:-false}
 OPERATION=${OPERATION:-apply}
 
-pushd "$(dirname "$0")/../../../"
+pushd "$(dirname "$0")/../../"
 
 print_usage() {
   echo "$(basename "$0") - Deploy NSM Clients. All properties can also be provided through env variables

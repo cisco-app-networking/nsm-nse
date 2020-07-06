@@ -98,7 +98,7 @@ helm-init: create-cluster
 	@pushd $(NSM_PATH); ./scripts/helm-init-wrapper.sh; popd
 
 helm-install-nsm: helm-init
-	@pushd $(NSM_PATH); ./scripts/helm-nsm-install.sh --chart nsm \
+	@pushd $(NSM_PATH); SPIRE_ENABLED=false ./scripts/helm-nsm-install.sh --chart nsm \
 		--container_repo ${CONTAINER_REPO} \
 		--container_tag ${CONTAINER_TAG} \
 		--forwarding_plane ${FORWARDING_PLANE} \
