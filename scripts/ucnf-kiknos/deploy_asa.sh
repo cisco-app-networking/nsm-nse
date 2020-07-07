@@ -4,7 +4,8 @@ AWS_KEY_PAIR=${AWS_KEY_PAIR:-kiknos-asa}
 SUBNET_IP=${SUBNET_IP:-192.168.254.0}
 
 function print_usage() {
-    echo "$(basename "$0") - Deploy ASAv. All properties can also be provided through env variables
+    echo "$(basename "$0") - Deploy ASAv to act as a Gateway and Ubuntu EC2 instance to act as a client.
+                All properties can also be provided through env variables
 
 NOTE: The defaults will change to the env values for the ones set.
 
