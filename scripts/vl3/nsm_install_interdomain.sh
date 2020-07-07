@@ -42,8 +42,8 @@ done
 sdir=$(dirname ${0})
 #echo "$sdir"
 
-NSMDIR=${NSMDIR:-${sdir}/../../../../networkservicemesh}
-VL3DIR=${VL3DIR:-${sdir}/..}
+NSMDIR=${NSMDIR:-${GOPATH}/src/github.com/networkservicemesh/networkservicemesh}
+VL3DIR=${VL3DIR:-${GOPATH}/src/github.com/cisco-app-networking/nsm-nse}
 #echo "$NSMDIR"
 
 echo "------------- Create nsm-system namespace ----------"
@@ -65,7 +65,7 @@ echo "------------Installing NSM-----------"
 helm template ${NSMDIR}/deployments/helm/nsm --namespace nsm-system --set org=${NSM_HUB},tag=${NSM_TAG} --set pullPolicy=Always --set insecure="true" --set global.JaegerTracing="true" ${SPIRE_DISABLED:+--set spire.enabled=false} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 echo "------------Installing NSM-addons -----------"
-helm template ${VL3DIR}/helm/nsm-addons --namespace nsm-system --set global.NSRegistrySvc=true  | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
+helm template ${VL3DIR}/deployments/helm/nsm-addons --namespace nsm-system --set global.NSRegistrySvc=true  | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 #helm template ${NSMDIR}/deployments/helm/nsm --namespace nsm-system --set global.JaegerTracing=true --set org=${NSM_HUB},tag=${NSM_TAG} --set pullPolicy=Always --set admission-webhook.org=tiswanso --set admission-webhook.tag=vl3-inter-domain2 --set admission-webhook.pullPolicy=Always --set admission-webhook.dnsServer=${kubednsip} ${kinddnsip:+--set "admission-webhook.dnsAltZones[0].zone=example.org" --set "admission-webhook.dnsAltZones[0].server=${kinddnsip}"} --set global.NSRegistrySvc=true --set global.NSMApiSvc=true --set global.NSMApiSvcPort=30501 --set global.NSMApiSvcAddr="0.0.0.0:30501" --set global.NSMApiSvcType=NodePort --set global.ExtraDnsServers="${kubednsip} ${kinddnsip}" --set global.OverrideNsmCoreDns="true" | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 #helm template ${NSMDIR}/deployments/helm/nsm --namespace nsm-system --set global.JaegerTracing=true --set org=${NSM_HUB},tag=${NSM_TAG} --set pullPolicy=Always --set admission-webhook.org=tiswanso --set admission-webhook.tag=vl3-inter-domain2 --set admission-webhook.pullPolicy=Always --set global.NSRegistrySvc=true --set global.NSMApiSvc=true --set global.NSMApiSvcPort=30501 --set global.NSMApiSvcAddr="0.0.0.0:30501" --set global.NSMApiSvcType=NodePort --set global.ExtraDnsServers="${kubednsip} ${kinddnsip}" --set global.OverrideDnsServers="${kubednsip} ${kinddnsip}" | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -

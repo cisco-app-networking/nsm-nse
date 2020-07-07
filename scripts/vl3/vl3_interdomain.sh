@@ -73,10 +73,7 @@ fi
 #    REMOTE_IP=${REMOTE_IP}:${CNNS_NSRPORT}
 #fi
 
-NSMDIR=${NSMDIR:-${sdir}/../../../../networkservicemesh}
-#echo "$NSMDIR"
-
-VL3HELMDIR=${VL3HELMDIR:-${sdir}/../helm}
+VL3HELMDIR=${VL3HELMDIR:-${sdir}/../../deployments/helm}
 
 MFSTDIR=${MFSTDIR:-${sdir}/../k8s}
 VL3_NSEMFST=${MFSTDIR}/vl3-nse-ucnf-single.yaml

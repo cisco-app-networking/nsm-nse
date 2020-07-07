@@ -42,7 +42,7 @@ done
 
 [[ -z "$CLUSTER_REF" ]] && echo "env var: CLUSTER_REF is required!" && print_usage && exit 1
 
-pushd "$(dirname "${BASH_SOURCE[0]}")/../../../" || exit 1
+pushd "$(dirname "${BASH_SOURCE[0]}")/../../" || exit 1
 
 echo "# Retrieving IP and MAC addr of interface"
 POD_NAME=$(kubectl --context "$CLUSTER_REF" get pods -o name | grep endpoint | cut -d / -f 2)
