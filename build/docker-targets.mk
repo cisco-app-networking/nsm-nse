@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ORG ?= networkservicemesh
-TAG ?= latest
+ORG ?= tiswanso
+TAG ?= kiknos
 
 # Setup proxies for docker build
 ifeq ($(HTTP_PROXY),)

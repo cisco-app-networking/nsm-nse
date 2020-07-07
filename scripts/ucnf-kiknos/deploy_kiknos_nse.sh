@@ -9,30 +9,30 @@ OPERATION=${OPERATION:-apply}
 SUBNET_IP=${SUBNET_IP:-192.168.254.0}
 
 function print_usage() {
-    echo "$(basename "$0") - Deploy NSM Kiknos topology. All properties can also be provided through env variables
+    echo "$(basename "$0") - Deploy the Kiknos NSE. All properties can also be provided through env variables
 
 NOTE: The defaults will change to the env values for the ones set.
 
 Usage: $(basename "$0") [options...]
 Options:
-  --cluster             Cluster name                                                        env var: CLUSTER          - (Default: $CLUSTER)
-  --cluster-ref         Cluster reference                                                   env var: CLUSTER_REF      - (Default: $CLUSTER_REF)
-  --org                 Docker image org                                                    env var: NSE_ORG          - (Default: $NSE_ORG)
-  --tag                 Docker image tag                                                    env var: NSE_TAG          - (Default: $NSE_TAG)
+  --cluster             Cluster name (context)                                              env var: CLUSTER          - (Default: $CLUSTER)
+  --cluster-ref         Reference to pair cluster name (context)                            env var: CLUSTER_REF      - (Default: $CLUSTER_REF)
+  --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: $NSE_ORG)
+  --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: $NSE_TAG)
   --pull-policy         Pull policy for the NSE image                                       env var: PULL_POLICY      - (Default: $PULL_POLICY)
   --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: $SERVICE_NAME)
   --delete              Delete NSE                                                          env var: DELETE           - (Default: $DELETE)
-  --subnet-ip           IP for the remote ASA subnet (without the mask, ex: 192.168.254.0)  env var: SUBNET_IP        - (Default: $SUBNET_IP)
+  --subnet-ip           IP for the remote subnet (without the mask, ex: 192.168.254.0)      env var: SUBNET_IP        - (Default: $SUBNET_IP)
   --help -h             Help
 " >&2
 }
 
 for i in "$@"; do
   case $i in
-  --org=*)
+  --nse-org=*)
     NSE_ORG="${i#*=}"
     ;;
-  --tag=*)
+  --nse-tag=*)
     NSE_TAG="${i#*=}"
     ;;
   --cluster=*)
