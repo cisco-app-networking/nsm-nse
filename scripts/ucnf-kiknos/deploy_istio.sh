@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function print_usage() {
-    echo "$(basename "$0") - Deploy istio Gateway. All properties can also be provided through env variables
+    echo "$(basename "$0") - Deploy an Istio service mesh. All properties can also be provided through env variables
 
 NOTE: The defaults will change to the env values for the ones set.
 

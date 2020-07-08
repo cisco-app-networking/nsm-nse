@@ -18,6 +18,7 @@ Options:
   --service-name        NSM service                                                         env var: SERVICE_NAME    - (Default: $SERVICE_NAME)
   --istio-client        If an istio client should be deployed instead of a regular client   env var: ISTIO_CLIENT    - (Default: $ISTIO_CLIENT)
   --delete
+  --help -h             Help
 " >&2
 
 }

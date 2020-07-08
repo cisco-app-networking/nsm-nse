@@ -114,10 +114,10 @@ deploy-kiknos: provide-image
 endif
 
 deploy-kiknos: helm-install-nsm
-	@$(TOP)/scripts/ucnf-kiknos/deploy_kiknos.sh --cluster=$(CLUSTER) \
+	@$(TOP)/scripts/ucnf-kiknos/deploy_kiknos_nse.sh --cluster=$(CLUSTER) \
 		--subnet-ip=$(SUBNET_IP) \
-		--org=$(ORG) \
-		--tag=$(TAG)
+		--nse-org=$(ORG) \
+		--nse-tag=$(TAG)
 		$(if $(CLUSTER_REF),--cluster-ref=$(CLUSTER_REF))
 
 deploy-istio: deploy-kiknos

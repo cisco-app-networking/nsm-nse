@@ -2,6 +2,25 @@
 
 This replaces the VPP agent in the universal-cnf with the Kiknos VPP aio-agent
 
+**Navigation**
+* [Prerequisites](#prerequisites)
+* [Scenarios](#scenarios)
+    * [Direct connection between workloads and NSE](#direct-connection-between-workloads-and-nse)
+    * [Using an Ingress Gateway as NSC](#using-an-ingress-gateway-as-nsc)
+* [Deploy the environment](#deploy-the-environment)
+    * [Using Make](#using-make)
+    * [Using scripts + commands](#using-scripts--commands)
+        * [Deploying the K8s clusters](#deploying-the-k8s-clusters)
+        * [Deploy the NSM](#deploy-the-nsm)
+        * [Client side deployment](#client-side-deployment)
+        * [Deploy IPSec Gateway and Remote Clients](#deploy-ipsec-gateway-and-remote-clients)
+* [Check connectivity between workloads (Scenario 1)](#check-connectivity-between-workloads-scenario-1)
+* [Check connectivity to workloads through the Istio gateway (Scenario 2)](#check-connectivity-to-workloads-through-the-istio-gateway-scenario-2)
+* [Dumping the state of the cluster](#dumping-the-state-of-the-cluster)
+* [Cleanup](#cleanup)
+* [Known Issues](#known-issues)
+
+
 # Prerequisites
 You first need to clone the [Network Service Mesh repo](https://github.com/networkservicemesh/networkservicemesh)
 Please follow the instructions on where the NSM project should be in the [README.md](../../README.md)
@@ -19,18 +38,20 @@ Please follow the instructions on where the NSM project should be in the [README
 
  
  # Scenarios
- ## 1. Direct connection between workloads and NSE
+ ## Direct connection between workloads and NSE
  In this case, the NSE connects directly to the workloads (pods) deployed on the cluster. 
  With this configuration, all the workloads can be accessed from outside the cluster using the IP address provided by 
  the NSM through a secure IP Sec tunnel.  
  
- ## 2. Using an Ingress Gateway as NSC
+ ## Using an Ingress Gateway as NSC
  Expose the workloads through an [Istio](https://istio.io/) Ingress Gateway. In this case the Ingress Gateway will act 
  as a network service client. With this configuration, it is easy to expose workloads through a common entry point. This 
  allows for the case where you want all workloads to be exposed through a single IP address and differentiate between them.
  This case provides better configurability of the k8s cluster, but adds a layer of complexity with the introduction of Istio.
 
-## Deploy the environment
+# Deploy the environment
+
+## Using Make
 
 * Deploy kind environment:
 ```bash
@@ -89,6 +110,227 @@ Makefile options:
 - `AWS` - Create aws cluster - (Default: `false`)
 - `SUBNET_IP` - IP for the remote ASA subnet (without the mask, ex: 192.168.254.0) - (Default: `192.168.254.0`)
 
+## Using scripts + commands
+
+### Deploying the K8s clusters
+
+1. KinD:
+    ```bash
+   
+    # First cluster, which will act as the IPSec client
+    kind create cluster --name kiknos-demo-1
+    kubectl config rename-context kind-kiknos-demo-1 kiknos-demo-1
+   
+    # Second cluster, on which will act as an IPSec gateway
+    kind create cluster --name kiknos-demo-2
+    kubectl config rename-context kind-kiknos-demo-1 kiknos-demo-2
+    ```
+
+1. AWS:
+    
+    Exec:
+    ```bash
+    # First cluster, which will act as the IPSec client
+    python scripts/ucnf-kiknos/pyaws/create_cluster.py --name kiknos-demo-1 --open-sg
+    aws eks update-kubeconfig --name=kiknos-demo-1 --alias kiknos-demo-1
+   
+    # Second cluster, on which will act as an IPSec gateway
+    python scripts/ucnf-kiknos/pyaws/create_cluster.py --name kiknos-demo-2 --ref kiknos-demo-1 --open-sg
+    aws eks update-kubeconfig --name=kiknos-demo-2 --alias kiknos-demo-2
+    ```
+   Help:
+   ```bash
+   python scripts/ucnf-kiknos/pyaws/create_cluster.py --help
+   usage: create_cluster.py [-h] --name NAME [--region REGION] [--ref REF]
+                            [--cidr CIDR] [--test] [--open-sg]
+   
+   Utility for dealing with AWS clusters
+   
+   optional arguments:
+     -h, --help       show this help message and exit
+     --name NAME      Member cluster name to create config for.
+     --region REGION  Member cluster region
+     --ref REF        Reference cluster name (client cluster will use reference
+                      clusters vpc when is created)
+     --cidr CIDR      Client cluster name to create config yaml for.
+     --test           Dump generated config
+     --open-sg        Open all ports and all ips for SecurityGroups
+
+   ```
+       
+### Deploy the NSM
+
+```bash
+# Move to the NSM direcotry and execute the install scripts:
+cd ${GOPATH}/src/github.com/networkservicemesh/networkservicemesh
+./scripts/helm-init-wrapper.sh
+./scripts/helm-nsm-install.sh --chart nsm \
+		--container_repo networkservicemesh \
+		--container_tag master \
+		--forwarding_plane vpp \
+		--insecure true \
+		--networkservice hello-world \
+		--enable_prometheus true \
+		--enable_metric_collection true \
+		--nsm_namespace nsm-system \
+		--spire_enabled false
+# Move back to the NSE repo
+cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
+
+```
+   
+### Client side deployment
+
+1. Kiknos NSE
+    
+    Exec:
+    ```bash
+    ./scripts/ucnf-kiknos/deploy_kiknos.sh --cluster=kiknos-demo-1 --subnet-ip=192.168.254.0 --org=tiswanso --tag=kiknos --service-name=hello-world
+    ```
+   Help:
+   ```bash
+   ./scripts/ucnf-kiknos/deploy_kiknos_nse.sh --help
+   deploy_kiknos_nse.sh - Deploy the Kiknos NSE. All properties can also be provided through env variables
+   
+   NOTE: The defaults will change to the env values for the ones set.
+   
+   Usage: deploy_kiknos_nse.sh [options...]
+   Options:
+     --cluster             Cluster name (context)                                              env var: CLUSTER          - (Default: )
+     --cluster-ref         Reference to pair cluster name (context)                            env var: CLUSTER_REF      - (Default: )
+     --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: mmatache)
+     --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: kiknos)
+     --pull-policy         Pull policy for the NSE image                                       env var: PULL_POLICY      - (Default: IfNotPresent)
+     --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: hello-world)
+     --delete              Delete NSE                                                          env var: DELETE           - (Default: false)
+     --subnet-ip           IP for the remote subnet (without the mask, ex: 192.168.254.0)      env var: SUBNET_IP        - (Default: 192.168.254.0)
+     --help -h             Help
+   ```
+1. Client pods:
+    
+    1. With Istio:
+        
+        Exec:
+        ```bash
+        # Deploys the istio components
+        ./scripts/ucnf-kiknos/deploy_istio.sh --cluster=kiknos-demo-1
+        # Deploys the client pods
+        ./scripts/ucnf-kiknos/deploy_clients.sh --cluster=kiknos-demo-1 --service-name=hello-world --istio-client
+        ```
+        Help:
+        ```bash
+        ./scripts/ucnf-kiknos/deploy_istio.sh --help
+        deploy_istio.sh - Deploy an Istio service mesh. All properties can also be provided through env variables
+        
+        NOTE: The defaults will change to the env values for the ones set.
+        
+        Usage: deploy_istio.sh [options...]
+        Options:
+          --cluster     Cluster name            env var: CLUSTER    - (Default: )
+          --help -h     Help
+        ```
+        ```bash
+        ./scripts/ucnf-kiknos/deploy_clients.sh --help
+        ~/go/src/github.com/cisco-app-networking ~/go/src/github.com/cisco-app-networking/nsm-nse
+        deploy_clients.sh - Deploy NSM Clients. All properties can also be provided through env variables
+        
+        NOTE: The defaults will change to the env values for the ones set.
+        
+        Usage: deploy_clients.sh [options...]
+        Options:
+          --cluster             Cluster name                                                        env var: CLUSTER         - (Default: )
+          --service-name        NSM service                                                         env var: SERVICE_NAME    - (Default: hello-world)
+          --istio-client        If an istio client should be deployed instead of a regular client   env var: ISTIO_CLIENT    - (Default: false)
+          --delete
+          --help -h             Help
+        ```
+       
+    1. Without Istio:
+    
+        Exec:
+        ```bash
+        # Deploys the client pods
+        ./scripts/ucnf-kiknos/deploy_clients.sh --cluster=kiknos-demo-1 --service-name=hello-world
+        ```
+        Help:
+        ```bash
+        ./scripts/ucnf-kiknos/deploy_clients.sh --help
+        ~/go/src/github.com/cisco-app-networking ~/go/src/github.com/cisco-app-networking/nsm-nse
+        deploy_clients.sh - Deploy NSM Clients. All properties can also be provided through env variables
+        
+        NOTE: The defaults will change to the env values for the ones set.
+        
+        Usage: deploy_clients.sh [options...]
+        Options:
+          --cluster             Cluster name                                                        env var: CLUSTER         - (Default: )
+          --service-name        NSM service                                                         env var: SERVICE_NAME    - (Default: hello-world)
+          --istio-client        If an istio client should be deployed instead of a regular client   env var: ISTIO_CLIENT    - (Default: false)
+          --delete
+          --help -h             Help
+        ```
+       
+    
+
+### Deploy IPSec Gateway and Remote Clients:
+    
+1. Kiknos:
+
+    Exec:
+    ```bash
+    # Deploy Kiknos NSE to act as a gateway
+    ./scripts/ucnf-kiknos/deploy_kiknos.sh --cluster=kiknos-demo-2 --org=tiswanso --tag=kiknos --cluster-ref=kiknos-demo-1 --service-name=hello-world
+    # Deploys the client pods
+    ./scripts/ucnf-kiknos/deploy_clients.sh --cluster=kiknos-demo-2 --service-name=hello-world
+    ```
+    Help:
+    ```bash
+    ./scripts/ucnf-kiknos/deploy_kiknos_nse.sh --help
+    deploy_kiknos_nse.sh - Deploy the Kiknos NSE. All properties can also be provided through env variables
+    
+    NOTE: The defaults will change to the env values for the ones set.
+    
+    Usage: deploy_kiknos_nse.sh [options...]
+    Options:
+    --cluster             Cluster name (context)                                              env var: CLUSTER          - (Default: )
+    --cluster-ref         Reference to pair cluster name (context)                            env var: CLUSTER_REF      - (Default: )
+    --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: mmatache)
+    --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: kiknos)
+    --pull-policy         Pull policy for the NSE image                                       env var: PULL_POLICY      - (Default: IfNotPresent)
+    --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: hello-world)
+    --delete              Delete NSE                                                          env var: DELETE           - (Default: false)
+    --subnet-ip           IP for the remote subnet (without the mask, ex: 192.168.254.0)      env var: SUBNET_IP        - (Default: 192.168.254.0)
+    --help -h             Help
+    ```
+1. ASA
+   >:warning: Only works for AWS deployments
+   
+   An ASAv and an Ubuntu client are deployed in AWS.Then an additional IPSec tunnel gets created which connects to the Kiknos deployment.
+   
+   The ASA uses a [day0](./scripts/day0.txt) configuration in order to be able to create the IPSec tunnel.
+           
+   Exec:
+   ```bash
+   ./scripts/ucnf-kiknos/deploy_asa.sh --cluster-ref=kiknos-demo-1 --subnet-ip=192.168.254.0 --aws-key-pair=kiknos-asa
+   ```
+   Help:
+   ```bash
+   ./scripts/ucnf-kiknos/deploy_asa.sh --help
+   deploy_asa.sh - Deploy ASAv to act as a Gateway and Ubuntu EC2 instance to act as a client.
+                   All properties can also be provided through env variables
+   
+   NOTE: The defaults will change to the env values for the ones set.
+   
+   Usage: deploy_asa.sh [options...]
+   Options:
+     --cluster-ref         Reference to cluster to connect to                                  env var: CLUSTER_REF      - (Default: )
+     --aws-key-pair        AWS Key Pair for connecting over SSH                                env var: AWS_KEY_PAIR     - (Default: kiknos-asa)
+     --subnet-ip           IP for the remote ASA subnet (without the mask, ex: 192.168.254.0)  env var: SUBNET_IP        - (Default: 192.168.254.0)
+     --help -h             Help
+   ```
+       
+          
+   
+
 ## Check connectivity between workloads (Scenario 1)
 In order to check the connectivity between worker pods run the following make target:
 ```bash
@@ -137,12 +379,7 @@ no healthy upstreamConnecting to: http://172.31.22.9:8000/hello-v2
 no healthy upstream-----------------------------------------------------------------------------------------------------
 
 ```
-## AWS ASA Deployment
 
-When using the `make kiknos-aws` target, an ASAv and an Ubuntu client are deployed in AWS. 
-Then an additional IPSec tunnel gets created which connects to the Kiknos deployment.
-
-The ASA uses a [day0](./scripts/day0.txt) configuration in order to be able to create the IPSec tunnel.
 
 ## Dumping the state of the cluster
 In order to dump the clusters state run the following make target:
