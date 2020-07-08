@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/Nordix/simple-ipam v1.0.0
-	github.com/danielvladco/k8s-vnet v0.3.3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gofrs/uuid v3.2.0+incompatible

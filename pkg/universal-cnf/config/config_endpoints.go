@@ -18,7 +18,7 @@ package config
 import (
 	"context"
 
-	"github.com/danielvladco/k8s-vnet/pkg/nseconfig"
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 
