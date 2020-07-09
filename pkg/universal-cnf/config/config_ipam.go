@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/danielvladco/k8s-vnet/pkg/nseconfig"
+	"time"
+
+	"github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
-	"github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"time"
 )
 
 type IpamServiceFactory func(addr string) IpamService

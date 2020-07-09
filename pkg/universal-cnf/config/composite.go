@@ -18,7 +18,7 @@ package config
 import (
 	"context"
 
-	"github.com/danielvladco/k8s-vnet/pkg/nseconfig"
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connectioncontext"

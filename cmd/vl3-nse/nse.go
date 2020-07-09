@@ -18,16 +18,17 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/danielvladco/k8s-vnet/pkg/nseconfig"
+	"os"
+	"strings"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/ucnf"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/vppagent"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"github.com/sirupsen/logrus"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/ucnf"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/vppagent"
-	"os"
-	"strings"
 )
 
 const (
@@ -73,7 +74,7 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 		newVL3ConnectComposite(nsConfig, nsConfig.IPAddress,
 			&vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList, func() string {
 				return ucnfEndpoint.NseName
-			}, ucnfEndpoint.VL3.IPAM.DefaultPrefixPool, ucnfEndpoint.VL3.IPAM.ServerAddress, ucnfEndpoint.CNNS.ConnectivityDomain) ,
+			}, ucnfEndpoint.VL3.IPAM.DefaultPrefixPool, ucnfEndpoint.VL3.IPAM.ServerAddress, ucnfEndpoint.CNNS.ConnectivityDomain),
 	}
 
 	return &compositeEndpoints

@@ -4,11 +4,11 @@ import (
 	"context"
 	"os"
 
-	"github.com/danielvladco/k8s-vnet/pkg/nseconfig"
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 	"gopkg.in/yaml.v2"
 )
 
