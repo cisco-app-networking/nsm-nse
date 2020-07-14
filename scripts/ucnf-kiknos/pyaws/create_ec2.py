@@ -85,7 +85,7 @@ def main():
     region = args.region if args.region else get_current_region()
 
     reference_cluster = AwsCluster(args.ref, region)
-    vpc_id = reference_cluster.get_vpcid()
+    vpc_id = reference_cluster.get_vpc_id()
     sec_group = reference_cluster.get_security_group_id()
     priv_subnets = reduce_subnets(reference_cluster.get_subnets("Private"))
     pub_subnets = reduce_subnets(reference_cluster.get_subnets("Public"))

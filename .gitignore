@@ -5,6 +5,9 @@
 *.so
 *.dylib
 
+# python compiled bytecode
+*.pyc
+
 # Test binary, build with `go test -c`
 *.test
 
