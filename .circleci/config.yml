@@ -134,10 +134,15 @@ publish-steps: &publish-steps
           TAGSUFFIX=$(date +%Y%m%d)
           docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
           for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent"; do
-              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
-              docker push ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
-              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
-              docker push ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
+              if [[ ${CIRCLE_PROJECT_USERNAME} == "cisco-app-networking" ]]; then
+                docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
+                docker push ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
+                docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
+                docker push ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
+              else
+                docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_SHA1}
+                docker push ${DOCKER_USER}/${image}:${CIRCLE_SHA1}
+              fi
           done
 
 
