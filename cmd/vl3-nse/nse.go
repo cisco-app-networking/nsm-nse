@@ -21,14 +21,22 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/ucnf"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/vppagent"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/ucnf"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/vppagent"
+)
+
+const (
+	metricsPortEnv = "METRICS_PORT"
+	metricsPath    = "/metrics"
 )
 
 const (
@@ -92,6 +100,13 @@ func main() {
 
 	mainFlags := &Flags{}
 	mainFlags.Process()
+
+	// Metrics
+	metricsPort := os.Getenv(metricsPortEnv)
+	metrics.ServeMetrics(":"+metricsPort, metricsPath)
+
+	// Capture signals to cleanup before exiting
+	prometheus.NewBuildInfoCollector()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -16,9 +16,11 @@ import (
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"github.com/sirupsen/logrus"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	"google.golang.org/grpc"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 )
 
 const (
@@ -65,8 +67,8 @@ type vL3ConnectComposite struct {
 	ipamEndpoint  *endpoint.IpamEndpoint
 	backend       config.UniversalCNFBackend
 	myNseNameFunc fnGetNseName
-	connDomain string
-	ipamAddr string
+	connDomain    string
+	ipamAddr      string
 }
 
 func (peer *vL3NsePeer) setPeerState(state vL3PeerState) {
@@ -133,6 +135,9 @@ func (vxc *vL3ConnectComposite) GetMyNseName() string {
 
 func (vxc *vL3ConnectComposite) processPeerRequest(vl3SrcEndpointName string, request *networkservice.NetworkServiceRequest, incoming *connection.Connection) error {
 	logrus.Infof("vL3ConnectComposite received connection request from vL3 NSE %s", vl3SrcEndpointName)
+	go func() {
+		metrics.ReceivedConnRequests.Inc()
+	}()
 	peer := vxc.addPeer(vl3SrcEndpointName, request.GetConnection().GetSourceNetworkServiceManagerName(), "")
 	peer.Lock()
 	defer peer.Unlock()
@@ -335,6 +340,9 @@ func (vxc *vL3ConnectComposite) createPeerConnectionRequest(ctx context.Context,
 
 func (vxc *vL3ConnectComposite) performPeerConnectRequest(ctx context.Context, peer *vL3NsePeer, routes []string, dpconfig interface{}, logger logrus.FieldLogger) (*connection.Connection, error) {
 	/* expected to be called with peer.Lock() */
+	go func() {
+		metrics.PerormedConnRequests.Inc()
+	}()
 	ifName := peer.endpointName
 	vxc.nsmClient.ClientLabels[LABEL_NSESOURCE] = vxc.GetMyNseName()
 	conn, err := vxc.nsmClient.ConnectToEndpoint(ctx, peer.remoteIp, peer.endpointName, peer.networkServiceManagerName, ifName, memif.MECHANISM, "VPP interface "+ifName, routes)
@@ -513,7 +521,7 @@ func newVL3ConnectComposite(configuration *common.NSConfiguration, ipamCidr stri
 		myNseNameFunc:      getNseName,
 		defaultRouteIpCidr: defaultCdPrefix,
 		ipamAddr:           ipamAddr,
-		connDomain: 	    connDomain,
+		connDomain:         connDomain,
 	}
 
 	logrus.Infof("newVL3ConnectComposite returning")
