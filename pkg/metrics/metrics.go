@@ -27,6 +27,12 @@ var (
 			Name:      "failed_find_network_service",
 			Help:      "Total number of failed network service finds",
 		})
+	ActiveWorkloadCount = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "vl3_nse",
+			Name:      "active_workload_count",
+			Help:      "Number of currently active workloads",
+		})
 	// TODO: define more metrics
 )
 
@@ -34,6 +40,7 @@ func ServeMetrics(addr string, path string) {
 	prometheus.MustRegister(ReceivedConnRequests)
 	prometheus.MustRegister(PerormedConnRequests)
 	prometheus.MustRegister(FailedFindNetworkService)
+	prometheus.MustRegister(ActiveWorkloadCount)
 
 	http.Handle(path, promhttp.Handler())
 
