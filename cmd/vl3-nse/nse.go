@@ -42,6 +42,7 @@ const (
 const (
 	defaultConfigPath   = "/etc/universal-cnf/config.yaml"
 	defaultPluginModule = ""
+	defaultMetricsPort  = "2113"
 )
 
 // Flags holds the command line flags as supplied with the binary invocation
@@ -101,8 +102,11 @@ func main() {
 	mainFlags := &Flags{}
 	mainFlags.Process()
 
-	// Metrics
+	// Init metrics
 	metricsPort := os.Getenv(metricsPortEnv)
+	if metricsPort == "" {
+		metricsPort = defaultMetricsPort
+	}
 	metrics.ServeMetrics(":"+metricsPort, metricsPath)
 
 	// Capture signals to cleanup before exiting
