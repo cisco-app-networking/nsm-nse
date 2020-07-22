@@ -21,12 +21,19 @@ var (
 			Name:      "performed_conn_requests",
 			Help:      "Total number of performed connection requests to vL3 NSE",
 		})
+	FailedFindNetworkService = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace: "vl3_nse",
+			Name:      "failed_find_network_service",
+			Help:      "Total number of failed network service finds",
+		})
 	// TODO: define more metrics
 )
 
 func ServeMetrics(addr string, path string) {
 	prometheus.MustRegister(ReceivedConnRequests)
 	prometheus.MustRegister(PerormedConnRequests)
+	prometheus.MustRegister(FailedFindNetworkService)
 
 	http.Handle(path, promhttp.Handler())
 

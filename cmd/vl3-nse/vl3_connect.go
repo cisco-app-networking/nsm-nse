@@ -201,6 +201,9 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 			response, err := vxc.nsDiscoveryClient.FindNetworkService(context.Background(), req)
 			if err != nil {
 				logger.Error(err)
+				go func() {
+					metrics.FailedFindNetworkService.Inc()
+				}()
 			} else {
 				logger.Infof("vL3ConnectComposite found network service; processing endpoints")
 				go vxc.processNsEndpoints(context.TODO(), response, "")
@@ -213,6 +216,9 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 				response, err := vxc.nsDiscoveryClient.FindNetworkService(context.Background(), req)
 				if err != nil {
 					logger.Error(err)
+					go func() {
+						metrics.FailedFindNetworkService.Inc()
+					}()
 				} else {
 					logger.Infof("vL3ConnectComposite found network service; processing endpoints from remote %s", remoteIp)
 					go vxc.processNsEndpoints(context.TODO(), response, remoteIp)
