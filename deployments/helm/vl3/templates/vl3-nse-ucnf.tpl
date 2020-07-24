@@ -116,10 +116,22 @@ spec:
   selector:
       cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
   ports:
-    - name: monitoring-vpp
+    - name: monitoring
       port: {{ .Values.vppMetricsPort }}
       targetPort: monitoring-vpp
       protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "nse-pod-service-{{ .Values.nsm.serviceName }}"
+  labels:
+    cnns/monitoring: vl3
+spec:
+  type: ClusterIP
+  selector:
+    cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+  ports:
     - name: monitoring
       port: {{ .Values.metricsPort }}
       targetPort: monitoring
