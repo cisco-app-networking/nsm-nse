@@ -78,6 +78,7 @@ func (b *UniversalCNFVPPAgentBackend) ProcessClient(
 				Memif: &interfaces.MemifLink{
 					Master:         false, // The client is not the master in MEMIF
 					SocketFilename: socketFilename,
+					RingSize:       512,
 				},
 			},
 		})
@@ -111,7 +112,12 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 	if len(dstIP) > net.IPv4len {
 		ipAddresses = append(ipAddresses, dstIP)
 	}
-
+	rxModes := []*interfaces.Interface_RxMode{
+		&interfaces.Interface_RxMode{
+			Mode:        interfaces.Interface_RxMode_INTERRUPT,
+			DefaultMode: true,
+		},
+	}
 	vppconfig.Interfaces = append(vppconfig.Interfaces,
 		&interfaces.Interface{
 			Name:        ifName + b.GetEndpointIfID(serviceName),
@@ -122,8 +128,10 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 				Memif: &interfaces.MemifLink{
 					Master:         true, // The endpoint is always the master in MEMIF
 					SocketFilename: socketFilename,
+					RingSize:       512,
 				},
 			},
+			RxModes: rxModes,
 		})
 
 	if err := os.MkdirAll(path.Dir(socketFilename), os.ModePerm); err != nil {
