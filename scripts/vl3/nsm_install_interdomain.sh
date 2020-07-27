@@ -62,7 +62,7 @@ helm template ${NSMDIR}/deployments/helm/skydive --namespace nsm-system --set in
 #kinddnsip=$(kubectl get svc ${KCONF:+--kubeconfig $KCONF} | grep kind-dns | awk '{ print $3 }')
 
 echo "------------Installing NSM-----------"
-helm template ${NSMDIR}/deployments/helm/nsm --namespace nsm-system --set org=${NSM_HUB},tag=${NSM_TAG} --set pullPolicy=Always --set insecure="true" --set global.JaegerTracing="true" ${SPIRE_DISABLED:+--set spire.enabled=false} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
+helm template ${NSMDIR}/deployments/helm/nsm --namespace nsm-system --set org=${NSM_HUB},tag=${NSM_TAG} --set admission-webhook.org=${NSM_HUB},admission-webhook.tag=${NSM_TAG} --set pullPolicy=Always --set insecure="true" --set global.JaegerTracing="true" ${SPIRE_DISABLED:+--set spire.enabled=false} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 echo "------------Installing NSM-addons -----------"
 helm template ${VL3DIR}/deployments/helm/nsm-addons --namespace nsm-system --set global.NSRegistrySvc=true  | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
