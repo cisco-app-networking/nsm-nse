@@ -18,6 +18,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 
@@ -35,14 +36,14 @@ import (
 )
 
 const (
-	metricsPortEnv = "METRICS_PORT"
-	metricsPath    = "/metrics"
+	metricsPortEnv     = "METRICS_PORT"
+	metricsPath        = "/metrics"
+	metricsPortDefault = "2112"
 )
 
 const (
 	defaultConfigPath   = "/etc/universal-cnf/config.yaml"
 	defaultPluginModule = ""
-	defaultMetricsPort  = "2113"
 )
 
 // Flags holds the command line flags as supplied with the binary invocation
@@ -102,12 +103,7 @@ func main() {
 	mainFlags := &Flags{}
 	mainFlags.Process()
 
-	// Init metrics
-	metricsPort := os.Getenv(metricsPortEnv)
-	if metricsPort == "" {
-		metricsPort = defaultMetricsPort
-	}
-	metrics.ServeMetrics(":"+metricsPort, metricsPath)
+	InitializeMetrics()
 
 	// Capture signals to cleanup before exiting
 	prometheus.NewBuildInfoCollector()
@@ -120,6 +116,16 @@ func main() {
 
 	defer ucnfNse.Cleanup()
 	<-c
+}
+
+func InitializeMetrics() {
+	metricsPort := os.Getenv(metricsPortEnv)
+	if metricsPort == "" {
+		metricsPort = metricsPortDefault
+	}
+	addr := fmt.Sprintf("0.0.0.0:%v", metricsPort)
+	logrus.WithField("path", metricsPath).Infof("Serving metrics on: %v", addr)
+	metrics.ServeMetrics(addr, metricsPath)
 }
 
 /*

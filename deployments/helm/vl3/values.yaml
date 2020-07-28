@@ -7,7 +7,7 @@ org: tiswanso
 tag: unified_api_ipam
 pullPolicy: Always
 vppMetricsPort: 9191
-metricsPort: 2113
+metricsPort: 2112
 
 cnns:
   nsr:

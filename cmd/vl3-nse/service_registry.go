@@ -6,11 +6,12 @@ import (
 	"strconv"
 	"strings"
 
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+
 	"github.com/cisco-app-networking/nsm-nse/api/serviceregistry"
 	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
-	"github.com/sirupsen/logrus"
-
-	"google.golang.org/grpc"
 )
 
 const (
@@ -23,7 +24,11 @@ const (
 type validationErrors []error
 
 func NewServiceRegistry(addr string) (ServiceRegistry, ServiceRegistryClient, error) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(addr,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(grpc_prometheus.UnaryClientInterceptor),
+		grpc.WithStreamInterceptor(grpc_prometheus.StreamClientInterceptor),
+	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to connect to ipam server: %w", err)
 	}
