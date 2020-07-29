@@ -1,27 +1,26 @@
-# virtual layer 3
+# Virtual Layer 3
 
-This is an NSE that creates a L3 routing domain between NSC workloads.  Each NSE
-performs the following:
+This is an NSE that creates a L3 routing domain between NSC workloads. Each NSE performs the following:
 
-1. Creates an IPAM composite endpoint with a /24 prefix pulled from the /16 prefix given in
+1. Creates an IPAM composite endpoint with a `/24` prefix pulled from the `/16` prefix given in
    the `endpoint.ipam` objects in the configmap.
 
 1. Creates a virtual L3 composite endpoint that does the following upon receipt of NS requests:
 
    1. if the NS request is from an app workload NSC,
-      1. respond with the IP context set for its route for the /24 subnet it handles IPAM for
+      1. respond with the IP context set for its route for the `/24` subnet it handles IPAM for
          1. program VPP agent for the NSC connection with the request parameters
       1. create a thread that
          1. finds all other NSEs for the same network service type
          1. for each other NSE to peer with
             1. if not already connected to it, create a NS connection request with
-               1. source route set to the /24 it handles IPAM for
+               1. source route set to the `/24` it handles IPAM for
                1. the destination endpoint of the target peer NSE 
                1. the destination NSM for the target peer NSE
                1. upon request response, program the VPP agent for the peer connection
    
    1. otherwise, the NS request is from a peer virtual-L3 NSE,
-      1. set the destRoutes to the /24 that the NSE handles IPAM for
+      1. set the destRoutes to the `/24` that the NSE handles IPAM for
       1. respond
       1. setup VPP agent for the peer connection
 
@@ -31,9 +30,10 @@ performs the following:
 
 1. This currently only works with a custom version of the NSM installation.
 
-   $ mkdir -p $GOPATH/src/github.com/cisco-app-networking
-   $ git clone https://github.com/cisco-app-networking/nsm-nse
-   ```
+    ```sh
+    mkdir -p $GOPATH/src/github.com/cisco-app-networking
+    git clone https://github.com/cisco-app-networking/nsm-nse
+    ```
    
 2. The `demo_*.sh` scripts in this repo work with `demo-magic` which has a dependency on `pv` (ie. `brew install pv`)
 
@@ -41,28 +41,27 @@ performs the following:
 
 #### Helloworld example
 
-```
-$ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --hello
+```sh
+scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --hello
 ```
 
 #### Mysql example
 
-```
-$ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql
+```sh
+scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql
 ```
 
 #### Validate vl3 helloworld client inter-connectivity
 
-```
+```sh
 KCONF=<path to your kubeconfig> ./scripts/vl3/check_vl3.sh
 ```
 
 #### Cleanup example
 
+```sh
+scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql --hello --nowait --delete
 ```
-$ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql --hello --nowait --delete
-```
-
 
 ## Multiple Domain Usage
 
@@ -72,24 +71,24 @@ $ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql
 
 1. Use script to install inter-domain NSM & helloworld.
 
-   ```bash
-   $ cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
-   $ scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --hello --nowait
-   ```
+    ```sh
+    cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
+    scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --hello --nowait
+    ```
 
 1. Validation:
 
    1. On each cluster exec into a helloworld pod's `kali` container
 
-      ```bash
-      $ awsHello=$(kubectl get pods --kubeconfig ${KCONFAWS} -l "app=helloworld" -o jsonpath="{.items[0].metadata.name}")
-      $ gkeHello=$(kubectl get pods --kubeconfig ${KCONFGKE} -l "app=helloworld" -o jsonpath="{.items[0].metadata.name}")
-      $ awsHelloIp=$(kubectl exec --kubeconfig ${KCONFAWS} -t ${awsHello} -c kali -- ip a show dev nsm0 | grep inet | awk '{ print $2 }' | cut -d '/' -f 1)
-      $ gkeHelloIp=$(kubectl exec --kubeconfig ${KCONFGKE} -t ${gkeHello} -c kali -- ip a show dev nsm0 | grep inet | awk '{ print $2 }' | cut -d '/' -f 1)
-      $ # curl from aws to gke
-      $ kubectl exec --kubeconfig ${KCONFAWS} -t ${awsHello} -c kali -- curl http://${gkeHelloIp}:5000/hello
-      $ # curl from gke to aws
-      $ kubectl exec --kubeconfig ${KCONFGKE} -t ${gkeHello} -c kali -- curl http://${awsHelloIp}:5000/hello
+      ```sh
+      awsHello=$(kubectl get pods --kubeconfig ${KCONFAWS} -l "app=helloworld" -o jsonpath="{.items[0].metadata.name}")
+      gkeHello=$(kubectl get pods --kubeconfig ${KCONFGKE} -l "app=helloworld" -o jsonpath="{.items[0].metadata.name}")
+      awsHelloIp=$(kubectl exec --kubeconfig ${KCONFAWS} -t ${awsHello} -c kali -- ip a show dev nsm0 | grep inet | awk '{ print $2 }' | cut -d '/' -f 1)
+      gkeHelloIp=$(kubectl exec --kubeconfig ${KCONFGKE} -t ${gkeHello} -c kali -- ip a show dev nsm0 | grep inet | awk '{ print $2 }' | cut -d '/' -f 1)
+      # curl from aws to gke
+      kubectl exec --kubeconfig ${KCONFAWS} -t ${awsHello} -c kali -- curl http://${gkeHelloIp}:5000/hello
+      # curl from gke to aws
+      kubectl exec --kubeconfig ${KCONFGKE} -t ${gkeHello} -c kali -- curl http://${awsHelloIp}:5000/hello
       ```
 
 ### Mysql Demo example
@@ -98,9 +97,9 @@ $ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql
 
 1. Use script to install inter-domain NSM & mysql DB replication.
 
-   ```bash
-   $ cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
-   $ scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --mysql --nowait
+   ```sh
+   cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
+   scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --mysql --nowait
    ```
 
 The result is NSM & vL3 interdomain deployed on AWS EKS and GKE clusters with a mysql-master on the EKS cluster
@@ -108,11 +107,11 @@ and mysql-slave on the GKE cluster.  DB replication should be operational betwee
 
 1. Check whether replication is setup.
 
-   1. On master use
+   1. On master use `show processlist`
    
       ```
-      masterPod=$(kubectl get pods --kubeconfig ${KCONFAWS} -l "app.kubernetes.io/name=mysql-master" -o jsonpath="{.items[0].metadata.name}")
-      kubectl exec -it ${masterPod} -c mysql-master --kubeconfig ${KCONFAWS} bash
+      $ masterPod=$(kubectl get pods --kubeconfig ${KCONFAWS} -l "app.kubernetes.io/name=mysql-master" -o jsonpath="{.items[0].metadata.name}")
+      $ kubectl exec -it ${masterPod} -c mysql-master --kubeconfig ${KCONFAWS} bash
       root@vl3-mysql-master-687d5c7d94-8mt4h:/# mysql -u root -ptest
       mysql> show processlist;
       +----+------+------------------+------+-------------+------+---------------------------------------------------------------+------------------+
@@ -124,11 +123,11 @@ and mysql-slave on the GKE cluster.  DB replication should be operational betwee
       2 rows in set (0.00 sec)
       ```
       
-   1. On slave use `show slave status\G`:
+   1. On slave use `show slave status \G`:
       
       ```
-      slavePod=$(kubectl get pods --kubeconfig ${KCONFGKE} -l "app.kubernetes.io/name=mysql-slave" -o jsonpath="{.items[0].metadata.name}")
-      kubectl exec -it ${slavePod} -c mysql-slave --kubeconfig ${KCONFGKE} bash
+      $ slavePod=$(kubectl get pods --kubeconfig ${KCONFGKE} -l "app.kubernetes.io/name=mysql-slave" -o jsonpath="{.items[0].metadata.name}")
+      $ kubectl exec -it ${slavePod} -c mysql-slave --kubeconfig ${KCONFGKE} bash
       root@vl3-mysql-slave-76b8d9c847-2zr5x:/# mysql -u root -ptest
       mysql> show slave status \G
       *************************** 1. row ***************************
@@ -194,8 +193,8 @@ and mysql-slave on the GKE cluster.  DB replication should be operational betwee
    
 1. Run the following script to test db replication:
 
-   ```bash
-   $ scripts/vl3/check_mysql.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --populate
+   ```sh
+   scripts/vl3/check_mysql.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --populate
    ```
 
 
@@ -209,11 +208,10 @@ The script requires the env var `REMOTE_CLUSTERIP` to be set.  The format is a c
 list of IPs that act as the remote cluster's NSM API endpoints.  Its value is the NodePort IP for
 the `nsmgr` Kubernetes service created in the `nsm_install_interdomain.sh` NSM installation step.
 
-```bash
+```sh
 REMOTE_IP=${cluster2_nsmgr_ip},${cluster3_nsmgr_ip} KCONF=cluster1.kconf scripts/vl3/vl3_interdomain.sh
 REMOTE_IP=${cluster1_nsmgr_ip},${cluster3_nsmgr_ip} KCONF=cluster2.kconf scripts/vl3/vl3_interdomain.sh
 REMOTE_IP=${cluster1_nsmgr_ip},${cluster2_nsmgr_ip} KCONF=cluster3.kconf scripts/vl3/vl3_interdomain.sh
-
 ```
 
 #### Validating Connectivity
@@ -222,7 +220,7 @@ The `helloworld` pods should have connectivity to each other across clusters thr
 NSM interdomain dataplane connections.  The following is an example of HTTP access between
 the `helloworld` pods in 2 clusters.
 
-```bash
+```
 $ kubectl get pods --kubeconfig clus2.kubeconfig
 NAME                            READY   STATUS    RESTARTS   AGE
 helloworld-v1-fc4998b76-rkf8b   3/3     Running   0          10m
@@ -295,42 +293,42 @@ to run the vL3 demos.
 
 1. Checkout local NSM
 
-   ```bash
-   $ cd ..
-   $ git clone https://github.com/tiswanso/networkservicemesh 
-   $ cd networkservicemesh
-   $ git checkout vl3_latest
+   ```sh
+   cd ..
+   git clone https://github.com/tiswanso/networkservicemesh 
+   cd networkservicemesh
+   git checkout vl3_latest
    ```
 
 ### GKE
 
 1. Select a project ID to use:
 
-   ```bash
-   $ gcloud projects list
+   ```sh
+   gcloud projects list
    ```
 
 1. Use makefile to start GKE cluster and setup firewall rules.  Note this creates a GKE cluster called `dev` in your GCP project.
 
-   ```bash
-   $ GKE_PROJECT_ID=<your project ID> make gke-start
+   ```sh
+   GKE_PROJECT_ID=<your project ID> make gke-start
    ```
 
 1. For inter-domain: The NSM make machinery cluster startup creates firewall rules for proxy-nsmgr service.
    An ingress rule on the nodes is added for port range `5000 - 5006` src `0.0.0.0/0`.
    If it's not there, do this via gcloud console's VPC Firewall rules or the below commands:
 
-   ```bash
-   $ gcloud compute firewall-rules create proxynsmgr-svc --allow=tcp:5000-5006 --direction=INGRESS --priority=900 --source-ranges="0.0.0.0/0" --project <your proj>
-   $ # to validate the rule creation
-   $ gcloud compute firewall-rules list --project <your proj>
+   ```sh
+   gcloud compute firewall-rules create proxynsmgr-svc --allow=tcp:5000-5006 --direction=INGRESS --priority=900 --source-ranges="0.0.0.0/0" --project <your proj>
+   # to validate the rule creation
+   gcloud compute firewall-rules list --project <your proj>
    ```
    
 1. copy kubeconfig to a separate file for use with scripts
    
-   ```bash
-   $ cp ~/.kube/config ~/.kube/gke-dev.kubeconfig
-   $ KCONFGKE=~/.kube/gke-dev.kubeconfig
+   ```sh
+   cp ~/.kube/config ~/.kube/gke-dev.kubeconfig
+   KCONFGKE=~/.kube/gke-dev.kubeconfig
    ```
 
 1. Proceed with normal NSM installation using `${KCONFGKE}` in the `kubeconfig` script params
@@ -340,21 +338,23 @@ to run the vL3 demos.
 
 1. Setup your AWS CLI environment for the project you want to use.
 
-1. Use makefile to start AWS cluster and setup firewall rules.  Note this creates a AWS EKS cluster in your project.
+1. Use makefile to start AWS cluster and setup firewall rules.
 
-   ```bash
-   $ make aws-start
+   ```sh
+   make aws-start
    ```
+   
+   __NOTE:__ this creates a AWS EKS cluster in your project.
 
 1. For inter-domain: The NSM make machinery cluster startup creates firewall rules for proxy-nsmgr service.
    An ingress rule on the nodes is added for port range `5000 - 5006` src `0.0.0.0/0`.
    If it's not there, create it via AWS console's VPC Firewall rules.
 
-1. copy kubeconfig to a separate file for use with scripts
+1. Copy kubeconfig to a separate file for use with scripts
 
-   ```bash
-   $ cp ~/.kube/config ~/.kube/aws-nsm.kubeconfig
-   $ KCONFAWS=~/.kube/aws-nsm.kubeconfig
+   ```sh
+   cp ~/.kube/config ~/.kube/aws-nsm.kubeconfig
+   KCONFAWS=~/.kube/aws-nsm.kubeconfig
    ```
 
 1. Proceed with normal NSM installation  using `${KCONFAWS}` in the `kubeconfig` script params
@@ -368,58 +368,59 @@ Therefore, it's possible to replicate the NSM interdomain setup and vL3 examples
 The following are instructions for starting 2 KinD clusters with port mappings to allow
 for access to each cluster's NSM Jaeger UI (NodePort service).
 
-1. Cluster 1 bringup
+1. Bring up Cluster 1
 
-   ```
-   $ JAEGER_HOSTPORT=38901
-   $ cat <<EOF > kind1.yaml
-   kind: Cluster
-   apiVersion: kind.sigs.k8s.io/v1alpha3
-   nodes:
-   - role: control-plane
-     extraPortMappings:
-     - containerPort:  31922
-       hostPort: ${JAEGER_HOSTPORT}
-   EOF
+    ```
+    $ JAEGER_HOSTPORT=38901
+    $ cat <<EOF > kind1.yaml
+    kind: Cluster
+    apiVersion: kind.sigs.k8s.io/v1alpha3
+    nodes:
+    - role: control-plane
+      extraPortMappings:
+      - containerPort:  31922
+        hostPort: ${JAEGER_HOSTPORT}
+    EOF
+ 
+    $ kind create cluster --config kind1.yaml --name kind1 
+    ```
 
-   $ kind create cluster --config kind1.yaml --name kind1 
-   ```
+1. Bring up Cluster 2
 
-1. Cluster 2 bringup
+    ```sh
+    $ JAEGER_HOSTPORT=38902
+    $ cat <<EOF > kind2.yaml
+    kind: Cluster
+    apiVersion: kind.sigs.k8s.io/v1alpha3
+    nodes:
+    - role: control-plane
+      extraPortMappings:
+      - containerPort:  31922
+        hostPort: ${JAEGER_HOSTPORT}
+    EOF
+ 
+    $ kind create cluster --config kind2.yaml --name kind2 
+    ```
 
-   ```
-   $ JAEGER_HOSTPORT=38902
-   $ cat <<EOF > kind2.yaml
-   kind: Cluster
-   apiVersion: kind.sigs.k8s.io/v1alpha3
-   nodes:
-   - role: control-plane
-     extraPortMappings:
-     - containerPort:  31922
-       hostPort: ${JAEGER_HOSTPORT}
-   EOF
+1. Run the demo script against the 2 clusters.
 
-   $ kind create cluster --config kind2.yaml --name kind2 
-   ```
+    The following example runs vL3 with the `helloworld` example.
 
-1. Run the demo script against the 2 clusters.  The following example runs vL3 with the
-   `helloworld` example.
+    ```sh
+    KIND1="$(kind get kubeconfig-path --name="kind1")"
+    KIND2="$(kind get kubeconfig-path --name="kind2")"
+    scripts/vl3/demo_vl3.sh --kconf_clus1=${KIND1} --kconf_clus2=${KIND2} --hello
+    ```
 
-   ```
-   $ KIND1="$(kind get kubeconfig-path --name="kind1")"
-   $ KIND2="$(kind get kubeconfig-path --name="kind2")"
-   $ scripts/vl3/demo_vl3.sh --kconf_clus1=${KIND1} --kconf_clus2=${KIND2} --hello
-   ```
-
-   __NOTE:__  The latest versions of `kind` no longer support the `kubeconfig-path` option.
-   Instead, use `kind get kubeconfig --name kind1` to the kubeconfig file contents
-   and save it to a file.
+    __NOTE:__  The latest versions of `kind` no longer support the `kubeconfig-path` option.
+    Instead, use `kind get kubeconfig --name kind1` to the kubeconfig file contents
+    and save it to a file.
 
 1. NSM gets installed into the namespace `nsm-system` and the `jaeger` UI is reachable
    via browser on the localhost at:
 
-   1. `http://127.0.0.1:38901` -- Jaeger KinD cluster 1
-   1. `http://127.0.0.1:38902` -- Jaeger KinD cluster 2
+    1. `http://127.0.0.1:38901` -- Jaeger KinD cluster 1
+    1. `http://127.0.0.1:38902` -- Jaeger KinD cluster 2
    
 
 ## References
