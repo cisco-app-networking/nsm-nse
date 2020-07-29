@@ -28,7 +28,7 @@ class AwsCluster(object):
                        *self.clusterInfo['cluster']['resourcesVpcConfig']['subnetIds'],
                        region=self.region)
 
-    def get_vpcid(self):
+    def get_vpc_id(self):
         return self.clusterInfo['cluster']['resourcesVpcConfig']['vpcId']
 
     def get_subnets(self, name):
