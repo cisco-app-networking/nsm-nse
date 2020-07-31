@@ -83,6 +83,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ucnf-vl3-{{ .Values.nsm.serviceName }}
+  namespace: {{ .Release.Namespace }}
 data:
   config.yaml: |
     endpoints:
@@ -109,6 +110,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: "nse-pod-service-{{ .Values.nsm.serviceName }}-vpp"
+  namespace: {{ .Release.Namespace }}
   labels:
     cnns/monitoring: vpp
 spec:
@@ -125,6 +127,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: "nse-pod-service-{{ .Values.nsm.serviceName }}"
+  namespace: {{ .Release.Namespace }}
   labels:
     cnns/monitoring: vl3
 spec:
