@@ -16,16 +16,16 @@ func (v InvalidConfigErrors) Error() string {
 	return b.String()
 }
 
-func (c *CNNS) validate() error {
+func (c *WCM) validate() error {
 	if c == nil {
 		return nil
 	}
 	var errs InvalidConfigErrors
 	if empty(c.Address) {
-		errs = append(errs, fmt.Errorf("cnns addreses is not set"))
+		errs = append(errs, fmt.Errorf("wcm address is not set"))
 	}
 	if empty(c.Name) {
-		errs = append(errs, fmt.Errorf("cnns name is not set"))
+		errs = append(errs, fmt.Errorf("wcm name is not set"))
 	}
 	if empty(c.ConnectivityDomain) {
 		errs = append(errs, fmt.Errorf("connectivity domain is not set"))
@@ -61,7 +61,7 @@ func (e Endpoint) validate() error {
 		return errs
 	}
 	for _, err := range []error{
-		e.CNNS.validate(),
+		e.WCM.validate(),
 		e.VL3.validate(),
 	} {
 		if err != nil {
@@ -72,8 +72,8 @@ func (e Endpoint) validate() error {
 			}
 		}
 	}
-	if e.CNNS == nil {
-		e.CNNS = &CNNS{}
+	if e.WCM == nil {
+		e.WCM = &WCM{}
 	}
 	if len(errs) > 0 {
 		return errs

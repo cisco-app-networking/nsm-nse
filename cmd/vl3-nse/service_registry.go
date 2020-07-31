@@ -6,16 +6,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/cisco-app-networking/nsm-nse/api/serviceregistry"
+	"github.com/sirupsen/logrus"
 
 	"google.golang.org/grpc"
 )
 
 const (
-	POD_NAME = "podName"
+	POD_NAME     = "podName"
 	SERVICE_NAME = "service"
-	PORT = "port"
+	PORT         = "port"
 	CLUSTER_NAME = "clusterName"
 )
 
@@ -33,7 +33,6 @@ func NewServiceRegistry(addr string) (ServiceRegistry, ServiceRegistryClient, er
 	return &serviceRegistry, &serviceRegistry, nil
 }
 
-
 type ServiceRegistry interface {
 	RegisterWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error
 	RemoveWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error
@@ -45,7 +44,7 @@ type ServiceRegistryClient interface {
 
 type serviceRegistry struct {
 	registryClient serviceregistry.RegistryClient
-	connection *grpc.ClientConn
+	connection     *grpc.ClientConn
 }
 
 func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error {
@@ -55,28 +54,28 @@ func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels m
 	}
 
 	workloadIdentifier := &serviceregistry.WorkloadIdentifier{
-		Cluster:             workloadLabels[CLUSTER_NAME],
-		PodName:             workloadLabels[POD_NAME],
-		Name:                workloadLabels[SERVICE_NAME],
+		Cluster: workloadLabels[CLUSTER_NAME],
+		PodName: workloadLabels[POD_NAME],
+		Name:    workloadLabels[SERVICE_NAME],
 	}
 
 	workload := &serviceregistry.Workload{
-		Identifier:          workloadIdentifier,
-		IPAddress:           ipAddr,
+		Identifier: workloadIdentifier,
+		IPAddress:  ipAddr,
 	}
 
 	workloads := []*serviceregistry.Workload{workload}
 	serviceWorkload := &serviceregistry.ServiceWorkload{
-		ServiceName:         workloadLabels[SERVICE_NAME],
-		ConnectivityDomain:  connDom,
-		Workloads:           workloads,
-		Ports:               ports,
+		ServiceName:        workloadLabels[SERVICE_NAME],
+		ConnectivityDomain: connDom,
+		Workloads:          workloads,
+		Ports:              ports,
 	}
 
 	logrus.Infof("Sending workload register request: %v", serviceWorkload)
 	_, err = s.registryClient.RegisterWorkload(ctx, serviceWorkload)
 	if err != nil {
-		logrus.Errorf("service registration not successful: %w", err)
+		logrus.Errorf("service registration not successful: %v", err)
 	}
 
 	return err
@@ -89,28 +88,28 @@ func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map
 	}
 
 	workloadIdentifier := &serviceregistry.WorkloadIdentifier{
-		Cluster:             workloadLabels[CLUSTER_NAME],
-		PodName:             workloadLabels[POD_NAME],
-		Name:                workloadLabels[SERVICE_NAME],
+		Cluster: workloadLabels[CLUSTER_NAME],
+		PodName: workloadLabels[POD_NAME],
+		Name:    workloadLabels[SERVICE_NAME],
 	}
 
 	workload := &serviceregistry.Workload{
-		Identifier:          workloadIdentifier,
-		IPAddress:           ipAddr,
+		Identifier: workloadIdentifier,
+		IPAddress:  ipAddr,
 	}
 
 	workloads := []*serviceregistry.Workload{workload}
 	serviceWorkload := &serviceregistry.ServiceWorkload{
-		ServiceName:         workloadLabels[SERVICE_NAME],
-		ConnectivityDomain:  connDom,
-		Workloads:           workloads,
-		Ports:               ports,
+		ServiceName:        workloadLabels[SERVICE_NAME],
+		ConnectivityDomain: connDom,
+		Workloads:          workloads,
+		Ports:              ports,
 	}
 
 	logrus.Infof("Sending workload remove request: %v", serviceWorkload)
 	_, err = s.registryClient.RemoveWorkload(ctx, serviceWorkload)
 	if err != nil {
-		logrus.Errorf("service removal not successful: %w", err)
+		logrus.Errorf("service removal not successful: %v", err)
 	}
 
 	return err

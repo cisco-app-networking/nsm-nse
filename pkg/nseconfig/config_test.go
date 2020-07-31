@@ -18,8 +18,8 @@ func TestNewConfig(t *testing.T) {
 	}{
 		"success": {
 			file: testFile1,
-			config: &Config{Endpoints: []*Endpoint{{CNNS: &CNNS{
-				Name:               "cnns1",
+			config: &Config{Endpoints: []*Endpoint{{WCM: &WCM{
+				Name:               "wcm1",
 				Address:            "golang.com:9000",
 				AccessToken:        "123123",
 				ConnectivityDomain: "test-connectivity-domain",
@@ -28,7 +28,7 @@ func TestNewConfig(t *testing.T) {
 					DefaultPrefixPool: "192.168.33.0/24",
 					PrefixLength:      24,
 					Routes:            []string{"192.168.34.0/24"},
-					ServerAddress:     "ipam-example.cnns-cisco.com",
+					ServerAddress:     "wcmd-example.wcm-cisco.com",
 				},
 				Ifname:      "nsm3",
 				NameServers: []string{"nms.google.com", "nms.google.com2"},
@@ -47,8 +47,8 @@ func TestNewConfig(t *testing.T) {
 		"validation-errors": {
 			file: testFile2,
 			err: InvalidConfigErrors([]error{
-				fmt.Errorf("cnns addreses is not set"),
-				fmt.Errorf("cnns name is not set"),
+				fmt.Errorf("wcm address is not set"),
+				fmt.Errorf("wcm name is not set"),
 				fmt.Errorf("connectivity domain is not set"),
 				fmt.Errorf("prefix pool is not a valid subnet: %s", &net.ParseError{Type: "CIDR address", Text: "invalid-pull"}),
 				fmt.Errorf("route nr %d with value %s is not a valid subnet: %s", 0, "invalid-route1", &net.ParseError{Type: "CIDR address", Text: "invalid-route1"}),
@@ -74,8 +74,8 @@ func TestNewConfig(t *testing.T) {
 
 const testFile1 = `
 endpoints:
-  - cnns:
-      name: cnns1
+  - wcm:
+      name: wcm1
       address: golang.com:9000
       accessToken: 123123
       connectivityDomain: test-connectivity-domain
@@ -84,14 +84,14 @@ endpoints:
         defaultPrefixPool: 192.168.33.0/24
         prefixLength: 24
         routes: [192.168.34.0/24]
-        serverAddress: ipam-example.cnns-cisco.com
+        serverAddress: wcmd-example.wcm-cisco.com
       ifName: nsm3
       nameServers: [nms.google.com, nms.google.com2]
 `
 
 const testFile2 = `
 endpoints:
-  - cnns:
+  - wcm:
       name: ""
       address: ""
     vl3:

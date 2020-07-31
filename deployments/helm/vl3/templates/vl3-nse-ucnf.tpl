@@ -15,12 +15,12 @@ spec:
       labels:
         networkservicemesh.io/app: "vl3-nse-{{ .Values.nsm.serviceName }}"
         networkservicemesh.io/impl: {{ .Values.nsm.serviceName | quote }}
-        cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+        wcm/nse.servicename: {{ .Values.nsm.serviceName | quote }}
       annotations:
         sidecar.istio.io/inject: "false"
-{{- if .Values.cnns.nsr.addr }}
-        cnns/nsr.address: {{ .Values.cnns.nsr.addr | quote }}
-        cnns/nsr.port: {{ .Values.cnns.nsr.port | quote }}
+{{- if .Values.wcm.nsr.addr }}
+        wcm/nsr.address: {{ .Values.wcm.nsr.addr | quote }}
+        wcm/nsr.port: {{ .Values.wcm.nsr.port | quote }}
 {{- end }}
     spec:
       containers:
@@ -85,18 +85,18 @@ data:
     - name: {{ .Values.nsm.serviceName | quote }}
       labels:
         app: "vl3-nse-{{ .Values.nsm.serviceName }}"
-{{- if .Values.cnns.nsr.addr }}
-        cnns/nsr.addr: {{ .Values.cnns.nsr.addr | quote }}
-        cnns/nsr.port: {{ .Values.cnns.nsr.port | quote }}
+{{- if .Values.wcm.nsr.addr }}
+        wcm/nsr.addr: {{ .Values.wcm.nsr.addr | quote }}
+        wcm/nsr.port: {{ .Values.wcm.nsr.port | quote }}
 {{- end }}
-      cnns:
+      wcm:
         name: {{ .Values.nsm.serviceName | quote }}
-        address: "{{ .Values.cnns.nsr.addr }}"
+        address: "{{ .Values.wcm.nsr.addr }}"
         connectivityDomain: "{{ .Values.nsm.serviceName }}-connectivity-domain"
       vl3:
        ipam:
-          defaultPrefixPool: {{ .Values.cnns.ipam.defaultPrefixPool | quote }}
-          serverAddress: "ipam-{{ .Values.cnns.nsr.addr }}:50051"
+          defaultPrefixPool: {{ .Values.wcm.ipam.defaultPrefixPool | quote }}
+          serverAddress: "ipam-{{ .Values.wcm.nsr.addr }}:50051"
           prefixLength: 22
           routes: []
        ifName: "endpoint0"
@@ -106,11 +106,11 @@ kind: Service
 metadata:
   name: "nse-pod-service-{{ .Values.nsm.serviceName }}"
   labels:
-    cnns/monitoring: vpp
+    wcm/monitoring: vpp
 spec:
   type: ClusterIP
   selector:
-      cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+      wcm/nse.servicename: {{ .Values.nsm.serviceName | quote }}
   ports:
     - name: monitoring
       port: {{ .Values.vppMetricsPort }}

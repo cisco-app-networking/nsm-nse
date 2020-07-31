@@ -18,12 +18,12 @@ type Endpoint struct {
 
 	NseName string `yaml:"nseName"` //TODO temporary in order to be able to run examples
 
-	CNNS *CNNS `yaml:"cnns"`
+	WCM *WCM `yaml:"wcm"`
 
 	VL3 VL3 `yaml:"vl3"`
 }
 
-type CNNS struct {
+type WCM struct {
 	Name               string `yaml:"name"`
 	Address            string `yaml:"address"`
 	AccessToken        string `yaml:"accessToken"`
