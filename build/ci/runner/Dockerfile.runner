@@ -3,15 +3,15 @@ FROM tiswanso/kubectl_kind:latest
 ARG  vl3_repo=https://github.com/cisco-app-networking/nsm-nse.git
 # set this to branch or $CIRCLE_SHA1
 ARG  vl3_branch=master
-ARG  nsm_repo=https://github.com/tiswanso/networkservicemesh.git
+ARG  nsm_repo=https://github.com/cisco-app-networking/networkservicemesh.git
 ARG  nsm_branch=vl3_latest
 
 RUN  git clone $vl3_repo /go/src/github.com/cisco-app-networking/nsm-nse && \
      cd /go/src/github.com/cisco-app-networking/nsm-nse && \
      git checkout $vl3_branch
 
-RUN  git clone $nsm_repo /go/src/github.com/networkservicemesh/networkservicemesh && \
-     cd /go/src/github.com/networkservicemesh/networkservicemesh && \
+RUN  git clone $nsm_repo /go/src/github.com/cisco-app-networking/networkservicemesh && \
+     cd /go/src/github.com/cisco-app-networking/networkservicemesh && \
      git checkout $nsm_branch
 
 # copy in KinD kubeconfigs
