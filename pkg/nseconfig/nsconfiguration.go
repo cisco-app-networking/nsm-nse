@@ -14,8 +14,8 @@ func (e *Endpoint) ToNSConfiguration() *common.NSConfiguration {
 		EndpointNetworkService: e.Name,
 		EndpointLabels:         e.Labels.String(),
 		MechanismType:          memif.MECHANISM,
-		IPAddress:              e.VL3.IPAM.DefaultPrefixPool,
-		Routes:                 e.VL3.IPAM.Routes,
+		IPAddress:              e.VL3.WCMD.DefaultPrefixPool,
+		Routes:                 e.VL3.WCMD.Routes,
 		NscInterfaceName:       e.VL3.Ifname,
 	}
 

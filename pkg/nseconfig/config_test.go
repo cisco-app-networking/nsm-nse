@@ -24,7 +24,7 @@ func TestNewConfig(t *testing.T) {
 				AccessToken:        "123123",
 				ConnectivityDomain: "test-connectivity-domain",
 			}, VL3: VL3{
-				IPAM: IPAM{
+				WCMD: WCMD{
 					DefaultPrefixPool: "192.168.33.0/24",
 					PrefixLength:      24,
 					Routes:            []string{"192.168.34.0/24"},
@@ -37,7 +37,7 @@ func TestNewConfig(t *testing.T) {
 		"success-minimal-config": {
 			file: testFile3,
 			config: &Config{Endpoints: []*Endpoint{{VL3: VL3{
-				IPAM: IPAM{
+				WCMD: WCMD{
 					DefaultPrefixPool: "192.168.33.0/24",
 					Routes:            []string{"192.168.34.0/24"},
 				},
@@ -80,7 +80,7 @@ endpoints:
       accessToken: 123123
       connectivityDomain: test-connectivity-domain
     vl3:
-      ipam:
+      wcmd:
         defaultPrefixPool: 192.168.33.0/24
         prefixLength: 24
         routes: [192.168.34.0/24]
@@ -95,7 +95,7 @@ endpoints:
       name: ""
       address: ""
     vl3:
-      ipam:
+      wcmd:
         defaultPrefixPool: invalid-pull
         prefixLength: 100
         routes: [invalid-route1, invalid-route2]
@@ -106,7 +106,7 @@ endpoints:
 const testFile3 = `
 endpoints:
   - vl3:
-      ipam:
+      wcmd:
         defaultPrefixPool: 192.168.33.0/24
         routes: [192.168.34.0/24]
       ifName: endpoint0

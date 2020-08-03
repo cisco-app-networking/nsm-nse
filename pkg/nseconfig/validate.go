@@ -40,10 +40,10 @@ func (c *WCM) validate() error {
 func (v VL3) validate() error {
 	var errs InvalidConfigErrors
 
-	if _, _, err := net.ParseCIDR(v.IPAM.DefaultPrefixPool); err != nil {
+	if _, _, err := net.ParseCIDR(v.WCMD.DefaultPrefixPool); err != nil {
 		errs = append(errs, fmt.Errorf("prefix pool is not a valid subnet: %s", err))
 	}
-	for i, r := range v.IPAM.Routes {
+	for i, r := range v.WCMD.Routes {
 		if _, _, err := net.ParseCIDR(r); err != nil {
 			errs = append(errs, fmt.Errorf("route nr %d with value %s is not a valid subnet: %s", i, r, err))
 		}

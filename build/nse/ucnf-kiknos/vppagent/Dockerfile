@@ -2,6 +2,7 @@ ARG VPP_AGENT
 
 FROM golang:alpine as build
 RUN apk --no-cache add git
+ENV PACKAGEPATH=github.com/networkservicemesh/networkservicemesh/
 ENV GO111MODULE=on
 
 RUN mkdir /root/nsm-nse

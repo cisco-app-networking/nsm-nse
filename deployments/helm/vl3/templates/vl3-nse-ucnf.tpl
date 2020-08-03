@@ -94,10 +94,10 @@ data:
         address: "{{ .Values.wcm.nsr.addr }}"
         connectivityDomain: "{{ .Values.nsm.serviceName }}-connectivity-domain"
       vl3:
-       ipam:
-          defaultPrefixPool: {{ .Values.wcm.ipam.defaultPrefixPool | quote }}
-          serverAddress: "ipam-{{ .Values.wcm.nsr.addr }}:50051"
-          prefixLength: 22
+       wcmd:
+          defaultPrefixPool: {{ .Values.wcm.wcmd.defaultPrefixPool | quote }}
+          serverAddress: "wcmd-{{ .Values.wcm.nsr.addr }}:50051"
+          prefixLength: {{ .Values.wcm.wcmd.prefixLength }}
           routes: []
        ifName: "endpoint0"
 ---

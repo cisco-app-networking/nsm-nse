@@ -24,7 +24,7 @@ type validationErrors []error
 func NewServiceRegistry(addr string) (ServiceRegistry, ServiceRegistryClient, error) {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to connect to ipam server: %w", err)
+		return nil, nil, fmt.Errorf("unable to connect to wcmd server: %w", err)
 	}
 
 	registryClient := serviceregistry.NewRegistryClient(conn)

@@ -31,12 +31,12 @@ type WCM struct {
 }
 
 type VL3 struct {
-	IPAM        IPAM     `yaml:"ipam"`
+	WCMD        WCMD     `yaml:"wcmd"`
 	Ifname      string   `yaml:"ifName"`
 	NameServers []string `yaml:"nameServers"`
 }
 
-type IPAM struct {
+type WCMD struct {
 	DefaultPrefixPool string   `yaml:"defaultPrefixPool"`
 	PrefixLength      int      `yaml:"prefixLength"`
 	Routes            []string `yaml:"routes"`

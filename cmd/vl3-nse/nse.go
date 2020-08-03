@@ -59,8 +59,8 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 	logrus.WithFields(logrus.Fields{
 		"prefixPool":         nsConfig.IPAddress,
 		"nsConfig.IPAddress": nsConfig.IPAddress,
-	}).Infof("Creating vL3 IPAM endpoint")
-	ipamEp := endpoint.NewIpamEndpoint(&common.NSConfiguration{
+	}).Infof("Creating vL3 WCMD endpoint")
+	wcmdEp := endpoint.NewIpamEndpoint(&common.NSConfiguration{
 		IPAddress: nsConfig.IPAddress,
 	})
 
@@ -70,11 +70,11 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 		nsRemoteIpList = strings.Split(nsRemoteIpListStr, ",")
 	}
 	compositeEndpoints := []networkservice.NetworkServiceServer{
-		ipamEp,
+		wcmdEp,
 		newVL3ConnectComposite(nsConfig, nsConfig.IPAddress,
 			&vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList, func() string {
 				return ucnfEndpoint.NseName
-			}, ucnfEndpoint.VL3.IPAM.DefaultPrefixPool, ucnfEndpoint.VL3.IPAM.ServerAddress, ucnfEndpoint.WCM.ConnectivityDomain),
+			}, ucnfEndpoint.VL3.WCMD.DefaultPrefixPool, ucnfEndpoint.VL3.WCMD.ServerAddress, ucnfEndpoint.WCM.ConnectivityDomain),
 	}
 
 	return &compositeEndpoints
