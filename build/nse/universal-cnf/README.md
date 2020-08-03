@@ -75,8 +75,8 @@ The actions which UCNF supports are as follows:
     * `name` - the name of the NS to be announced
     * `labels` - the labels to be assigned with this Endpoint
     * `ifname` - the base of the name of the network interface to be created upon Client connection. The actual interface name will have an index added to the base
-    * `ipam`
-        * `prefixpool` - a single prefix to define the IP pool that the IPAM will use do distribute point ot point IP subnets from
+    * `wcmd`
+        * `prefixpool` - a single prefix to define the IP pool that the WCMD will use to distribute point to point IP subnets from
         * `routes` - a list of IPv4/v6 route prefixes Endpoint
     * `action` - a single action to be executed on Client connect event. It consist of the same `command`, `client` and `dpconfig` members as described in `initactions`
 
@@ -94,7 +94,7 @@ A sample file to illustrate this scheme is shown below:
     - name: "packet-filtering"
       labels:
         app: "packet-filter"
-      ipam:
+      wcmd:
         prefixpool: "10.60.3.0/24"
         routes: ["10.60.1.0/24", "10.60.2.0/24"]
       ifname: "endpoint0"

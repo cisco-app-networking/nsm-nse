@@ -102,22 +102,6 @@ func (a *Action) Cleanup() error {
 	return nil
 }
 
-// IPAM holds the configuration of the IP address management
-type IPAM struct {
-	PrefixPool string
-	Routes     []string
-}
-
-// Endpoint is a struct to describe a NS Endpoint setup and the related VPP config changes
-type Endpoint struct {
-	Name    string
-	Labels  map[string]string
-	IfName  string
-	Ipam    *IPAM
-	Action  *Action
-	NseName string
-}
-
 type UniversalCNFBackend interface {
 	NewDPConfig() *vpp.ConfigData
 	NewUniversalCNFBackend() error
@@ -129,7 +113,6 @@ type UniversalCNFBackend interface {
 // UniversalCNFConfig hold the CNF configuration
 type UniversalCNFConfig struct {
 	InitActions []*Action
-	Endpoints   []*Endpoint
 	backend     UniversalCNFBackend
 }
 
