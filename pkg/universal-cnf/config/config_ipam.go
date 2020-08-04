@@ -110,9 +110,9 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 		return &IpamServiceImpl{}, fmt.Errorf("unable to connect to ipam server: %v", err)
 	}
 
-	wcmdAllocator := ipprovider.NewAllocatorClient(conn)
+	ipamAllocator := ipprovider.NewAllocatorClient(conn)
 	ipamService := IpamServiceImpl{
-		IpamAllocator:     wcmdAllocator,
+		IpamAllocator:     ipamAllocator,
 		RegisteredSubnets: make(chan *ipprovider.Subnet),
 	}
 	go func() {
