@@ -89,6 +89,13 @@ if [[ "${INSTALL_OP}" == "delete" ]]; then
     echo "delete configmap"
     kubectl delete --namespace ${NAMESPACE} ${KCONF:+--kubeconfig $KCONF} ${CFGMAP}
 else
+    wcm_namespace_status=$(kubectl get namespace $NAMESPACE -o=jsonpath='{.status.phase}')
+    if [[ "${wcm_namespace_status}" == "Active" ]]; then
+      echo "Namespace " ${NAMESPACE} " already exists"
+    else
+      kubectl create namespace ${NAMESPACE}
+    fi
+
     if [[ -n ${REMOTE_IP} ]]; then
         kubectl create --namespace ${NAMESPACE} ${KCONF:+--kubeconfig $KCONF} ${CFGMAP} --from-literal=remote.ip_list=${REMOTE_IP}
     fi
