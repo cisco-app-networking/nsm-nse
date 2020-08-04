@@ -22,6 +22,11 @@ e2e-kind-test: &e2e-kind-test
     - setup_remote_docker
     - checkout:
         path: /go/src/github.com/cisco-app-networking/nsm-nse
+    - run:
+        name: Clone networkservicemesh
+        working_directory: /go/src/github.com/networkservicemesh
+        command: |
+          git clone https://github.com/networkservicemesh/networkservicemesh.git
     - attach_workspace:
         at: /go/src/_save
     - run:
@@ -36,41 +41,41 @@ e2e-kind-test: &e2e-kind-test
           mkdir kubeconfigs
           kind get kubeconfig --name=kind1 > kubeconfigs/kind1.kubeconfig
           kind get kubeconfig --name=kind2 > kubeconfigs/kind2.kubeconfig
+
     - run:
         name: Restore built images
         command: |
           for cluster in kind1 kind2; do
             kind load image-archive --name $cluster /go/src/_save/images.tar
           done
+
     - run:
         name: Build vl3 runner container
         working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/build/ci/runner
         command: |
           docker build --build-arg vl3_repo=https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git --build-arg vl3_branch=${CIRCLE_BRANCH:-master} --build-arg nsm_branch=v0.2.0-vl3 -t vl3-runner:latest -f Dockerfile.runner .
-    - run:
-        name: Start common runner container
-        command: |
-          docker run -d --rm -v /var/run/docker.sock:/var/run/docker.sock --name=vl3-run --network=host vl3-runner:latest bash -c "while [[ 1 ]]; do sleep 900; done"
+
     - run:
         name: Run vl3 test
         command: |
-          docker exec -e VL3_IMGTAG=${CIRCLE_SHA1} -t vl3-run bash -c "/go/run_vl3.sh"
+          docker run --name=vl3-run --network=host -t -e VL3_IMGTAG=${CIRCLE_SHA1} vl3-runner:latest /go/run_vl3.sh
+
     - run:
-        name: Dump KinD Cluster state
-        when: always
-        command: |
-          docker exec -t vl3-run bash -c "git clone https://github.com/astralkn/k8s-logs-extractor.git && cd k8s-logs-extractor && go run . --kc=/etc/kubeconfigs --o=/logs"
-    - run:
-        name: Dump vl3 dataplane state
-        when: always
-        command: |
-          docker exec -t vl3-run bash -c "/go/src/github.com/cisco-app-networking/nsm-nse/scripts/vl3/check_vl3_dataplane.sh --kconf_clus1=/etc/kubeconfigs/kind1.kubeconfig --kconf_clus2=/etc/kubeconfigs/kind2.kubeconfig &> /logs/vl3_dataplane_dump.txt"
-    - run:
-        name: Store logs results
+        name: Dump vL3 interdomain state
         when: always
         command: |
           mkdir -p /tmp/cluster_state
-          docker cp vl3-run:/logs/. /tmp/cluster_state/
+          docker run --name=vl3-dataplane-dump --network=host -t vl3-runner:latest bash -c "/go/src/github.com/cisco-app-networking/nsm-nse/scripts/vl3/check_vl3_dataplane.sh --kconf_clus1=/etc/kubeconfigs/kind1.kubeconfig --kconf_clus2=/etc/kubeconfigs/kind2.kubeconfig"
+          docker logs vl3-dataplane-dump > /tmp/cluster_state/vl3_dataplane_dump.txt
+          docker run --name=vl3-logk1-dump --network=host -t vl3-runner:latest bash -c "kubectl logs deployment/vl3-nse-ucnf --kubeconfig /etc/kubeconfigs/kind1.kubeconfig"
+          docker logs vl3-logk1-dump > /tmp/cluster_state/vl3_log_dump_kind1.txt
+          docker run --name=vl3-logcm1-dump --network=host -t vl3-runner:latest bash -c "kubectl get configmap ucnf-vl3-ucnf -o yaml --kubeconfig /etc/kubeconfigs/kind1.kubeconfig"
+          docker logs vl3-logcm1-dump >> /tmp/cluster_state/vl3_log_dump_kind1.txt
+          docker run --name=vl3-logk2-dump --network=host -t vl3-runner:latest bash -c "kubectl logs deployment/vl3-nse-ucnf --kubeconfig /etc/kubeconfigs/kind2.kubeconfig"
+          docker logs vl3-logk2-dump > /tmp/cluster_state/vl3_log_dump_kind2.txt
+          docker run --name=vl3-logcm2-dump --network=host -t vl3-runner:latest bash -c "kubectl get configmap ucnf-vl3-ucnf -o yaml --kubeconfig /etc/kubeconfigs/kind2.kubeconfig"
+          docker logs vl3-logcm2-dump >> /tmp/cluster_state/vl3_log_dump_kind2.txt
+
     - store_artifacts:
         path: /tmp/cluster_state
 
@@ -78,6 +83,11 @@ e2e-kind-kiknos-test: &e2e-kind-kiknos-test
   steps:
     - checkout:
         path: ~/go/src/github.com/cisco-app-networking/nsm-nse
+    - run:
+        name: Clone networkservicemesh
+        working_directory: ~/go/src/github.com/networkservicemesh
+        command: |
+          git clone https://github.com/networkservicemesh/networkservicemesh.git
     - attach_workspace:
         at: ~/go/src/_save
     #- run:
@@ -91,7 +101,7 @@ e2e-kind-kiknos-test: &e2e-kind-kiknos-test
         name: Build runner container
         working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse
         command: |
-          docker build -t kiknos-runner:latest -f build/nse/ucnf-kiknos/Dockerfile.runner .
+          docker build --build-arg vl3_branch=${CIRCLE_SHA1:-master} --build-arg nsm_branch=v0.2.0-vl3 -t kiknos-runner:latest -f build/nse/ucnf-kiknos/Dockerfile.runner .
 
     - run:
         name: Start common runner container
@@ -107,25 +117,6 @@ e2e-kind-kiknos-test: &e2e-kind-kiknos-test
         name: deploy & test kiknos
         command: |
           docker exec -t kiknos-run bash -c "cd /go/src/github.com/cisco-app-networking/nsm-nse; make deploy-kiknos-start-vpn PROVISION_MODE=kind-load BUILD_IMAGE=true DEPLOY_ISTIO=false CLUSTER=kiknos-demo-2 CLUSTER_REF=kiknos-demo-1"
-
-    - run:
-        name: Dump KinD Cluster state
-        when: always
-        command: |
-          docker exec -t kiknos-run bash -c "mkdir -p \$HOME/kubeconfigs"
-          docker exec -t kiknos-run bash -c "kind get kubeconfig --name=kiknos-demo-1 > \$HOME/kubeconfigs/kiknos-demo-1.kubeconfig"
-          docker exec -t kiknos-run bash -c "kind get kubeconfig --name=kiknos-demo-2 > \$HOME/kubeconfigs/kiknos-demo-2.kubeconfig"
-          docker exec -t kiknos-run bash -c "git clone https://github.com/astralkn/k8s-logs-extractor.git && cd k8s-logs-extractor && go run . --kc=\$HOME/kubeconfigs --o=/logs"
-
-    - run:
-        name: Store logs results
-        when: always
-        command: |
-          mkdir -p /tmp/cluster_state
-          docker cp kiknos-run:/logs/. /tmp/cluster_state/
-
-    - store_artifacts:
-        path: /tmp/cluster_state
 
 publish-steps: &publish-steps
   steps:
@@ -156,6 +147,13 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Clone networkservicemesh
+          working_directory: /go/src/github.com/cisco-app-networking
+          command: |
+            git clone https://github.com/cisco-app-networking/networkservicemesh.git
+            cd networkservicemesh
+            git checkout v0.2.0-vl3
       - run:
           name: Build vL3 docker image
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
