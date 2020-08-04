@@ -229,7 +229,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 
 	err := ValidateInLabels(conn.Labels)
 	if err != nil {
-		logger.Error(err)
+		logger.Errorf("vL3 workload params not in labels: %v", err)
 	} else {
 		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.ipamAddr)
 		if err != nil {
@@ -254,7 +254,27 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 
 func (vxc *vL3ConnectComposite) Close(ctx context.Context, conn *connection.Connection) (*empty.Empty, error) {
 	// remove from connections
-	// TODO: should we be removing all peer connections here or no?
+	logrus.Infof("vL3 DeleteConnection: %v", conn)
+	err := ValidateInLabels(conn.Labels)
+	if err != nil {
+		logrus.Errorf("vL3 workload params not in labels: %v", err)
+	} else {
+		logrus.WithFields(logrus.Fields{
+			"SrcIP": processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"),
+		}).Infof("vL3 Removing workload instance")
+		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.ipamAddr)
+		if err != nil {
+			logrus.Error(err)
+		} else {
+			err = serviceRegistry.RemoveWorkload(ctx, conn.Labels, vxc.connDomain,
+				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"))
+			if err != nil {
+				logrus.Error(err)
+			}
+			registryClient.Stop()
+		}
+	}
+
 	if endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Close(ctx, conn)
 	}
