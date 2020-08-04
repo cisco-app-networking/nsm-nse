@@ -6,10 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cisco-app-networking/nsm-nse/api/serviceregistry"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/sirupsen/logrus"
-
 	"google.golang.org/grpc"
+
+	"github.com/cisco-app-networking/nsm-nse/api/serviceregistry"
+	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
 )
 
 const (
@@ -22,7 +24,11 @@ const (
 type validationErrors []error
 
 func NewServiceRegistry(addr string) (ServiceRegistry, ServiceRegistryClient, error) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(addr,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(grpc_prometheus.UnaryClientInterceptor),
+		grpc.WithStreamInterceptor(grpc_prometheus.StreamClientInterceptor),
+	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to connect to ServiceRegistry: %w", err)
 	}
@@ -51,6 +57,7 @@ func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels m
 	ports, err := processPortsFromLabel(workloadLabels[PORT], ";")
 	if err != nil {
 		logrus.Error(err)
+		return err
 	}
 
 	workloadIdentifier := &serviceregistry.WorkloadIdentifier{
@@ -75,16 +82,22 @@ func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels m
 	logrus.Infof("Sending workload register request: %v", serviceWorkload)
 	_, err = s.registryClient.RegisterWorkload(ctx, serviceWorkload)
 	if err != nil {
-		logrus.Errorf("service registration not successful: %v", err)
+		logrus.Errorf("service registration not successful: %w", err)
+		return err
 	}
 
-	return err
+	go func() {
+		metrics.ActiveWorkloadCount.Inc()
+	}()
+
+	return nil
 }
 
 func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error {
 	ports, err := processPortsFromLabel(workloadLabels[PORT], ";")
 	if err != nil {
 		logrus.Error(err)
+		return err
 	}
 
 	workloadIdentifier := &serviceregistry.WorkloadIdentifier{
@@ -109,10 +122,15 @@ func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map
 	logrus.Infof("Sending workload remove request: %v", serviceWorkload)
 	_, err = s.registryClient.RemoveWorkload(ctx, serviceWorkload)
 	if err != nil {
-		logrus.Errorf("service removal not successful: %v", err)
+		logrus.Errorf("service removal not successful: %w", err)
+		return err
 	}
 
-	return err
+	go func() {
+		metrics.ActiveWorkloadCount.Dec()
+	}()
+
+	return nil
 }
 
 func (s *serviceRegistry) Stop() {

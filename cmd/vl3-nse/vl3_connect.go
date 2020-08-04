@@ -19,6 +19,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	"google.golang.org/grpc"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 )
 
 const (
@@ -132,6 +135,9 @@ func (vxc *vL3ConnectComposite) GetMyNseName() string {
 
 func (vxc *vL3ConnectComposite) processPeerRequest(vl3SrcEndpointName string, request *networkservice.NetworkServiceRequest, incoming *connection.Connection) error {
 	logrus.Infof("vL3ConnectComposite received connection request from vL3 NSE %s", vl3SrcEndpointName)
+	go func() {
+		metrics.ReceivedConnRequests.Inc()
+	}()
 	peer := vxc.addPeer(vl3SrcEndpointName, request.GetConnection().GetSourceNetworkServiceManagerName(), "")
 	peer.Lock()
 	defer peer.Unlock()
@@ -195,6 +201,9 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 			response, err := vxc.nsDiscoveryClient.FindNetworkService(context.Background(), req)
 			if err != nil {
 				logger.Error(err)
+				go func() {
+					metrics.FailedFindNetworkService.Inc()
+				}()
 			} else {
 				logger.Infof("vL3ConnectComposite found network service; processing endpoints")
 				go vxc.processNsEndpoints(context.TODO(), response, "")
@@ -207,6 +216,9 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 				response, err := vxc.nsDiscoveryClient.FindNetworkService(context.Background(), req)
 				if err != nil {
 					logger.Error(err)
+					go func() {
+						metrics.FailedFindNetworkService.Inc()
+					}()
 				} else {
 					logger.Infof("vL3ConnectComposite found network service; processing endpoints from remote %s", remoteIp)
 					go vxc.processNsEndpoints(context.TODO(), response, remoteIp)
@@ -334,6 +346,9 @@ func (vxc *vL3ConnectComposite) createPeerConnectionRequest(ctx context.Context,
 
 func (vxc *vL3ConnectComposite) performPeerConnectRequest(ctx context.Context, peer *vL3NsePeer, routes []string, dpconfig interface{}, logger logrus.FieldLogger) (*connection.Connection, error) {
 	/* expected to be called with peer.Lock() */
+	go func() {
+		metrics.PerormedConnRequests.Inc()
+	}()
 	ifName := peer.endpointName
 	vxc.nsmClient.ClientLabels[LABEL_NSESOURCE] = vxc.GetMyNseName()
 	conn, err := vxc.nsmClient.ConnectToEndpoint(ctx, peer.remoteIp, peer.endpointName, peer.networkServiceManagerName, ifName, memif.MECHANISM, "VPP interface "+ifName, routes)

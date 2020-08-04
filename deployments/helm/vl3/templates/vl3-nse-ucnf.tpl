@@ -28,8 +28,10 @@ spec:
           image: {{ .Values.registry }}/{{ .Values.org }}/vl3_ucnf-nse:{{ .Values.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           ports:
-          - name: monitoring
+          - name: monitoring-vpp
             containerPort: {{ .Values.vppMetricsPort }}
+          - name: monitoring
+            containerPort: {{ .Values.metricsPort  }}
           env:
             - name: ENDPOINT_NETWORK_SERVICE
               value: {{ .Values.nsm.serviceName | quote }}
@@ -58,6 +60,8 @@ spec:
                 configMapKeyRef:
                   name: nsm-vl3-{{ .Values.nsm.serviceName }}
                   key: remote.ip_list
+            - name: METRICS_PORT
+              value: {{ .Values.metricsPort | quote }}
           securityContext:
             capabilities:
               add:
@@ -104,7 +108,7 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: "nse-pod-service-{{ .Values.nsm.serviceName }}"
+  name: "nse-pod-service-{{ .Values.nsm.serviceName }}-vpp"
   labels:
     wcm/monitoring: vpp
 spec:
@@ -114,5 +118,21 @@ spec:
   ports:
     - name: monitoring
       port: {{ .Values.vppMetricsPort }}
+      targetPort: monitoring-vpp
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "nse-pod-service-{{ .Values.nsm.serviceName }}"
+  labels:
+    cnns/monitoring: vl3
+spec:
+  type: ClusterIP
+  selector:
+    cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+  ports:
+    - name: monitoring
+      port: {{ .Values.metricsPort }}
       targetPort: monitoring
       protocol: TCP
