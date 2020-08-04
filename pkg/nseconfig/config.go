@@ -18,12 +18,12 @@ type Endpoint struct {
 
 	NseName string `yaml:"nseName"` //TODO temporary in order to be able to run examples
 
-	WCM *WCM `yaml:"wcm"`
+	Nseservices *Nseservices `yaml:"nseServices"`
 
 	VL3 VL3 `yaml:"vl3"`
 }
 
-type WCM struct {
+type Nseservices struct {
 	Name               string `yaml:"name"`
 	Address            string `yaml:"address"`
 	AccessToken        string `yaml:"accessToken"`
@@ -31,12 +31,12 @@ type WCM struct {
 }
 
 type VL3 struct {
-	WCMD        WCMD     `yaml:"wcmd"`
+	IPAM        IPAM     `yaml:"ipam"`
 	Ifname      string   `yaml:"ifName"`
 	NameServers []string `yaml:"nameServers"`
 }
 
-type WCMD struct {
+type IPAM struct {
 	DefaultPrefixPool string   `yaml:"defaultPrefixPool"`
 	PrefixLength      int      `yaml:"prefixLength"`
 	Routes            []string `yaml:"routes"`

@@ -18,13 +18,13 @@ func TestNewConfig(t *testing.T) {
 	}{
 		"success": {
 			file: testFile1,
-			config: &Config{Endpoints: []*Endpoint{{WCM: &WCM{
+			config: &Config{Endpoints: []*Endpoint{{NseServices: &NseServices{
 				Name:               "wcm1",
 				Address:            "golang.com:9000",
 				AccessToken:        "123123",
 				ConnectivityDomain: "test-connectivity-domain",
 			}, VL3: VL3{
-				WCMD: WCMD{
+				IPAM: IPAM{
 					DefaultPrefixPool: "192.168.33.0/24",
 					PrefixLength:      24,
 					Routes:            []string{"192.168.34.0/24"},
@@ -37,7 +37,7 @@ func TestNewConfig(t *testing.T) {
 		"success-minimal-config": {
 			file: testFile3,
 			config: &Config{Endpoints: []*Endpoint{{VL3: VL3{
-				WCMD: WCMD{
+				IPAM: IPAM{
 					DefaultPrefixPool: "192.168.33.0/24",
 					Routes:            []string{"192.168.34.0/24"},
 				},

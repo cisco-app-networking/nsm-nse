@@ -16,16 +16,16 @@ func (v InvalidConfigErrors) Error() string {
 	return b.String()
 }
 
-func (c *WCM) validate() error {
+func (c *NseServices) validate() error {
 	if c == nil {
 		return nil
 	}
 	var errs InvalidConfigErrors
 	if empty(c.Address) {
-		errs = append(errs, fmt.Errorf("wcm address is not set"))
+		errs = append(errs, fmt.Errorf("nseServices address is not set"))
 	}
 	if empty(c.Name) {
-		errs = append(errs, fmt.Errorf("wcm name is not set"))
+		errs = append(errs, fmt.Errorf("nseServices name is not set"))
 	}
 	if empty(c.ConnectivityDomain) {
 		errs = append(errs, fmt.Errorf("connectivity domain is not set"))
@@ -40,10 +40,10 @@ func (c *WCM) validate() error {
 func (v VL3) validate() error {
 	var errs InvalidConfigErrors
 
-	if _, _, err := net.ParseCIDR(v.WCMD.DefaultPrefixPool); err != nil {
+	if _, _, err := net.ParseCIDR(v.IPAM.DefaultPrefixPool); err != nil {
 		errs = append(errs, fmt.Errorf("prefix pool is not a valid subnet: %s", err))
 	}
-	for i, r := range v.WCMD.Routes {
+	for i, r := range v.IPAM.Routes {
 		if _, _, err := net.ParseCIDR(r); err != nil {
 			errs = append(errs, fmt.Errorf("route nr %d with value %s is not a valid subnet: %s", i, r, err))
 		}
@@ -61,7 +61,7 @@ func (e Endpoint) validate() error {
 		return errs
 	}
 	for _, err := range []error{
-		e.WCM.validate(),
+		e.NseServices.validate(),
 		e.VL3.validate(),
 	} {
 		if err != nil {
@@ -72,8 +72,8 @@ func (e Endpoint) validate() error {
 			}
 		}
 	}
-	if e.WCM == nil {
-		e.WCM = &WCM{}
+	if e.NseServices == nil {
+		e.NseServices = &NseServices{}
 	}
 	if len(errs) > 0 {
 		return errs

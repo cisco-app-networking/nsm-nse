@@ -59,16 +59,16 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			EndpointLabels:         labelStringFromMap(e.Labels),
 			ClientLabels:           nsconfig.ClientLabels,
 			MechanismType:          memif.MECHANISM,
-			IPAddress:              e.VL3.WCMD.DefaultPrefixPool,
+			IPAddress:              e.VL3.IPAM.DefaultPrefixPool,
 			Routes:                 nil,
 		}
-		if e.VL3.WCMD.ServerAddress != "" {
+		if e.VL3.IPAM.ServerAddress != "" {
 			var err error
-			wcmdService, err := NewWcmdService(ctx, e.VL3.WCMD.ServerAddress)
+			ipamService, err := NewIpamService(ctx, e.VL3.IPAM.ServerAddress)
 			if err != nil {
 				logrus.Error(err)
 			} else {
-				configuration.IPAddress, err = wcmdService.AllocateSubnet(e)
+				configuration.IPAddress, err = ipamService.AllocateSubnet(e)
 				if err != nil {
 					logrus.Error(err)
 				}
@@ -86,7 +86,7 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 		}
 
 		// if the default DefaultPrefixPool is set and central ipam server address is not set then use a ipam endpoint
-		if e.VL3.WCMD.DefaultPrefixPool != "" && e.VL3.WCMD.ServerAddress == "" {
+		if e.VL3.IPAM.DefaultPrefixPool != "" && e.VL3.IPAM.ServerAddress == "" {
 			compositeEndpoints = append(compositeEndpoints, endpoint.NewIpamEndpoint(&common.NSConfiguration{
 				NsmServerSocket:        nsconfig.NsmServerSocket,
 				NsmClientSocket:        nsconfig.NsmClientSocket,
@@ -96,13 +96,13 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 				EndpointLabels:         nsconfig.EndpointLabels,
 				ClientLabels:           nsconfig.ClientLabels,
 				MechanismType:          nsconfig.MechanismType,
-				IPAddress:              e.VL3.WCMD.DefaultPrefixPool,
+				IPAddress:              e.VL3.IPAM.DefaultPrefixPool,
 				Routes:                 nil,
 			}))
 		}
 
-		if len(e.VL3.WCMD.Routes) > 0 {
-			routeAddr := makeRouteMutator(e.VL3.WCMD.Routes)
+		if len(e.VL3.IPAM.Routes) > 0 {
+			routeAddr := makeRouteMutator(e.VL3.IPAM.Routes)
 			compositeEndpoints = append(compositeEndpoints, endpoint.NewCustomFuncEndpoint("route", routeAddr))
 		}
 

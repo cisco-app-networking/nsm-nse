@@ -2,25 +2,25 @@
 
 This is an NSE that creates a L3 routing domain between NSC workloads. Each NSE performs the following:
 
-1. Creates an WCMD composite endpoint with a `/24` prefix pulled from the `/16` prefix given in
-   the `endpoint.wcmd` objects in the configmap.
+1. Creates an IPAM composite endpoint with a `/24` prefix pulled from the `/16` prefix given in
+   the `endpoint.ipam` objects in the configmap.
 
 1. Creates a virtual L3 composite endpoint that does the following upon receipt of NS requests:
 
    1. if the NS request is from an app workload NSC,
-      1. respond with the IP context set for its route for the `/24` subnet it handles WCMD for
+      1. respond with the IP context set for its route for the `/24` subnet it handles IPAM for
          1. program VPP agent for the NSC connection with the request parameters
       1. create a thread that
          1. finds all other NSEs for the same network service type
          1. for each other NSE to peer with
             1. if not already connected to it, create a NS connection request with
-               1. source route set to the `/24` it handles WCMD for
+               1. source route set to the `/24` it handles IPAM for
                1. the destination endpoint of the target peer NSE 
                1. the destination NSM for the target peer NSE
                1. upon request response, program the VPP agent for the peer connection
    
    1. otherwise, the NS request is from a peer virtual-L3 NSE,
-      1. set the destRoutes to the `/24` that the NSE handles WCMD for
+      1. set the destRoutes to the `/24` that the NSE handles IPAM for
       1. respond
       1. setup VPP agent for the peer connection
 

@@ -14,34 +14,34 @@ import (
 	"google.golang.org/grpc"
 )
 
-type WcmdService interface {
+type IpamService interface {
 	AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (string, error)
 }
 
-type WcmdServiceImpl struct {
-	WcmdAllocator     ipprovider.AllocatorClient
+type IpamServiceImpl struct {
+	IpamAllocator     ipprovider.AllocatorClient
 	RegisteredSubnets chan *ipprovider.Subnet
 }
 
-func (i *WcmdServiceImpl) AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (string, error) {
+func (i *IpamServiceImpl) AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (string, error) {
 	var subnet *ipprovider.Subnet
 	for j := 0; j < 6; j++ {
 		var err error
-		subnet, err = i.WcmdAllocator.AllocateSubnet(context.Background(), &ipprovider.SubnetRequest{
+		subnet, err = i.IpamAllocator.AllocateSubnet(context.Background(), &ipprovider.SubnetRequest{
 			Identifier: &ipprovider.Identifier{
-				Fqdn:               ucnfEndpoint.WCM.Address,
-				Name:               ucnfEndpoint.WCM.Name + uuid.Must(uuid.NewV4()).String(),
-				ConnectivityDomain: ucnfEndpoint.WCM.ConnectivityDomain,
+				Fqdn:               ucnfEndpoint.NseServices.Address,
+				Name:               ucnfEndpoint.NseServices.Name + uuid.Must(uuid.NewV4()).String(),
+				ConnectivityDomain: ucnfEndpoint.NseServices.ConnectivityDomain,
 			},
 			AddrFamily: &ipprovider.IpFamily{Family: ipprovider.IpFamily_IPV4},
-			PrefixLen:  uint32(ucnfEndpoint.VL3.WCMD.PrefixLength),
+			PrefixLen:  uint32(ucnfEndpoint.VL3.IPAM.PrefixLength),
 		})
 		if err != nil {
 			if j == 5 {
-				return "", fmt.Errorf("wcmd allocation not successful: %v", err)
+				return "", fmt.Errorf("ipam allocation not successful: %v", err)
 
 			}
-			logrus.Errorf("wcmd allocation not successful: %v \n waiting 60 seconds before retrying \n", err)
+			logrus.Errorf("ipam allocation not successful: %v \n waiting 60 seconds before retrying \n", err)
 			time.Sleep(60 * time.Second)
 		} else {
 			break
@@ -51,7 +51,7 @@ func (i *WcmdServiceImpl) AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (stri
 	return subnet.Prefix.Subnet, nil
 }
 
-func (i *WcmdServiceImpl) Renew(ctx context.Context, errorHandler func(err error)) error {
+func (i *IpamServiceImpl) Renew(ctx context.Context, errorHandler func(err error)) error {
 	g, ctx := errgroup.WithContext(ctx)
 	var subnets = make(map[string]*ipprovider.Subnet)
 	for {
@@ -59,7 +59,7 @@ func (i *WcmdServiceImpl) Renew(ctx context.Context, errorHandler func(err error
 		case subnet := <-i.RegisteredSubnets:
 			g.Go(func() error {
 				for range time.Tick(time.Duration(subnet.LeaseTimeout-1) * time.Hour) {
-					_, err := i.WcmdAllocator.RenewSubnetLease(ctx, subnet)
+					_, err := i.IpamAllocator.RenewSubnetLease(ctx, subnet)
 					if err != nil {
 						errorHandler(err)
 					}
@@ -80,10 +80,10 @@ func (i *WcmdServiceImpl) Renew(ctx context.Context, errorHandler func(err error
 	}
 }
 
-func (i *WcmdServiceImpl) Cleanup(subnets map[string]*ipprovider.Subnet) error {
+func (i *IpamServiceImpl) Cleanup(subnets map[string]*ipprovider.Subnet) error {
 	var errs errors
 	for _, v := range subnets {
-		_, err := i.WcmdAllocator.FreeSubnet(context.Background(), v)
+		_, err := i.IpamAllocator.FreeSubnet(context.Background(), v)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -104,20 +104,20 @@ func (es errors) Error() string {
 	return buff.String()
 }
 
-func NewWcmdService(ctx context.Context, addr string) (WcmdService, error) {
+func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		return &WcmdServiceImpl{}, fmt.Errorf("unable to connect to wcmd server: %v", err)
+		return &IpamServiceImpl{}, fmt.Errorf("unable to connect to ipam server: %v", err)
 	}
 
 	wcmdAllocator := ipprovider.NewAllocatorClient(conn)
-	wcmdService := WcmdServiceImpl{
-		WcmdAllocator:     wcmdAllocator,
+	ipamService := IpamServiceImpl{
+		IpamAllocator:     wcmdAllocator,
 		RegisteredSubnets: make(chan *ipprovider.Subnet),
 	}
 	go func() {
-		logrus.Info("begin the wcmd leased subnet renew process")
-		if err := wcmdService.Renew(ctx, func(err error) {
+		logrus.Info("begin the ipam leased subnet renew process")
+		if err := ipamService.Renew(ctx, func(err error) {
 			if err != nil {
 				logrus.Error("unable to renew the subnet", err)
 			}
@@ -125,5 +125,5 @@ func NewWcmdService(ctx context.Context, addr string) (WcmdService, error) {
 			logrus.Error(err)
 		}
 	}()
-	return &wcmdService, nil
+	return &ipamService, nil
 }
