@@ -5,7 +5,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
