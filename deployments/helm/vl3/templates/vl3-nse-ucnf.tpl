@@ -100,7 +100,7 @@ data:
       vl3:
        ipam:
           defaultPrefixPool: {{ .Values.nseControl.ipam.defaultPrefixPool | quote }}
-          serverAddress: {{ .Values.nseControl.ipam.serverAddress | quote }}
+          serverAddress: "ipam-{{ .Values.nseControl.nsr.addr }}:50051"
           prefixLength: {{ .Values.nseControl.ipam.prefixLength }}
           routes: []
        ifName: "endpoint0"
