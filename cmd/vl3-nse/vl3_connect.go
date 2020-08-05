@@ -261,7 +261,7 @@ func (vxc *vL3ConnectComposite) Close(ctx context.Context, conn *connection.Conn
 		logrus.WithFields(logrus.Fields{
 			"SrcIP": processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"),
 		}).Infof("vL3 Removing workload instance")
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.ipamAddr)
+		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr)
 		if err != nil {
 			logrus.Error(err)
 		} else {
