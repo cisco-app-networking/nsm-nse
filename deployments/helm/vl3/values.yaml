@@ -9,16 +9,16 @@ pullPolicy: Always
 vppMetricsPort: 9191
 metricsPort: 2112
 
-wcm:
+nseControl:
   nsr:
     port: 5005
     addr: vl3-service.wcm-cisco.com
     cd: vl3-service-connectivity-domain
 #  domain: nsr.foo.com
-  wcmd:
+  ipam:
     defaultPrefixPool: 192.168.0.0/16
     prefixLength: 22
-    serverAddress: wcmd-vl3-service:50051
+    serverAddress: ipam-vl3-service.wcm-cisco.com:50051
 
 nsm:
   serviceName: vl3-service

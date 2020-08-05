@@ -63,11 +63,11 @@ type vL3ConnectComposite struct {
 	nsRegGrpcClient    *grpc.ClientConn
 	nsDiscoveryClient  registry.NetworkServiceDiscoveryClient
 	//nsClient networkservice.NetworkServiceClient
-	nsmClient              *client.NsmClient
-	backend                config.UniversalCNFBackend
-	myNseNameFunc          fnGetNseName
-	connDomain             string
-	nseControlServicesAddr string
+	nsmClient      *client.NsmClient
+	backend        config.UniversalCNFBackend
+	myNseNameFunc  fnGetNseName
+	connDomain     string
+	nseControlAddr string
 }
 
 func (peer *vL3NsePeer) setPeerState(state vL3PeerState) {
@@ -230,7 +230,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 	if err != nil {
 		logger.Error(err)
 	} else {
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlServicesAddr)
+		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr)
 		if err != nil {
 			logger.Error(err)
 		} else {
@@ -424,7 +424,7 @@ func removeDuplicates(elements []string) []string {
 }
 
 // newVL3ConnectComposite creates a new VL3 composite
-func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, nseControlServicesAddr, connDomain string) *vL3ConnectComposite {
+func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, nseControlAddr, connDomain string) *vL3ConnectComposite {
 	nsRegAddr, ok := os.LookupEnv("NSREGISTRY_ADDR")
 	if !ok {
 		nsRegAddr = NSREGISTRY_ADDR
@@ -514,19 +514,19 @@ func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr st
 	*/
 
 	newVL3ConnectComposite := &vL3ConnectComposite{
-		nsConfig:               configuration,
-		remoteNsIpList:         remoteIpList,
-		vL3NetCidr:             vL3NetCidr,
-		myEndpointName:         "",
-		vl3NsePeers:            make(map[string]*vL3NsePeer),
-		nsRegGrpcClient:        nsRegGrpcClient,
-		nsDiscoveryClient:      nsDiscoveryClient,
-		nsmClient:              nsmClient,
-		backend:                backend,
-		myNseNameFunc:          getNseName,
-		defaultRouteIpCidr:     defaultCdPrefix,
-		nseControlServicesAddr: nseControlServicesAddr,
-		connDomain:             connDomain,
+		nsConfig:           configuration,
+		remoteNsIpList:     remoteIpList,
+		vL3NetCidr:         vL3NetCidr,
+		myEndpointName:     "",
+		vl3NsePeers:        make(map[string]*vL3NsePeer),
+		nsRegGrpcClient:    nsRegGrpcClient,
+		nsDiscoveryClient:  nsDiscoveryClient,
+		nsmClient:          nsmClient,
+		backend:            backend,
+		myNseNameFunc:      getNseName,
+		defaultRouteIpCidr: defaultCdPrefix,
+		nseControlAddr:     nseControlAddr,
+		connDomain:         connDomain,
 	}
 
 	logrus.Infof("newVL3ConnectComposite returning")

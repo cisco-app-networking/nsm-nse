@@ -18,7 +18,7 @@ func TestNewConfig(t *testing.T) {
 	}{
 		"success": {
 			file: testFile1,
-			config: &Config{Endpoints: []*Endpoint{{NseServices: &NseServices{
+			config: &Config{Endpoints: []*Endpoint{{NseControl: &NseControl{
 				Name:               "wcm1",
 				Address:            "golang.com:9000",
 				AccessToken:        "123123",
@@ -28,7 +28,7 @@ func TestNewConfig(t *testing.T) {
 					DefaultPrefixPool: "192.168.33.0/24",
 					PrefixLength:      24,
 					Routes:            []string{"192.168.34.0/24"},
-					ServerAddress:     "wcmd-example.wcm-cisco.com",
+					ServerAddress:     "ipam-example.wcm-cisco.com",
 				},
 				Ifname:      "nsm3",
 				NameServers: []string{"nms.google.com", "nms.google.com2"},
@@ -47,8 +47,8 @@ func TestNewConfig(t *testing.T) {
 		"validation-errors": {
 			file: testFile2,
 			err: InvalidConfigErrors([]error{
-				fmt.Errorf("wcm address is not set"),
-				fmt.Errorf("wcm name is not set"),
+				fmt.Errorf("nseControl address is not set"),
+				fmt.Errorf("nseControl name is not set"),
 				fmt.Errorf("connectivity domain is not set"),
 				fmt.Errorf("prefix pool is not a valid subnet: %s", &net.ParseError{Type: "CIDR address", Text: "invalid-pull"}),
 				fmt.Errorf("route nr %d with value %s is not a valid subnet: %s", 0, "invalid-route1", &net.ParseError{Type: "CIDR address", Text: "invalid-route1"}),
@@ -74,28 +74,28 @@ func TestNewConfig(t *testing.T) {
 
 const testFile1 = `
 endpoints:
-  - wcm:
+  - nseControl:
       name: wcm1
       address: golang.com:9000
       accessToken: 123123
       connectivityDomain: test-connectivity-domain
     vl3:
-      wcmd:
+      ipam:
         defaultPrefixPool: 192.168.33.0/24
         prefixLength: 24
         routes: [192.168.34.0/24]
-        serverAddress: wcmd-example.wcm-cisco.com
+        serverAddress: ipam-example.wcm-cisco.com
       ifName: nsm3
       nameServers: [nms.google.com, nms.google.com2]
 `
 
 const testFile2 = `
 endpoints:
-  - wcm:
+  - nseControl:
       name: ""
       address: ""
     vl3:
-      wcmd:
+      ipam:
         defaultPrefixPool: invalid-pull
         prefixLength: 100
         routes: [invalid-route1, invalid-route2]
@@ -106,7 +106,7 @@ endpoints:
 const testFile3 = `
 endpoints:
   - vl3:
-      wcmd:
+      ipam:
         defaultPrefixPool: 192.168.33.0/24
         routes: [192.168.34.0/24]
       ifName: endpoint0

@@ -18,9 +18,9 @@ spec:
         wcm/nse.servicename: {{ .Values.nsm.serviceName | quote }}
       annotations:
         sidecar.istio.io/inject: "false"
-{{- if .Values.wcm.nsr.addr }}
-        wcm/nsr.address: {{ .Values.wcm.nsr.addr | quote }}
-        wcm/nsr.port: {{ .Values.wcm.nsr.port | quote }}
+{{- if .Values.nseControl.nsr.addr }}
+        wcm/nsr.address: {{ .Values.nseControl.nsr.addr | quote }}
+        wcm/nsr.port: {{ .Values.nseControl.nsr.port | quote }}
 {{- end }}
     spec:
       containers:
@@ -89,19 +89,19 @@ data:
     - name: {{ .Values.nsm.serviceName | quote }}
       labels:
         app: "vl3-nse-{{ .Values.nsm.serviceName }}"
-{{- if .Values.wcm.nsr.addr }}
-        wcm/nsr.addr: {{ .Values.wcm.nsr.addr | quote }}
-        wcm/nsr.port: {{ .Values.wcm.nsr.port | quote }}
+{{- if .Values.nseControl.nsr.addr }}
+        wcm/nsr.addr: {{ .Values.nseControl.nsr.addr | quote }}
+        wcm/nsr.port: {{ .Values.nseControl.nsr.port | quote }}
 {{- end }}
-      wcm:
+      nseControl:
         name: {{ .Values.nsm.serviceName | quote }}
-        address: "{{ .Values.wcm.nsr.addr }}"
+        address: "{{ .Values.nseControl.nsr.addr }}"
         connectivityDomain: "{{ .Values.nsm.serviceName }}-connectivity-domain"
       vl3:
-       wcmd:
-          defaultPrefixPool: {{ .Values.wcm.wcmd.defaultPrefixPool | quote }}
-          serverAddress: "wcmd-{{ .Values.wcm.nsr.addr }}:50051"
-          prefixLength: {{ .Values.wcm.wcmd.prefixLength }}
+       ipam:
+          defaultPrefixPool: {{ .Values.nseControl.ipam.defaultPrefixPool | quote }}
+          serverAddress: {{ .Values.nseControl.ipam.serverAddress | quote }
+          prefixLength: {{ .Values.nseControl.ipam.prefixLength }}
           routes: []
        ifName: "endpoint0"
 ---
@@ -126,11 +126,11 @@ kind: Service
 metadata:
   name: "nse-pod-service-{{ .Values.nsm.serviceName }}"
   labels:
-    cnns/monitoring: vl3
+    wcm/monitoring: vl3
 spec:
   type: ClusterIP
   selector:
-    cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+    wcm/nse.servicename: {{ .Values.nsm.serviceName | quote }}
   ports:
     - name: monitoring
       port: {{ .Values.metricsPort }}

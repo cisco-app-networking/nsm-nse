@@ -18,12 +18,12 @@ type Endpoint struct {
 
 	NseName string `yaml:"nseName"` //TODO temporary in order to be able to run examples
 
-	NseServices *NseServices `yaml:"nseServices"`
+	NseControl *NseControl `yaml:"nseControl"`
 
 	VL3 VL3 `yaml:"vl3"`
 }
 
-type NseServices struct {
+type NseControl struct {
 	Name               string `yaml:"name"`
 	Address            string `yaml:"address"`
 	AccessToken        string `yaml:"accessToken"`

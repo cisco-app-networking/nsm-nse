@@ -16,16 +16,16 @@ func (v InvalidConfigErrors) Error() string {
 	return b.String()
 }
 
-func (c *NseServices) validate() error {
+func (c *NseControl) validate() error {
 	if c == nil {
 		return nil
 	}
 	var errs InvalidConfigErrors
 	if empty(c.Address) {
-		errs = append(errs, fmt.Errorf("nseServices address is not set"))
+		errs = append(errs, fmt.Errorf("nseControl address is not set"))
 	}
 	if empty(c.Name) {
-		errs = append(errs, fmt.Errorf("nseServices name is not set"))
+		errs = append(errs, fmt.Errorf("nseControl name is not set"))
 	}
 	if empty(c.ConnectivityDomain) {
 		errs = append(errs, fmt.Errorf("connectivity domain is not set"))
@@ -61,7 +61,7 @@ func (e Endpoint) validate() error {
 		return errs
 	}
 	for _, err := range []error{
-		e.NseServices.validate(),
+		e.NseControl.validate(),
 		e.VL3.validate(),
 	} {
 		if err != nil {
@@ -72,8 +72,8 @@ func (e Endpoint) validate() error {
 			}
 		}
 	}
-	if e.NseServices == nil {
-		e.NseServices = &NseServices{}
+	if e.NseControl == nil {
+		e.NseControl = &NseControl{}
 	}
 	if len(errs) > 0 {
 		return errs

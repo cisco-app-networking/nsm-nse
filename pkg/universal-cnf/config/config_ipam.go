@@ -29,9 +29,9 @@ func (i *IpamServiceImpl) AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (stri
 		var err error
 		subnet, err = i.IpamAllocator.AllocateSubnet(context.Background(), &ipprovider.SubnetRequest{
 			Identifier: &ipprovider.Identifier{
-				Fqdn:               ucnfEndpoint.NseServices.Address,
-				Name:               ucnfEndpoint.NseServices.Name + uuid.Must(uuid.NewV4()).String(),
-				ConnectivityDomain: ucnfEndpoint.NseServices.ConnectivityDomain,
+				Fqdn:               ucnfEndpoint.NseControl.Address,
+				Name:               ucnfEndpoint.NseControl.Name + uuid.Must(uuid.NewV4()).String(),
+				ConnectivityDomain: ucnfEndpoint.NseControl.ConnectivityDomain,
 			},
 			AddrFamily: &ipprovider.IpFamily{Family: ipprovider.IpFamily_IPV4},
 			PrefixLen:  uint32(ucnfEndpoint.VL3.IPAM.PrefixLength),
