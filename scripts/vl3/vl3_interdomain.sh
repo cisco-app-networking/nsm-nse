@@ -16,6 +16,7 @@ NSE_TAG=${NSE_TAG:-"kind_ci"}
 PULLPOLICY=${PULLPOLICY:-IfNotPresent}
 INSTALL_OP=${INSTALL_OP:-apply}
 SERVICENAME=${SERVICENAME:-vl3-service}
+NAMESPACE=${NAMESPACE:-"wcm-system"}
 
 for i in "$@"; do
     case $i in
@@ -86,20 +87,27 @@ KUBEINSTALL="kubectl $INSTALL_OP ${KCONF:+--kubeconfig $KCONF}"
 CFGMAP="configmap nsm-vl3-${SERVICENAME}"
 if [[ "${INSTALL_OP}" == "delete" ]]; then
     echo "delete configmap"
-    kubectl delete ${KCONF:+--kubeconfig $KCONF} ${CFGMAP}
+    kubectl delete --namespace ${NAMESPACE} ${KCONF:+--kubeconfig $KCONF} ${CFGMAP}
 else
+    wcm_namespace_status=$(kubectl get namespace $NAMESPACE ${KCONF:+--kubeconfig $KCONF} -o=jsonpath='{.status.phase}')
+    if [[ "${wcm_namespace_status}" == "Active" ]]; then
+      echo "Namespace " ${NAMESPACE} " already exists"
+    else
+      kubectl create namespace ${NAMESPACE} ${KCONF:+--kubeconfig $KCONF}
+    fi
+
     if [[ -n ${REMOTE_IP} ]]; then
-        kubectl create ${KCONF:+--kubeconfig $KCONF} ${CFGMAP} --from-literal=remote.ip_list=${REMOTE_IP}
+        kubectl create --namespace ${NAMESPACE} ${KCONF:+--kubeconfig $KCONF} ${CFGMAP} --from-literal=remote.ip_list=${REMOTE_IP}
     fi
 fi
 
 echo "---------------Install NSE-------------"
 # ${KUBEINSTALL} -f ${VL3_NSEMFST}
-helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set cnns.ipam.defaultPrefixPool=${IPAMPOOL}} --set cnns.nsr.addr=${CNNS_NSRADDR} ${CNNS_NSRPORT:+ --set cnns.nsr.port=${CNNS_NSRPORT}} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
+helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set cnns.ipam.defaultPrefixPool=${IPAMPOOL}} --set cnns.nsr.addr=${CNNS_NSRADDR} ${CNNS_NSRPORT:+ --set cnns.nsr.port=${CNNS_NSRPORT}} --namespace=${NAMESPACE} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 if [[ "$INSTALL_OP" != "delete" ]]; then
   sleep 20
-  kubectl wait ${KCONF:+--kubeconfig $KCONF} --timeout=150s --for condition=Ready -l networkservicemesh.io/app=vl3-nse-${SERVICENAME} pod
+  kubectl wait ${KCONF:+--kubeconfig $KCONF} --namespace=${NAMESPACE} --timeout=150s --for condition=Ready -l networkservicemesh.io/app=vl3-nse-${SERVICENAME} pod
 fi
 
 if [[ "${HELLO}" == "true" ]]; then
