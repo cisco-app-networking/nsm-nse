@@ -42,11 +42,11 @@ for i in "$@"; do
         --ipamOctet=?*)
             echo "ipamOctet is deprecated"
             ;;
-        --cnnsNsrAddr=?*)
-            CNNS_NSRADDR=${i#*=}
+        --wcmNsrAddr=?*)
+            WCM_NSRADDR=${i#*=}
             ;;
-        --cnnsNsrPort=?*)
-            CNNS_NSRPORT=${i#*=}
+        --wcmNsrPort=?*)
+            WCM_NSRPORT=${i#*=}
             ;;
         --delete)
             INSTALL_OP=delete
@@ -67,11 +67,11 @@ done
 sdir=$(dirname ${0})
 #echo "$sdir"
 
-if [[ -n ${CNNS_NSRADDR} ]]; then
-    REMOTE_IP=${CNNS_NSRADDR}
+if [[ -n ${WCM_NSRADDR} ]]; then
+    REMOTE_IP=${WCM_NSRADDR}
 fi
-#if [[ -n ${CNNS_NSRPORT} ]]; then
-#    REMOTE_IP=${REMOTE_IP}:${CNNS_NSRPORT}
+#if [[ -n ${WCM_NSRPORT} ]]; then
+#    REMOTE_IP=${REMOTE_IP}:${WCM_NSRPORT}
 #fi
 
 VL3HELMDIR=${VL3HELMDIR:-${sdir}/../../deployments/helm}
@@ -103,7 +103,7 @@ fi
 
 echo "---------------Install NSE-------------"
 # ${KUBEINSTALL} -f ${VL3_NSEMFST}
-helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set cnns.ipam.defaultPrefixPool=${IPAMPOOL}} --set cnns.nsr.addr=${CNNS_NSRADDR} ${CNNS_NSRPORT:+ --set cnns.nsr.port=${CNNS_NSRPORT}} --namespace=${NAMESPACE} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
+helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set nseControl.ipam.defaultPrefixPool=${IPAMPOOL}} --set nseControl.nsr.addr=${WCM_NSRADDR} ${WCM_NSRPORT:+ --set nseControl.nsr.port=${WCM_NSRPORT}} --namespace=${NAMESPACE} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 if [[ "$INSTALL_OP" != "delete" ]]; then
   sleep 20

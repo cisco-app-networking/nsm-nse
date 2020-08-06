@@ -161,7 +161,7 @@ Makefile options:
 ### Deploy the NSM
 
 ```bash
-# Move to the NSM direcotry and execute the install scripts:
+# Move to the NSM directory and execute the install scripts:
 cd ${GOPATH}/src/github.com/networkservicemesh/networkservicemesh
 ./scripts/helm-init-wrapper.sh
 ./scripts/helm-nsm-install.sh --chart nsm \

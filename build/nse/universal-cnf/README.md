@@ -76,7 +76,7 @@ The actions which UCNF supports are as follows:
     * `labels` - the labels to be assigned with this Endpoint
     * `ifname` - the base of the name of the network interface to be created upon Client connection. The actual interface name will have an index added to the base
     * `ipam`
-        * `prefixpool` - a single prefix to define the IP pool that the IPAM will use do distribute point ot point IP subnets from
+        * `prefixpool` - a single prefix to define the IP pool that the NSE will use to distribute point to point IP subnets from
         * `routes` - a list of IPv4/v6 route prefixes Endpoint
     * `action` - a single action to be executed on Client connect event. It consist of the same `command`, `client` and `dpconfig` members as described in `initactions`
 

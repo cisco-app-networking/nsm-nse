@@ -295,7 +295,7 @@ to run the vL3 demos.
 
    ```sh
    cd ..
-   git clone https://github.com/tiswanso/networkservicemesh 
+   git clone https://github.com/cisco-app-networking/networkservicemesh
    cd networkservicemesh
    git checkout vl3_latest
    ```

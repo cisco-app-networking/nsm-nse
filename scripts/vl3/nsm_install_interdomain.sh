@@ -42,7 +42,7 @@ done
 sdir=$(dirname ${0})
 #echo "$sdir"
 
-NSMDIR=${NSMDIR:-${GOPATH}/src/github.com/networkservicemesh/networkservicemesh}
+NSMDIR=${NSMDIR:-${GOPATH}/src/github.com/cisco-app-networking/networkservicemesh}
 VL3DIR=${VL3DIR:-${GOPATH}/src/github.com/cisco-app-networking/nsm-nse}
 #echo "$NSMDIR"
 

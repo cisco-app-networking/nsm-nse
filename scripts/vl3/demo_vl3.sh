@@ -22,7 +22,7 @@ NSMISTIODIR=${GOPATH}/src/github.com/nsm-istio
 sdir=$(dirname ${0})
 HELMDIR=${sdir}/../../deployments/helm
 MFSTDIR=${MFSTDIR:-${sdir}/../k8s}
-CNNSNSR=foo.com
+WCMNSR=foo.com
 
 for i in "$@"; do
     case $i in
@@ -38,11 +38,11 @@ for i in "$@"; do
             KCONF_CLUS2=${i#*=}
             echo "setting cluster 2=${KCONF_CLUS2}" 
             ;;
-        --cnnsNsrAddr=?*)
-            CNNS_NSRADDR=${i#*=}
+        --wcmNsrAddr=?*)
+            WCM_NSRADDR=${i#*=}
             ;;
-        --cnnsNsrPort=?*)
-            CNNS_NSRPORT=${i#*=}
+        --wcmNsrPort=?*)
+            WCM_NSRPORT=${i#*=}
             ;;
         --namespace=?*)
             NAMESPACE=${i#*=}
@@ -138,11 +138,11 @@ fi
 p "# --------------------- Virtual L3 Setup ------------------------"
 
 pe "# **** Install vL3 in cluster 1"
-pc "${DELETE:+INSTALL_OP=delete} REMOTE_IP=${clus2_IP} KCONF=${KCONF_CLUS1} PULLPOLICY=Always scripts/vl3/vl3_interdomain.sh --ipamOctet=22 ${CNNS_NSRADDR:+--cnnsNsrAddr=${CNNS_NSRADDR}} ${CNNS_NSRPORT:+--cnnsNsrPort=${CNNS_NSRPORT}}"
+pc "${DELETE:+INSTALL_OP=delete} REMOTE_IP=${clus2_IP} KCONF=${KCONF_CLUS1} PULLPOLICY=Always scripts/vl3/vl3_interdomain.sh --ipamOctet=22 ${WCM_NSRADDR:+--wcmNsrAddr=${WCM_NSRADDR}} ${WCM_NSRPORT:+--wcmNsrPort=${WCM_NSRPORT}}"
 pc "kubectl get pods --kubeconfig ${KCONF_CLUS1} -o wide"
 echo
 pe "# **** Install vL3  in cluster 2"
-pc "${DELETE:+INSTALL_OP=delete} REMOTE_IP=${clus1_IP} KCONF=${KCONF_CLUS2} PULLPOLICY=Always scripts/vl3/vl3_interdomain.sh --ipamOctet=33 ${CNNS_NSRADDR:+--cnnsNsrAddr=${CNNS_NSRADDR}} ${CNNS_NSRPORT:+--cnnsNsrPort=${CNNS_NSRPORT}}"
+pc "${DELETE:+INSTALL_OP=delete} REMOTE_IP=${clus1_IP} KCONF=${KCONF_CLUS2} PULLPOLICY=Always scripts/vl3/vl3_interdomain.sh --ipamOctet=33 ${WCM_NSRADDR:+--wcmNsrAddr=${WCM_NSRADDR}} ${WCM_NSRPORT:+--wcmNsrPort=${WCM_NSRPORT}}"
 #pc "kubectl get pods --kubeconfig ${KCONF_CLUS2} -o wide"
 echo
 p "# **** Virtual L3 service definition (CRD) ***"

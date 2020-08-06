@@ -15,12 +15,12 @@ spec:
       labels:
         networkservicemesh.io/app: "vl3-nse-{{ .Values.nsm.serviceName }}"
         networkservicemesh.io/impl: {{ .Values.nsm.serviceName | quote }}
-        cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+        wcm/nse.servicename: {{ .Values.nsm.serviceName | quote }}
       annotations:
         sidecar.istio.io/inject: "false"
-{{- if .Values.cnns.nsr.addr }}
-        cnns/nsr.address: {{ .Values.cnns.nsr.addr | quote }}
-        cnns/nsr.port: {{ .Values.cnns.nsr.port | quote }}
+{{- if .Values.nseControl.nsr.addr }}
+        wcm/nsr.address: {{ .Values.nseControl.nsr.addr | quote }}
+        wcm/nsr.port: {{ .Values.nseControl.nsr.port | quote }}
 {{- end }}
     spec:
       containers:
@@ -90,19 +90,19 @@ data:
     - name: {{ .Values.nsm.serviceName | quote }}
       labels:
         app: "vl3-nse-{{ .Values.nsm.serviceName }}"
-{{- if .Values.cnns.nsr.addr }}
-        cnns/nsr.addr: {{ .Values.cnns.nsr.addr | quote }}
-        cnns/nsr.port: {{ .Values.cnns.nsr.port | quote }}
+{{- if .Values.nseControl.nsr.addr }}
+        wcm/nsr.addr: {{ .Values.nseControl.nsr.addr | quote }}
+        wcm/nsr.port: {{ .Values.nseControl.nsr.port | quote }}
 {{- end }}
-      cnns:
+      nseControl:
         name: {{ .Values.nsm.serviceName | quote }}
-        address: "{{ .Values.cnns.nsr.addr }}"
+        address: "{{ .Values.nseControl.nsr.addr }}"
         connectivityDomain: "{{ .Values.nsm.serviceName }}-connectivity-domain"
       vl3:
        ipam:
-          defaultPrefixPool: {{ .Values.cnns.ipam.defaultPrefixPool | quote }}
-          serverAddress: "ipam-{{ .Values.cnns.nsr.addr }}:50051"
-          prefixLength: 22
+          defaultPrefixPool: {{ .Values.nseControl.ipam.defaultPrefixPool | quote }}
+          serverAddress: "ipam-{{ .Values.nseControl.nsr.addr }}:50051"
+          prefixLength: {{ .Values.nseControl.ipam.prefixLength }}
           routes: []
        ifName: "endpoint0"
 ---
@@ -112,11 +112,11 @@ metadata:
   name: "nse-pod-service-{{ .Values.nsm.serviceName }}-vpp"
   namespace: {{ .Release.Namespace }}
   labels:
-    cnns/monitoring: vpp
+    wcm/monitoring: vpp
 spec:
   type: ClusterIP
   selector:
-      cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+      wcm/nse.servicename: {{ .Values.nsm.serviceName | quote }}
   ports:
     - name: monitoring
       port: {{ .Values.vppMetricsPort }}
@@ -129,11 +129,11 @@ metadata:
   name: "nse-pod-service-{{ .Values.nsm.serviceName }}"
   namespace: {{ .Release.Namespace }}
   labels:
-    cnns/monitoring: vl3
+    wcm/monitoring: vl3
 spec:
   type: ClusterIP
   selector:
-    cnns/nse.servicename: {{ .Values.nsm.serviceName | quote }}
+    wcm/nse.servicename: {{ .Values.nsm.serviceName | quote }}
   ports:
     - name: monitoring
       port: {{ .Values.metricsPort }}

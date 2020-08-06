@@ -30,7 +30,7 @@ func NewServiceRegistry(addr string) (ServiceRegistry, ServiceRegistryClient, er
 		grpc.WithStreamInterceptor(grpc_prometheus.StreamClientInterceptor),
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to connect to ipam server: %w", err)
+		return nil, nil, fmt.Errorf("unable to connect to ServiceRegistry: %w", err)
 	}
 
 	registryClient := serviceregistry.NewRegistryClient(conn)

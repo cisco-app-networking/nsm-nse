@@ -58,17 +58,16 @@ type vL3ConnectComposite struct {
 	nsConfig           *common.NSConfiguration
 	defaultRouteIpCidr string
 	remoteNsIpList     []string
-	ipamCidr           string
+	vL3NetCidr         string
 	vl3NsePeers        map[string]*vL3NsePeer
 	nsRegGrpcClient    *grpc.ClientConn
 	nsDiscoveryClient  registry.NetworkServiceDiscoveryClient
 	//nsClient networkservice.NetworkServiceClient
-	nsmClient     *client.NsmClient
-	ipamEndpoint  *endpoint.IpamEndpoint
-	backend       config.UniversalCNFBackend
-	myNseNameFunc fnGetNseName
-	connDomain    string
-	ipamAddr      string
+	nsmClient      *client.NsmClient
+	backend        config.UniversalCNFBackend
+	myNseNameFunc  fnGetNseName
+	connDomain     string
+	nseControlAddr string
 }
 
 func (peer *vL3NsePeer) setPeerState(state vL3PeerState) {
@@ -151,9 +150,9 @@ func (vxc *vL3ConnectComposite) processPeerRequest(vl3SrcEndpointName string, re
 	incoming.Context.IpContext.ExcludedPrefixes = peer.excludedPrefixes
 	peer.connHdl = request.GetConnection()
 
-	/* tell my peer to route to me for my ipamCIDR */
+	/* tell my peer to route to me for my vL3NetCidr */
 	mySubnetRoute := connectioncontext.Route{
-		Prefix: vxc.ipamCidr,
+		Prefix: vxc.vL3NetCidr,
 	}
 	incoming.Context.IpContext.DstRoutes = append(incoming.Context.IpContext.DstRoutes, &mySubnetRoute)
 	peer.state = PEER_STATE_CONN_RX
@@ -231,7 +230,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 	if err != nil {
 		logger.Errorf("vL3 workload params not in labels: %v", err)
 	} else {
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.ipamAddr)
+		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr)
 		if err != nil {
 			logger.Error(err)
 		} else {
@@ -262,7 +261,7 @@ func (vxc *vL3ConnectComposite) Close(ctx context.Context, conn *connection.Conn
 		logrus.WithFields(logrus.Fields{
 			"SrcIP": processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"),
 		}).Infof("vL3 Removing workload instance")
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.ipamAddr)
+		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr)
 		if err != nil {
 			logrus.Error(err)
 		} else {
@@ -400,7 +399,7 @@ func (vxc *vL3ConnectComposite) ConnectPeerEndpoint(ctx context.Context, peer *v
 			"endpointName":              peer.endpointName,
 			"networkServiceManagerName": peer.networkServiceManagerName,
 		}).Info("request remote connection")
-		routes := []string{vxc.ipamCidr}
+		routes := []string{vxc.vL3NetCidr}
 		return vxc.createPeerConnectionRequest(ctx, peer, routes, logger)
 	case PEER_STATE_CONN:
 		logger.WithFields(logrus.Fields{
@@ -445,7 +444,7 @@ func removeDuplicates(elements []string) []string {
 }
 
 // newVL3ConnectComposite creates a new VL3 composite
-func newVL3ConnectComposite(configuration *common.NSConfiguration, ipamCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, ipamAddr, connDomain string) *vL3ConnectComposite {
+func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, nseControlAddr, connDomain string) *vL3ConnectComposite {
 	nsRegAddr, ok := os.LookupEnv("NSREGISTRY_ADDR")
 	if !ok {
 		nsRegAddr = NSREGISTRY_ADDR
@@ -537,7 +536,7 @@ func newVL3ConnectComposite(configuration *common.NSConfiguration, ipamCidr stri
 	newVL3ConnectComposite := &vL3ConnectComposite{
 		nsConfig:           configuration,
 		remoteNsIpList:     remoteIpList,
-		ipamCidr:           ipamCidr,
+		vL3NetCidr:         vL3NetCidr,
 		myEndpointName:     "",
 		vl3NsePeers:        make(map[string]*vL3NsePeer),
 		nsRegGrpcClient:    nsRegGrpcClient,
@@ -546,7 +545,7 @@ func newVL3ConnectComposite(configuration *common.NSConfiguration, ipamCidr stri
 		backend:            backend,
 		myNseNameFunc:      getNseName,
 		defaultRouteIpCidr: defaultCdPrefix,
-		ipamAddr:           ipamAddr,
+		nseControlAddr:     nseControlAddr,
 		connDomain:         connDomain,
 	}
 

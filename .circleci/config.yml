@@ -53,7 +53,7 @@ e2e-kind-test: &e2e-kind-test
         name: Build vl3 runner container
         working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/build/ci/runner
         command: |
-          docker build --build-arg vl3_branch=${CIRCLE_SHA1:-master} --build-arg nsm_branch=v0.2.0-vl3 -t vl3-runner:latest -f Dockerfile.runner .
+          docker build --build-arg vl3_repo=https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git --build-arg vl3_branch=${CIRCLE_BRANCH:-master} --build-arg nsm_branch=v0.2.0-vl3 -t vl3-runner:latest -f Dockerfile.runner .
 
     - run:
         name: Run vl3 test
@@ -149,9 +149,9 @@ jobs:
       - setup_remote_docker
       - run:
           name: Clone networkservicemesh
-          working_directory: /go/src/github.com/networkservicemesh
+          working_directory: /go/src/github.com/cisco-app-networking
           command: |
-            git clone https://github.com/tiswanso/networkservicemesh.git
+            git clone https://github.com/cisco-app-networking/networkservicemesh.git
             cd networkservicemesh
             git checkout v0.2.0-vl3
       - run:
