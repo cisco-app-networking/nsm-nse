@@ -54,7 +54,8 @@ e2e-kind-test: &e2e-kind-test
     - run:
         name: Run vl3 test
         command: |
-          docker exec -e VL3_IMGTAG=${CIRCLE_SHA1} -t vl3-run bash -c "/go/run_vl3.sh"
+
+          docker exec -e NSE_HUB=${ORG} -e NSE_TAG=${CIRCLE_SHA1} -t vl3-run bash -c "/go/run_vl3.sh"
     - run:
         name: Dump KinD Cluster state
         when: always
@@ -160,17 +161,17 @@ jobs:
           name: Build vL3 docker image
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            ORG=tiswanso TAG=${CIRCLE_SHA1} make docker-vl3
+            ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-vl3
       - run:
           name: Build ucnf-kiknos docker image
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            ORG=tiswanso TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build 
+            ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build 
       - run:
           name: Save docker images
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            images_to_save+=("tiswanso/vl3_ucnf-nse:${CIRCLE_SHA1}" "tiswanso/ucnf-kiknos-vppagent:${CIRCLE_SHA1}")
+            images_to_save+=("${ORG}/vl3_ucnf-nse:${CIRCLE_SHA1}" "${ORG}/ucnf-kiknos-vppagent:${CIRCLE_SHA1}")
             mkdir -p _save
             docker save "${images_to_save[@]}" >_save/images.tar
       - persist_to_workspace:
