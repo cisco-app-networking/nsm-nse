@@ -7,11 +7,15 @@
 #
 # env:
 #   KUBECONFDIR -- dir with 2 kubeconfig files, default = /etc/kubeconfigs
-#   VL3_IMGTAG -- image tag for vL3 NSE container
+#   NSE_HUB -- image repo for NSE container
+#   NSE_TAG -- image tag for vL3 NSE container
 #
 
 KUBECONFDIR=${KUBECONFDIR:-/etc/kubeconfigs}
 SERVICENAME=ucnf
+NSE_NS=${NSE_NS:-default}
+NSE_HUB=${NSE_HUB:-"tiswanso"}
+NSE_TAG=${NSE_TAG:-"latest"}
 
 kubeconfs=$(ls ${KUBECONFDIR})
 
@@ -51,26 +55,26 @@ clus1_IP=$(kubectl get node --kubeconfig ${KCONF1} --selector='node-role.kuberne
 clus2_IP=$(kubectl get node --kubeconfig ${KCONF2} --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
 echo "# **** Install vL3 in cluster 1 (point at cluster2's IP=${clus2_IP})"
-REMOTE_IP=${clus2_IP} KCONF=${KCONF1} TAG=${VL3_IMGTAG} scripts/vl3/vl3_interdomain.sh --ipamOctet=22 --serviceName=${SERVICENAME}
+REMOTE_IP=${clus2_IP} KCONF=${KCONF1} NSE_HUB=${NSE_HUB} NSE_TAG=${NSE_TAG} NAMESPACE=${NSE_NS} scripts/vl3/vl3_interdomain.sh --ipamOctet=22 --serviceName=${SERVICENAME}
 
-kubectl describe deployment vl3-nse-${SERVICENAME} --kubeconfig ${KCONF1}
-kubectl get pods --kubeconfig ${KCONF1}
+kubectl describe deployment vl3-nse-${SERVICENAME} -n ${NSE_NS} --kubeconfig ${KCONF1}
+kubectl get pods -n ${NSE_NS} --kubeconfig ${KCONF1}
 #kubectl get pods -n nsm-system --kubeconfig ${KCONF1}
 
 echo "# **** Install vL3 in cluster 2 (point at cluster1's IP=${clus1_IP})"
-REMOTE_IP=${clus1_IP} KCONF=${KCONF2} TAG=${VL3_IMGTAG} scripts/vl3/vl3_interdomain.sh --ipamOctet=33 --serviceName=${SERVICENAME}
+REMOTE_IP=${clus1_IP} KCONF=${KCONF2} NSE_HUB=${NSE_HUB} NSE_TAG=${NSE_TAG} NAMESPACE=${NSE_NS} scripts/vl3/vl3_interdomain.sh --ipamOctet=33 --serviceName=${SERVICENAME}
 
-kubectl describe deployment vl3-nse-${SERVICENAME} --kubeconfig ${KCONF2}
-kubectl get pods --kubeconfig ${KCONF2}
+kubectl describe deployment vl3-nse-${SERVICENAME} -n ${NSE_NS} --kubeconfig ${KCONF2}
+kubectl get pods -n ${NSE_NS} --kubeconfig ${KCONF2}
 #kubectl get pods -n nsm-system --kubeconfig ${KCONF2}
 
 echo "# **** Install helloworld on cluster 1"
-helm template deployments/helm/vl3_hello --set nsm.serviceName=${SERVICE_NAME} --set replicaCount=1 | kubectl apply --kubeconfig ${KCONF1} -f -
+helm template deployments/helm/vl3_hello --set nsm.serviceName=${SERVICENAME} --set replicaCount=1 | kubectl apply --kubeconfig ${KCONF1} -f -
 
 sleep 60
 
 echo "# **** Install helloworld on cluster 2"
-helm template deployments/helm/vl3_hello --set nsm.serviceName=${SERVICE_NAME} --set replicaCount=1 | kubectl apply --kubeconfig ${KCONF2} -f -
+helm template deployments/helm/vl3_hello --set nsm.serviceName=${SERVICENAME} --set replicaCount=1 | kubectl apply --kubeconfig ${KCONF2} -f -
 
 echo "# **** wait on helloworld pods to come up"
 kubectl wait --kubeconfig ${KCONF1} --timeout=600s --for condition=Ready -l app=helloworld pod
