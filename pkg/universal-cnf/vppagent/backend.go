@@ -154,9 +154,11 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 
 	// NAT configuration
 	if natIP := os.Getenv("NSE_NAT_IP"); natIP != "" {
-		// configure NAT pool - TODO: move pool config to some global init place?
-		natPool := &vpp_nat.Nat44AddressPool{FirstIp: natIP}
-		vppconfig.Nat44Pools = append(vppconfig.Nat44Pools, natPool)
+		// configure NAT pool (only once) - TODO: move pool config to some global init place?
+		if b.EndpointIfID[serviceName] == 0 {
+			natPool := &vpp_nat.Nat44AddressPool{FirstIp: natIP}
+			vppconfig.Nat44Pools = append(vppconfig.Nat44Pools, natPool)
+		}
 
 		// enable NAT on the interface
 		natIf := &vpp_nat.Nat44Interface{
