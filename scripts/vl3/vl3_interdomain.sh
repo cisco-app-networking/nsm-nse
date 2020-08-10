@@ -48,7 +48,7 @@ for i in "$@"; do
         --wcmNsrPort=?*)
             WCM_NSRPORT=${i#*=}
             ;;
-        --delete)
+        --cleanup|--delete)
             INSTALL_OP=delete
             ;;
         --hello)
@@ -86,7 +86,7 @@ KUBEINSTALL="kubectl $INSTALL_OP ${KCONF:+--kubeconfig $KCONF}"
 
 CFGMAP="configmap nsm-vl3-${SERVICENAME}"
 if [[ "${INSTALL_OP}" == "delete" ]]; then
-    echo "delete configmap"
+    echo "Delete configmap"
     kubectl delete --namespace ${NAMESPACE} ${KCONF:+--kubeconfig $KCONF} ${CFGMAP}
 else
     wcm_namespace_status=$(kubectl get namespace $NAMESPACE ${KCONF:+--kubeconfig $KCONF} -o=jsonpath='{.status.phase}')
