@@ -27,7 +27,7 @@ username admin nopassword privilege 15
 username admin attributes
 service-type admin
 !
-access-list ikev2-list extended permit ip <HOST_NETWORK> 255.255.255.0 172.31.22.0 255.255.255.0
+access-list ikev2-list extended permit ip <HOST_NETWORK> 255.255.255.0 1.2.3.4 255.255.255.255
 crypto ipsec ikev2 ipsec-proposal ikev2-proposal                                                                                                                                                              
  protocol esp encryption aes                                                                                                                                                                                  
  protocol esp integrity sha-1                                                                                                                                                                                 

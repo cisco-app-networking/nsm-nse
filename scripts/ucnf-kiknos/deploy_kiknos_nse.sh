@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-NSE_ORG=${NSE_ORG:-mmatache}
-NSE_TAG=${NSE_TAG:-kiknos}
+NSE_ORG=${NSE_ORG:-cisco-app-networking}
+NSE_TAG=${NSE_TAG:-ucnf-kiknos-vppagent}
 PULL_POLICY=${PULL_POLICY:-IfNotPresent}
 SERVICE_NAME=${SERVICE_NAME:-hello-world}
 DELETE=${DELETE:-false}
 OPERATION=${OPERATION:-apply}
 SUBNET_IP=${SUBNET_IP:-192.168.254.0}
+NSE_NAT_IP=${NSE_NAT_IP:-""}
 
 function print_usage() {
     echo "$(basename "$0") - Deploy the Kiknos NSE. All properties can also be provided through env variables
@@ -23,6 +24,7 @@ Options:
   --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: $SERVICE_NAME)
   --delete              Delete NSE                                                          env var: DELETE           - (Default: $DELETE)
   --subnet-ip           IP for the remote subnet (without the mask, ex: 192.168.254.0)      env var: SUBNET_IP        - (Default: $SUBNET_IP)
+  --nse-nat-ip          If set, enables source NAT on the IPSec interfaces to this IP.      env var: NSE_NAT_IP       - (Default: $NSE_NAT_IP)
   --help -h             Help
 " >&2
 }
@@ -49,6 +51,9 @@ for i in "$@"; do
     ;;
   --subnet-ip=*)
     SUBNET_IP="${i#*=}"
+    ;;
+  --nse-nat-ip=*)
+    NSE_NAT_IP="${i#*=}"
     ;;
   --delete)
     OPERATION=delete
@@ -98,11 +103,23 @@ if [[ -n "$CLUSTER_REF" ]]; then
     POD_NAME=$(kubectl --context "$CLUSTER_REF" get pods -o name | grep endpoint | cut -d / -f 2)
     IP_ADDR=$(kubectl --context "$CLUSTER_REF" exec -it "$POD_NAME" -- ip addr | grep -E "global (dynamic )?eth0" | grep inet | awk '{print $2}' | cut -d / -f 1)
 
+    SSWAN_REMOTE_SUBNETS="{172.31.22.0/24}"
+    if [[ -n "${NSE_NAT_IP}" ]]; then
+      SSWAN_REMOTE_SUBNETS="{${NSE_NAT_IP}/32}"
+    fi
     performNSE "$CLUSTER" --set strongswan.network.remoteAddr="$IP_ADDR" \
+      --set nse.localSubnet=172.31.23.0/24 \
       --set strongswan.network.localSubnet=172.31.23.0/24 \
-      --set strongswan.network.remoteSubnets="{172.31.22.0/24}"
+      --set strongswan.network.remoteSubnets="${SSWAN_REMOTE_SUBNETS}"
     exit 0
 fi
 
-performNSE "$CLUSTER" --set strongswan.network.localSubnet=172.31.22.0/24 \
-  --set strongswan.network.remoteSubnets="{172.31.23.0/24,$SUBNET_IP/24}"
+SSWAN_LOCAL_SUBNET="172.31.22.0/24"
+if [[ -n "${NSE_NAT_IP}" ]]; then
+  SSWAN_LOCAL_SUBNET="${NSE_NAT_IP}/32"
+fi
+performNSE "$CLUSTER" \
+  --set nse.localSubnet=172.31.22.0/24 \
+  --set strongswan.network.localSubnet="${SSWAN_LOCAL_SUBNET}" \
+  --set strongswan.network.remoteSubnets="{172.31.23.0/24,$SUBNET_IP/24}" \
+  --set nse.natIP="${NSE_NAT_IP}"

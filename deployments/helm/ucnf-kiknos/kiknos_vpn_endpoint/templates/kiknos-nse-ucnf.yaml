@@ -60,6 +60,10 @@ spec:
                   fieldPath: status.podIP
             - name: MICROSERVICE_LABEL
               value: {{ .Values.aio.serviceLabel }}
+            {{- if .Values.nse.natIP }}
+            - name: NSE_NAT_IP
+              value: "{{ .Values.nse.natIP }}"
+            {{- end }}
           securityContext:
             capabilities:
               add:
@@ -194,7 +198,7 @@ data:
         app: "vl3-nse-{{ .Values.nsm.serviceName }}"
       vl3:
         ipam:
-          defaultPrefixPool: {{ .Values.strongswan.network.localSubnet | quote }}
+          defaultPrefixPool: {{ .Values.nse.localSubnet | quote }}
           routes: {{ .Values.strongswan.network.remoteSubnets | toJson }}
         ifName: "endpoint0"
 
@@ -253,18 +257,21 @@ data:
     client-basic-auth:
       - {{ .Values.aio.http.secrets.basicAuth | quote }}
     {{- end }}
-  {{- if .Values.strongswan.secrets.encryption.enabled }}
-  kiknos.conf: |
-    KiknosConfig:
+  kiknoscfg.conf: |
+    kiknosConfig:
+      {{- if .Values.nse.natIP }}
+      natOutside: true
+      {{- end }}
+      {{- if .Values.strongswan.secrets.encryption.enabled }}
       secretsKeyFile: /var/strongswan/secrets/{{ .Values.strongswan.secrets.encryption.privateKeyFile }}
-  {{- end }}
+      {{- end }}
   supervisor.conf: |
     programs:
       - name: "vpp"
         executable-path: "/usr/bin/vpp"
         executable-args: ["-c", "/etc/vpp/vpp.conf"]
       - name: "aio-agent"
-        executable-path: "{{if.Values.development.useDevImages}}/go/bin/{{else}}/usr/bin/{{end}}aio-agent"
+        executable-path: "{{if.Values.development.useDevImages}}/go/bin/{{else}}/usr/bin/{{end}}aio-sswan-agent"
         executable-args: ["--config-dir=/opt/aio-agent/dev"]
       - name: "strongswan"
         executable-path: "/usr/local/libexec/ipsec/charon"

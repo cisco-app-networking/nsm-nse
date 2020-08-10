@@ -35,7 +35,7 @@ metadata:
   name: istio-ingressgateway
   namespace: istio-system
   annotations:
-    ns.networkservicemesh.io: {{ .Values.nsm.serviceName }}
+    ns.networkservicemesh.io: {{ .Values.nsm.serviceName }}?nat-port-forward-tcp=80
 spec:
   selector:
     matchLabels:
