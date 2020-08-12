@@ -94,7 +94,7 @@ Makefile consists of the following rules:
 Makefile options:
 
 - `CLUSTER` - Set the cluster name - (Default: `kiknos-demo-1`)
-- `ORG` - Set the org of new built image - (Default: `cisco-app-networking`)
+- `ORG` - Set the org of new built image - (Default: `ciscoappnetworking`)
 - `TAG` - Set the tag of new built image - (Default: `kiknos`)
 - `AWS_KEY_PAIR` - AWS Key Pair for connecting over SSH - (Default: `kiknos-asa`)
 - `CLUSTER_REF` - Reference cluster required when deploying the second cluster in
@@ -185,7 +185,7 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
     
     Exec:
     ```bash
-    ./scripts/ucnf-kiknos/deploy_kiknos.sh --cluster=kiknos-demo-1 --subnet-ip=192.168.254.0 --org=tiswanso --tag=kiknos --service-name=hello-world
+    ./scripts/ucnf-kiknos/deploy_kiknos.sh --cluster=kiknos-demo-1 --subnet-ip=192.168.254.0 --org=ciscoappnetworking --tag=kiknos --service-name=hello-world
     ```
    Help:
    ```bash
@@ -278,7 +278,7 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
     Exec:
     ```bash
     # Deploy Kiknos NSE to act as a gateway
-    ./scripts/ucnf-kiknos/deploy_kiknos.sh --cluster=kiknos-demo-2 --org=tiswanso --tag=kiknos --cluster-ref=kiknos-demo-1 --service-name=hello-world
+    ./scripts/ucnf-kiknos/deploy_kiknos.sh --cluster=kiknos-demo-2 --org=ciscoappnetworking --tag=kiknos --cluster-ref=kiknos-demo-1 --service-name=hello-world
     # Deploys the client pods
     ./scripts/ucnf-kiknos/deploy_clients.sh --cluster=kiknos-demo-2 --service-name=hello-world
     ```
