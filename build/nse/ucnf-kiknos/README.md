@@ -94,12 +94,12 @@ Makefile consists of the following rules:
 Makefile options:
 
 - `CLUSTER` - Set the cluster name - (Default: `kiknos-demo-1`)
-- `ORG` - Set the org of new built image - (Default: `tiswanso`)
+- `ORG` - Set the org of new built image - (Default: `cisco-app-networking`)
 - `TAG` - Set the tag of new built image - (Default: `kiknos`)
 - `AWS_KEY_PAIR` - AWS Key Pair for connecting over SSH - (Default: `kiknos-asa`)
 - `CLUSTER_REF` - Reference cluster required when deploying the second cluster in
     order to be able to take some configurations such as remote IP address when configuring kiknos NSE or the AWS VPC - (Default: *None*)
-- `VPP_AGENT` - Parent image for the NSE - (Default: `ciscolabs/kiknos:latest`)
+- `VPP_AGENT` - Parent image for the NSE - (Default: `ciscolabs/kiknos-sswan:latest`)
 - `FORWARDING_PLANE` - Set a default forwarding plane - (Default: `vpp`)
 - `NETWORK_SERVICE` - Set a default network service for Example clients - (Default: `hello-world`)
 - `BUILD_IMAGE` - Set whether to build the image or not - (Default: `true`)

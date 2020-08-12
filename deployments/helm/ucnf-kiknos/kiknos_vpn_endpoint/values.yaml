@@ -20,6 +20,10 @@ ipam:
   prefixPool: "172.31.0.0/16"
   # uniqueOctet:
 
+nse:
+  localSubnet: 172.31.22.0/24
+  # natIP:
+
 global:
 
 replicaCount: 1

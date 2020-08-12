@@ -25,3 +25,6 @@ data:
         disable
       }
     }
+    nat {
+      endpoint-dependent
+    }

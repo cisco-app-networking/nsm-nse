@@ -1,5 +1,5 @@
 # Parent image for the NSE
-VPP_AGENT = ciscolabs/kiknos:latest
+VPP_AGENT = ciscolabs/kiknos-sswan:latest
 
 # Set the cluster name
 CLUSTER ?= kiknos-demo-1

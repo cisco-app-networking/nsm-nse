@@ -21,6 +21,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
@@ -28,6 +29,7 @@ import (
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	vpp_l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
+	vpp_nat "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/nat"
 )
 
 // UniversalCNFVPPAgentBackend is the VPP CNF backend struct
@@ -112,6 +114,8 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 	if len(dstIP) > net.IPv4len {
 		ipAddresses = append(ipAddresses, dstIP)
 	}
+
+	endpointIfName := ifName + b.GetEndpointIfID(serviceName)
 	rxModes := []*interfaces.Interface_RxMode{
 		&interfaces.Interface_RxMode{
 			Mode:        interfaces.Interface_RxMode_INTERRUPT,
@@ -120,7 +124,7 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 	}
 	vppconfig.Interfaces = append(vppconfig.Interfaces,
 		&interfaces.Interface{
-			Name:        ifName + b.GetEndpointIfID(serviceName),
+			Name:        endpointIfName,
 			Type:        interfaces.Interface_MEMIF,
 			Enabled:     true,
 			IpAddresses: ipAddresses,
@@ -146,6 +150,54 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 			NextHopAddr: srcIP.String(),
 		}
 		vppconfig.Routes = append(vppconfig.Routes, route)
+	}
+
+	// NAT configuration
+	if natIP := os.Getenv("NSE_NAT_IP"); natIP != "" {
+		// configure NAT pool (only once) - TODO: move pool config to some global init place?
+		if b.EndpointIfID[serviceName] == 0 {
+			natPool := &vpp_nat.Nat44AddressPool{FirstIp: natIP}
+			vppconfig.Nat44Pools = append(vppconfig.Nat44Pools, natPool)
+		}
+
+		// enable NAT on the interface
+		natIf := &vpp_nat.Nat44Interface{
+			Name:      endpointIfName,
+			NatInside: true,
+		}
+		vppconfig.Nat44Interfaces = append(vppconfig.Nat44Interfaces, natIf)
+
+		// add static NAT mappings for port forward requests
+		for k, v := range conn.Labels {
+			if strings.HasPrefix(k, "nat-port-forward") {
+				port, err := strconv.Atoi(v)
+				if err != nil {
+					logrus.Errorf("cannot convert port number %s: %v", v, err)
+					continue
+				}
+				natMapping := &vpp_nat.DNat44{
+					Label: k + "-to-" + srcIP.String(),
+					StMappings: []*vpp_nat.DNat44_StaticMapping{
+						{
+							ExternalIp:   natIP,
+							ExternalPort: uint32(port),
+							LocalIps: []*vpp_nat.DNat44_StaticMapping_LocalIP{
+								{
+									LocalIp:   srcIP.String(),
+									LocalPort: uint32(port),
+								},
+							},
+						},
+					},
+				}
+				if strings.Contains(k, "udp") {
+					natMapping.StMappings[0].Protocol = vpp_nat.DNat44_UDP
+				} else {
+					natMapping.StMappings[0].Protocol = vpp_nat.DNat44_TCP
+				}
+				vppconfig.Dnat44S = append(vppconfig.Dnat44S, natMapping)
+			}
+		}
 	}
 
 	return nil
