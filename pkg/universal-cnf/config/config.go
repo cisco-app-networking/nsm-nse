@@ -90,7 +90,7 @@ func (a *Action) Process(ctx context.Context, backend UniversalCNFBackend, nsmcl
 		}
 	}
 
-	if err := backend.ProcessDPConfig(a.DPConfig); err != nil {
+	if err := backend.ProcessDPConfig(a.DPConfig, true); err != nil {
 		logrus.Errorf("Error processing dpconfig: %+v", a.DPConfig)
 	}
 
@@ -123,7 +123,7 @@ type UniversalCNFBackend interface {
 	NewUniversalCNFBackend() error
 	ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error
 	ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error
-	ProcessDPConfig(dpconfig interface{}) error
+	ProcessDPConfig(dpconfig interface{}, createOrUpdate bool) error
 }
 
 // UniversalCNFConfig hold the CNF configuration

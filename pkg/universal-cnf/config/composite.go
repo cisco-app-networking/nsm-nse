@@ -50,7 +50,7 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 		return nil, err
 	}
 
-	if err := uce.backend.ProcessDPConfig(uce.dpConfig); err != nil {
+	if err := uce.backend.ProcessDPConfig(uce.dpConfig, true); err != nil {
 		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
 		return nil, err
 	}
@@ -65,6 +65,19 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 // Close implements the close handler
 func (uce *UniversalCNFEndpoint) Close(ctx context.Context, connection *connection.Connection) (*empty.Empty, error) {
 	logrus.Infof("Universal CNF DeleteConnection: %v", connection)
+
+	logrus.Info("[COSMIN] Beginning close config:", uce.dpConfig)
+	if err := uce.backend.ProcessEndpoint(uce.dpConfig, uce.endpoint.Name, uce.endpoint.VL3.Ifname, connection); err != nil {
+		logrus.Errorf("Failed to process: %+v", uce.endpoint)
+		return nil, err
+	}
+
+	if err := uce.backend.ProcessDPConfig(uce.dpConfig, false); err != nil {
+		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
+		return nil, err
+	}
+
+	logrus.Info("[COSMIN] ending close config:", uce.dpConfig)
 
 	if endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Close(ctx, connection)

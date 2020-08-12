@@ -25,8 +25,8 @@ spec:
     spec:
       containers:
         - name: vl3-nse
-          image: {{ .Values.registry }}/{{ .Values.org }}/vl3_ucnf-nse:{{ .Values.tag }}
-          imagePullPolicy: {{ .Values.pullPolicy }}
+          image: cosminpetru/vl3_ucnf-nse:latest
+          imagePullPolicy: Always
           ports:
           - name: monitoring-vpp
             containerPort: {{ .Values.vppMetricsPort }}

@@ -122,6 +122,7 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 			DefaultMode: true,
 		},
 	}
+
 	vppconfig.Interfaces = append(vppconfig.Interfaces,
 		&interfaces.Interface{
 			Name:        endpointIfName,
@@ -215,13 +216,21 @@ func (b *UniversalCNFVPPAgentBackend) GetEndpointIfID(serviceName string) string
 }
 
 // ProcessDPConfig applies the VPP CNF configuration to VPP
-func (b *UniversalCNFVPPAgentBackend) ProcessDPConfig(dpconfig interface{}) error {
+func (b *UniversalCNFVPPAgentBackend) ProcessDPConfig(dpconfig interface{}, createOrUpdate bool) error {
 	vppconfig, ok := dpconfig.(*vpp.ConfigData)
 	if !ok {
 		return fmt.Errorf("unable to convert dpconfig to vppconfig	")
 	}
 
-	err := SendVppConfigToVppAgent(vppconfig, true)
+	if !createOrUpdate {
+		logrus.Println("[COSMIN] ProcessDPConfig. dpconfig: interfaces")
+		for _, inter := range vppconfig.Interfaces {
+			logrus.Println("[COSMIN] interface:", inter)
+		}
+	}
+
+	err := SendVppConfigToVppAgent(vppconfig, createOrUpdate)
+
 	if err != nil {
 		logrus.Errorf("Updating the VPP config failed with: %v", err)
 	}

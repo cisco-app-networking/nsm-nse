@@ -66,11 +66,12 @@ func ResetVppAgent() error {
 	return nil
 }
 
-// SendVppConfigToVppAgent send the udpate to the VPP-Agent
+// SendVppConfigToVppAgent send the update to the VPP-Agent
 func SendVppConfigToVppAgent(vppconfig *vpp.ConfigData, update bool) error {
 	dataChange := &configurator.Config{
 		VppConfig: vppconfig,
 	}
+	logrus.Println("SEND_VPP_CALLED: with interfaces:", dataChange.VppConfig.Interfaces, "bool parameter", update)
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 
 	defer cancel()

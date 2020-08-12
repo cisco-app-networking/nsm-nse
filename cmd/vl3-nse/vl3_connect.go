@@ -350,7 +350,7 @@ func (vxc *vL3ConnectComposite) createPeerConnectionRequest(ctx context.Context,
 		return peer.connErr
 	}
 
-	if peer.connErr = vxc.backend.ProcessDPConfig(dpconfig); peer.connErr != nil {
+	if peer.connErr = vxc.backend.ProcessDPConfig(dpconfig, true); peer.connErr != nil {
 		logger.Errorf("endpoint %s Error processing dpconfig: %+v -- %v", peer.endpointName, dpconfig, peer.connErr)
 		peer.state = PEER_STATE_CONNERR
 		return peer.connErr
