@@ -142,12 +142,13 @@ publish-steps: &publish-steps
         name: Tag and publish the images
         command: |
           TAGSUFFIX=$(date +%Y%m%d)
+          PUB_ORG=${DOCKER_ORG:-$DOCKER_USER}
           docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
           for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent"; do
-              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
-              docker push ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}
-              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
-              docker push ${DOCKER_USER}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
+              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${CIRCLE_BRANCH}
+              docker push ${PUB_ORG}/${image}:${CIRCLE_BRANCH}
+              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
+              docker push ${PUB_ORG}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
           done
 
 
