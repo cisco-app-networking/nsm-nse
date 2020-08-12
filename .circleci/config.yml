@@ -4,10 +4,10 @@ version: 2.1
 defaults: &defaults
   working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
   docker:
-    - image: tiswanso/kubectl_kind:latest
+    - image: ciscoappnetworking/kubectl_kind:latest
   environment:
     GOPATH: /go
-    ORG: tiswanso
+    ORG: ciscoappnetworking
 
 defaults-machine: &defaults-machine
   machine: # executor type
@@ -15,7 +15,7 @@ defaults-machine: &defaults-machine
   working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse
   environment:
     GOPATH: ~/go
-    ORG: tiswanso
+    ORG: ciscoappnetworking
 
 e2e-kind-test: &e2e-kind-test
   steps:

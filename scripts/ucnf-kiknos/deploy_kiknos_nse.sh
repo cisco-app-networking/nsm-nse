@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-NSE_ORG=${NSE_ORG:-cisco-app-networking}
+NSE_ORG=${NSE_ORG:-ciscoappnetworking}
 NSE_TAG=${NSE_TAG:-ucnf-kiknos-vppagent}
 PULL_POLICY=${PULL_POLICY:-IfNotPresent}
 SERVICE_NAME=${SERVICE_NAME:-hello-world}

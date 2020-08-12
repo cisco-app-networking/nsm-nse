@@ -5,13 +5,13 @@ print_usage() {
 Usage: $(basename "$0") [options...]
 Options:
   --nse-hub=STRING          Hub for vL3 NSE images
-                            (default=\"tiswanso\", environment variable: NSE_HUB)
+                            (default=\"ciscoappnetworking\", environment variable: NSE_HUB)
   --nse-tag=STRING          Tag for vL3 NSE images
                             (default=\"kind_ci\", environment variable: NSE_TAG)
 " >&2
 }
 
-NSE_HUB=${NSE_HUB:-"tiswanso"}
+NSE_HUB=${NSE_HUB:-"ciscoappnetworking"}
 NSE_TAG=${NSE_TAG:-"kind_ci"}
 PULLPOLICY=${PULLPOLICY:-IfNotPresent}
 INSTALL_OP=${INSTALL_OP:-apply}
