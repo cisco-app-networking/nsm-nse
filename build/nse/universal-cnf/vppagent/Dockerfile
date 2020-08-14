@@ -1,6 +1,7 @@
 ARG VPP_AGENT
 
 FROM golang:alpine as build
+
 RUN apk --no-cache add git
 ENV PACKAGEPATH=github.com/networkservicemesh/networkservicemesh/
 ENV GO111MODULE=on
@@ -17,7 +18,10 @@ FROM ${VPP_AGENT} as runtime
 COPY --from=build /go/bin/cnf-vppagent /bin/cnf-vppagent
 COPY ./build/nse/universal-cnf/vppagent/etc/ /etc/
 COPY ./build/nse/universal-cnf/vppagent/etc/supervisord/supervisord.conf /opt/vpp-agent/dev/supervisor.conf
-RUN rm /opt/vpp-agent/dev/etcd.conf; \
-    echo 'Endpoint: "localhost:9113"' > /opt/vpp-agent/dev/grpc.conf ; \
+RUN set -ex; \
+    rm /opt/vpp-agent/dev/etcd.conf; \
+    echo 'endpoint: "localhost:9113"' > /opt/vpp-agent/dev/grpc.conf ; \
     echo "disabled: true" > /opt/vpp-agent/dev/telemetry.conf; \
-    echo "disabled: true" > /opt/vpp-agent/dev/linux-plugin.conf
+    echo "disabled: true" > /opt/vpp-agent/dev/linux-plugin.conf; \
+	mkdir -p $HOME/.agentctl; \
+	echo "grpc-port: 9113" > $HOME/.agentctl/config.yaml

@@ -17,7 +17,10 @@ FROM ${VPP_AGENT} as runtime
 COPY --from=build /go/bin/cnf-vppagent /bin/cnf-vppagent
 COPY ./build/nse/universal-cnf/vppagent/etc/ /etc/
 COPY ./build/nse/universal-cnf/vppagent/etc/supervisord/supervisord.conf /opt/vpp-agent/dev/supervisor.conf
-RUN rm /opt/aio-agent/dev/etcd.conf; \
-    echo 'Endpoint: "localhost:9113"' > /opt/aio-agent/dev/grpc.conf ; \
+RUN set -ex; \
+    rm /opt/aio-agent/dev/etcd.conf; \
+    echo 'endpoint: "localhost:9113"' > /opt/aio-agent/dev/grpc.conf ; \
     echo "disabled: true" > /opt/aio-agent/dev/telemetry.conf; \
-    echo "disabled: true" > /opt/aio-agent/dev/linux-plugin.conf
+    echo "disabled: true" > /opt/aio-agent/dev/linux-plugin.conf; \
+	mkdir -p $HOME/.agentctl; \
+	echo "grpc-port: 9113" > $HOME/.agentctl/config.yaml
