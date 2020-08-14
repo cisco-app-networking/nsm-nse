@@ -105,6 +105,10 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			routeAddr := makeRouteMutator(e.VL3.IPAM.Routes)
 			compositeEndpoints = append(compositeEndpoints, endpoint.NewCustomFuncEndpoint("route", routeAddr))
 		}
+		if len(e.VL3.NameServers) > 0 {
+			dnsServers := makeDnsMutator(e.VL3.DNSZones, e.VL3.NameServers)
+			compositeEndpoints = append(compositeEndpoints, endpoint.NewCustomFuncEndpoint("dns", dnsServers))
+		}
 
 		compositeEndpoints = append(compositeEndpoints, NewUniversalCNFEndpoint(backend, e))
 		// Compose the Endpoint
