@@ -7,16 +7,17 @@ Options:
   --nse-hub=STRING          Hub for vL3 NSE images
                             (default=\"ciscoappnetworking\", environment variable: NSE_HUB)
   --nse-tag=STRING          Tag for vL3 NSE images
-                            (default=\"kind_ci\", environment variable: NSE_TAG)
+                            (default=\"master\", environment variable: NSE_TAG)
 " >&2
 }
 
 NSE_HUB=${NSE_HUB:-"ciscoappnetworking"}
-NSE_TAG=${NSE_TAG:-"kind_ci"}
+NSE_TAG=${NSE_TAG:-"master"}
 PULLPOLICY=${PULLPOLICY:-IfNotPresent}
 INSTALL_OP=${INSTALL_OP:-apply}
 SERVICENAME=${SERVICENAME:-vl3-service}
 NAMESPACE=${NAMESPACE:-"wcm-system"}
+NSEREPLICAS=${NSEREPLICAS:-1}
 
 for i in "$@"; do
     case $i in
@@ -41,6 +42,7 @@ for i in "$@"; do
             ;;
         --ipamOctet=?*)
             echo "ipamOctet is deprecated"
+            IPAMOCTET=${i#*=}
             ;;
         --wcmNsrAddr=?*)
             WCM_NSRADDR=${i#*=}
@@ -109,7 +111,7 @@ fi
 
 echo "---------------Install NSE-------------"
 # ${KUBEINSTALL} -f ${VL3_NSEMFST}
-helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set nseControl.ipam.defaultPrefixPool=${IPAMPOOL}} --set nseControl.nsr.addr=${WCM_NSRADDR} ${WCM_NSRPORT:+ --set nseControl.nsr.port=${WCM_NSRPORT}} --set replicaCount=2 --namespace=${NAMESPACE} ${NAMESERVER:+ --set nseControl.nameserver=${NAMESERVER}} ${DNSZONE:+ --set nseControl.dnszone=${DNSZONE}} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
+helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set nseControl.ipam.defaultPrefixPool=${IPAMPOOL}} --set nseControl.nsr.addr=${WCM_NSRADDR} ${WCM_NSRPORT:+ --set nseControl.nsr.port=${WCM_NSRPORT}} --set replicaCount=${NSEREPLICAS} ${IPAMOCTET:+--set ipamUniqueOctet=${IPAMOCTET}} --namespace=${NAMESPACE} ${NAMESERVER:+ --set nseControl.nameserver=${NAMESERVER}} ${DNSZONE:+ --set nseControl.dnszone=${DNSZONE}} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 if [[ "$INSTALL_OP" != "delete" ]]; then
   sleep 20

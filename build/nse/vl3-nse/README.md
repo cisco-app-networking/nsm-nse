@@ -24,18 +24,22 @@ This is an NSE that creates a L3 routing domain between NSC workloads. Each NSE 
       1. respond
       1. setup VPP agent for the peer connection
 
-## Single NSM Domain
-
-### Constraints
+## Prereqs
 
 1. This currently only works with a custom version of the NSM installation.
 
     ```sh
     mkdir -p $GOPATH/src/github.com/cisco-app-networking
+    git clone https://github.com/cisco-app-networking/networkservicemesh
+    cd networkservicemesh
+    git checkout vl3_latest
+    cd ..
     git clone https://github.com/cisco-app-networking/nsm-nse
     ```
    
 2. The `demo_*.sh` scripts in this repo work with `demo-magic` which has a dependency on `pv` (ie. `brew install pv`)
+
+## Single NSM Domain
 
 ### Usage
 

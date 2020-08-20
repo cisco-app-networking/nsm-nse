@@ -71,7 +71,7 @@ kubectl get pods -n ${NSE_NS} --kubeconfig ${KCONF2}
 echo "# **** Install helloworld on cluster 1"
 helm template deployments/helm/vl3_hello --set nsm.serviceName=${SERVICENAME} --set replicaCount=1 | kubectl apply --kubeconfig ${KCONF1} -f -
 
-sleep 60
+sleep 5
 
 echo "# **** Install helloworld on cluster 2"
 helm template deployments/helm/vl3_hello --set nsm.serviceName=${SERVICENAME} --set replicaCount=1 | kubectl apply --kubeconfig ${KCONF2} -f -

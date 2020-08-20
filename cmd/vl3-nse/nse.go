@@ -25,7 +25,6 @@ import (
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
-	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 
@@ -70,9 +69,9 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 		"prefixPool":         nsConfig.IPAddress,
 		"nsConfig.IPAddress": nsConfig.IPAddress,
 	}).Infof("Creating vL3 IPAM endpoint")
-	ipamEp := endpoint.NewIpamEndpoint(&common.NSConfiguration{
-		IPAddress: nsConfig.IPAddress,
-	})
+	//ipamEp := endpoint.NewIpamEndpoint(&common.NSConfiguration{
+	//	IPAddress: nsConfig.IPAddress,
+	//})
 
 	var nsRemoteIpList []string
 	nsRemoteIpListStr, ok := os.LookupEnv("NSM_REMOTE_NS_IP_LIST")
@@ -80,7 +79,7 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 		nsRemoteIpList = strings.Split(nsRemoteIpListStr, ",")
 	}
 	compositeEndpoints := []networkservice.NetworkServiceServer{
-		ipamEp,
+		//ipamEp,
 		newVL3ConnectComposite(nsConfig, nsConfig.IPAddress,
 			&vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList, func() string {
 				return ucnfEndpoint.NseName
