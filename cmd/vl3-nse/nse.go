@@ -69,9 +69,6 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 		"prefixPool":         nsConfig.IPAddress,
 		"nsConfig.IPAddress": nsConfig.IPAddress,
 	}).Infof("Creating vL3 IPAM endpoint")
-	//ipamEp := endpoint.NewIpamEndpoint(&common.NSConfiguration{
-	//	IPAddress: nsConfig.IPAddress,
-	//})
 
 	var nsRemoteIpList []string
 	nsRemoteIpListStr, ok := os.LookupEnv("NSM_REMOTE_NS_IP_LIST")
@@ -79,7 +76,6 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 		nsRemoteIpList = strings.Split(nsRemoteIpListStr, ",")
 	}
 	compositeEndpoints := []networkservice.NetworkServiceServer{
-		//ipamEp,
 		newVL3ConnectComposite(nsConfig, nsConfig.IPAddress,
 			&vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList, func() string {
 				return ucnfEndpoint.NseName

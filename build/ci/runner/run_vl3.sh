@@ -77,11 +77,11 @@ echo "# **** Install helloworld on cluster 2"
 helm template deployments/helm/vl3_hello --set nsm.serviceName=${SERVICENAME} --set replicaCount=1 | kubectl apply --kubeconfig ${KCONF2} -f -
 
 echo "# **** wait on helloworld pods to come up"
-kubectl wait --kubeconfig ${KCONF1} --timeout=600s --for condition=Ready -l app=helloworld pod
-kubectl wait --kubeconfig ${KCONF2} --timeout=600s --for condition=Ready -l app=helloworld pod
+kubectl wait --kubeconfig ${KCONF1} --timeout=600s --for condition=Ready -l app=helloworld-${SERVICENAME} pod
+kubectl wait --kubeconfig ${KCONF2} --timeout=600s --for condition=Ready -l app=helloworld-${SERVICENAME} pod
 
-K1_PODNM=$(kubectl get pods --kubeconfig ${KCONF1} -l "app=helloworld" -o jsonpath="{.items[0].metadata.name}")
-K2_PODNM=$(kubectl get pods --kubeconfig ${KCONF2} -l "app=helloworld" -o jsonpath="{.items[0].metadata.name}")
+K1_PODNM=$(kubectl get pods --kubeconfig ${KCONF1} -l "app=helloworld-${SERVICENAME}" -o jsonpath="{.items[0].metadata.name}")
+K2_PODNM=$(kubectl get pods --kubeconfig ${KCONF2} -l "app=helloworld-${SERVICENAME}" -o jsonpath="{.items[0].metadata.name}")
 
 K1_PODIP=$(kubectl exec -t $K1_PODNM -c helloworld --kubeconfig ${KCONF1} -- ip a show dev nsm0 | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}')
 
