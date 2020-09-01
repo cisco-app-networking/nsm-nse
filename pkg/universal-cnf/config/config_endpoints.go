@@ -58,31 +58,35 @@ func buildIpPrefixFromLocal(defaultPrefixPool string) string {
 	if !ok {
 		ipamUseNsPodOctet = true
 	}
-	prefixPool := ""
+	prefixPool := defaultPrefixPool
 	// Find the 3rd octet of the pod IP
 	if defaultPrefixPool != "" {
-		prefixPoolIP, _, err := net.ParseCIDR(defaultPrefixPool)
+		prefixPoolIP, defaultPrefixIPNet, err := net.ParseCIDR(defaultPrefixPool)
 		if err != nil {
 			logrus.Errorf("Failed to parse configured prefix pool IP")
 			prefixPoolIP = net.ParseIP("1.1.0.0")
 		}
-		var ipamUniqueOctet int
-		if ipamUseNsPodOctet {
-			podIP := net.ParseIP(nsPodIp)
-			if podIP == nil {
-				logrus.Errorf("Failed to parse configured pod IP")
-				ipamUniqueOctet = 0
+		defaultPrefixMaskOnes, _ := defaultPrefixIPNet.Mask.Size()
+		// this default IPAM pool logic assumes ipv4
+		if defaultPrefixMaskOnes >= 16 {
+			var ipamUniqueOctet int
+			if ipamUseNsPodOctet {
+				podIP := net.ParseIP(nsPodIp)
+				if podIP == nil {
+					logrus.Errorf("Failed to parse configured pod IP")
+					ipamUniqueOctet = 0
+				} else {
+					ipamUniqueOctet = int(podIP.To4()[2])
+				}
 			} else {
-				ipamUniqueOctet = int(podIP.To4()[2])
+				ipamUniqueOctet, _ = strconv.Atoi(nseUniqueOctet)
 			}
-		} else {
-			ipamUniqueOctet, _ = strconv.Atoi(nseUniqueOctet)
+			prefixPool = fmt.Sprintf("%d.%d.%d.%d/24",
+				prefixPoolIP.To4()[0],
+				prefixPoolIP.To4()[1],
+				ipamUniqueOctet,
+				0)
 		}
-		prefixPool = fmt.Sprintf("%d.%d.%d.%d/24",
-			prefixPoolIP.To4()[0],
-			prefixPoolIP.To4()[1],
-			ipamUniqueOctet,
-			0)
 	}
 	return prefixPool
 }
