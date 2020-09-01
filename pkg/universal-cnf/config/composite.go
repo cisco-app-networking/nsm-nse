@@ -104,7 +104,7 @@ func makeDnsMutator(dnsZones, nameservers []string) endpoint.ConnectionMutator {
 		logrus.Infof("Universal CNF DNS composite endpoint: %v", c)
 		dnsConfig := &connectioncontext.DNSConfig{}
 		for _, zone := range dnsZones {
-			 dnsConfig.SearchDomains = append(dnsConfig.SearchDomains, zone)
+			dnsConfig.SearchDomains = append(dnsConfig.SearchDomains, zone)
 		}
 		for _, server := range nameservers {
 			dnsConfig.DnsServerIps = append(dnsConfig.DnsServerIps, server)

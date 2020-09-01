@@ -13,7 +13,7 @@ Options:
 
 NSE_HUB=${NSE_HUB:-"ciscoappnetworking"}
 NSE_TAG=${NSE_TAG:-"kind_ci"}
-PULLPOLICY=${PULLPOLICY:-Always}
+PULLPOLICY=${PULLPOLICY:-IfNotPresent}
 INSTALL_OP=${INSTALL_OP:-apply}
 SERVICENAME=${SERVICENAME:-vl3-service}
 NAMESPACE=${NAMESPACE:-"wcm-system"}
