@@ -98,3 +98,23 @@ func makeRouteMutator(routes []string) endpoint.ConnectionMutator {
 		return nil
 	}
 }
+
+func makeDnsMutator(dnsZones, nameservers []string) endpoint.ConnectionMutator {
+	return func(ctx context.Context, c *connection.Connection) error {
+		logrus.Infof("Universal CNF DNS composite endpoint: %v", c)
+		dnsConfig := &connectioncontext.DNSConfig{}
+		for _, zone := range dnsZones {
+			dnsConfig.SearchDomains = append(dnsConfig.SearchDomains, zone)
+		}
+		for _, server := range nameservers {
+			dnsConfig.DnsServerIps = append(dnsConfig.DnsServerIps, server)
+		}
+		logrus.Infof("Universal CNF DNS composite endpoint adding DNSConfig: %v", dnsConfig)
+		if c.GetContext().GetDnsContext() == nil {
+			c.GetContext().DnsContext = &connectioncontext.DNSContext{}
+		}
+		c.GetContext().DnsContext.Configs = append(c.GetContext().DnsContext.Configs,
+			dnsConfig)
+		return nil
+	}
+}

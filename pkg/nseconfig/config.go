@@ -34,6 +34,7 @@ type VL3 struct {
 	IPAM        IPAM     `yaml:"ipam"`
 	Ifname      string   `yaml:"ifName"`
 	NameServers []string `yaml:"nameServers"`
+	DNSZones    []string `yaml:"dnsZones"`
 }
 
 type IPAM struct {
