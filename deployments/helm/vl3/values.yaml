@@ -3,9 +3,9 @@
 # Declare variables to be passed into your templates.
 
 registry: docker.io
-org: tiswanso
-tag: unified_api_ipam
-pullPolicy: Always
+org: ciscoappnetworking
+tag: master
+pullPolicy: IfNotPresent
 vppMetricsPort: 9191
 metricsPort: 2112
 

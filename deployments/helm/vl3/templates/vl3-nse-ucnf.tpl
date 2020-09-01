@@ -51,6 +51,10 @@ spec:
               value: "nsmgr.nsm-system"
             - name: NSREGISTRY_PORT
               value: "5000"
+{{- if .Values.ipamUniqueOctet }}
+            - name: NSE_IPAM_UNIQUE_OCTET
+              value: {{ .Values.ipamUniqueOctet | quote }}
+{{- end }}
             - name: NSE_POD_IP
               valueFrom:
                 fieldRef:
@@ -101,7 +105,9 @@ data:
       vl3:
        ipam:
           defaultPrefixPool: {{ .Values.nseControl.ipam.defaultPrefixPool | quote }}
+{{- if .Values.nseControl.nsr.addr }}
           serverAddress: "ipam-{{ .Values.nseControl.nsr.addr }}:50051"
+{{- end }}
           prefixLength: {{ .Values.nseControl.ipam.prefixLength }}
           routes: []
        ifName: "endpoint0"
