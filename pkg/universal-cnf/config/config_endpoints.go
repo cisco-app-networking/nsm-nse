@@ -121,6 +121,7 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			}
 		}
 		if configuration.IPAddress == "" {
+			// central ipam server address is not set so attempt a local calculation of IPAM subnet
 			configuration.IPAddress = buildIpPrefixFromLocal(e.VL3.IPAM.DefaultPrefixPool)
 			logrus.Infof("Using locally calculated subnet for IPAM: %s", configuration.IPAddress)
 		}
@@ -129,13 +130,7 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			endpoint.NewMonitorEndpoint(configuration),
 			endpoint.NewConnectionEndpoint(configuration),
 		}
-		// Invoke any additional composite endpoint constructors via the add-on interface
-		addCompositeEndpoints := ceAddons.AddCompositeEndpoints(configuration, e)
-		if addCompositeEndpoints != nil {
-			compositeEndpoints = append(compositeEndpoints, *addCompositeEndpoints...)
-		}
 
-		// if the default DefaultPrefixPool is set and central ipam server address is not set then use a ipam endpoint
 		if configuration.IPAddress != "" {
 			compositeEndpoints = append(compositeEndpoints, endpoint.NewIpamEndpoint(&common.NSConfiguration{
 				NsmServerSocket:        nsconfig.NsmServerSocket,
@@ -149,6 +144,11 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 				IPAddress:              configuration.IPAddress,
 				Routes:                 nil,
 			}))
+		}
+		// Invoke any additional composite endpoint constructors via the add-on interface
+		addCompositeEndpoints := ceAddons.AddCompositeEndpoints(configuration, e)
+		if addCompositeEndpoints != nil {
+			compositeEndpoints = append(compositeEndpoints, *addCompositeEndpoints...)
 		}
 
 		if len(e.VL3.IPAM.Routes) > 0 {
