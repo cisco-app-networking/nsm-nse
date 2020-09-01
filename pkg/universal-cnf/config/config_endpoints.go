@@ -17,6 +17,10 @@ package config
 
 import (
 	"context"
+	"fmt"
+	"net"
+	"os"
+	"strconv"
 
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
@@ -44,6 +48,45 @@ type CompositeEndpointAddons interface {
 	AddCompositeEndpoints(*common.NSConfiguration, *nseconfig.Endpoint) *[]networkservice.NetworkServiceServer
 }
 
+func buildIpPrefixFromLocal(defaultPrefixPool string) string {
+	nsPodIp, ok := os.LookupEnv("NSE_POD_IP")
+	if !ok {
+		nsPodIp = "2.2.20.0" // needs to be set to make sense
+	}
+	ipamUseNsPodOctet := false
+	nseUniqueOctet, ok := os.LookupEnv("NSE_IPAM_UNIQUE_OCTET")
+	if !ok {
+		ipamUseNsPodOctet = true
+	}
+	prefixPool := ""
+	// Find the 3rd octet of the pod IP
+	if defaultPrefixPool != "" {
+		prefixPoolIP, _, err := net.ParseCIDR(defaultPrefixPool)
+		if err != nil {
+			logrus.Errorf("Failed to parse configured prefix pool IP")
+			prefixPoolIP = net.ParseIP("1.1.0.0")
+		}
+		var ipamUniqueOctet int
+		if ipamUseNsPodOctet {
+			podIP := net.ParseIP(nsPodIp)
+			if podIP == nil {
+				logrus.Errorf("Failed to parse configured pod IP")
+				ipamUniqueOctet = 0
+			} else {
+				ipamUniqueOctet = int(podIP.To4()[2])
+			}
+		} else {
+			ipamUniqueOctet, _ = strconv.Atoi(nseUniqueOctet)
+		}
+		prefixPool = fmt.Sprintf("%d.%d.%d.%d/24",
+			prefixPoolIP.To4()[0],
+			prefixPoolIP.To4()[1],
+			ipamUniqueOctet,
+			0)
+	}
+	return prefixPool
+}
+
 // NewProcessEndpoints returns a new ProcessInitCommands struct
 func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.Endpoint, nsconfig *common.NSConfiguration, ceAddons CompositeEndpointAddons, ctx context.Context) *ProcessEndpoints {
 	result := &ProcessEndpoints{}
@@ -59,20 +102,27 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			EndpointLabels:         labelStringFromMap(e.Labels),
 			ClientLabels:           nsconfig.ClientLabels,
 			MechanismType:          memif.MECHANISM,
-			IPAddress:              e.VL3.IPAM.DefaultPrefixPool,
+			IPAddress:              "",
 			Routes:                 nil,
 		}
 		if e.VL3.IPAM.ServerAddress != "" {
 			var err error
 			ipamService, err := NewIpamService(ctx, e.VL3.IPAM.ServerAddress)
 			if err != nil {
-				logrus.Error(err)
+				logrus.Warningf("Unable to connect to IPAM Service %v",err)
 			} else {
 				configuration.IPAddress, err = ipamService.AllocateSubnet(e)
 				if err != nil {
-					logrus.Error(err)
+					logrus.Warningf("Unable to allocate subnet from IPAM Service %v", err)
+					configuration.IPAddress = ""
+				} else {
+					logrus.Infof("Obtained subnet from IPAM Service: %s", configuration.IPAddress)
 				}
 			}
+		}
+		if configuration.IPAddress == "" {
+			configuration.IPAddress = buildIpPrefixFromLocal(e.VL3.IPAM.DefaultPrefixPool)
+			logrus.Infof("Using locally calculated subnet for IPAM: %s", configuration.IPAddress)
 		}
 		// Build the list of composites
 		compositeEndpoints := []networkservice.NetworkServiceServer{
@@ -86,7 +136,7 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 		}
 
 		// if the default DefaultPrefixPool is set and central ipam server address is not set then use a ipam endpoint
-		if e.VL3.IPAM.DefaultPrefixPool != "" && e.VL3.IPAM.ServerAddress == "" {
+		if configuration.IPAddress != "" {
 			compositeEndpoints = append(compositeEndpoints, endpoint.NewIpamEndpoint(&common.NSConfiguration{
 				NsmServerSocket:        nsconfig.NsmServerSocket,
 				NsmClientSocket:        nsconfig.NsmClientSocket,
@@ -96,7 +146,7 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 				EndpointLabels:         nsconfig.EndpointLabels,
 				ClientLabels:           nsconfig.ClientLabels,
 				MechanismType:          nsconfig.MechanismType,
-				IPAddress:              e.VL3.IPAM.DefaultPrefixPool,
+				IPAddress:              configuration.IPAddress,
 				Routes:                 nil,
 			}))
 		}

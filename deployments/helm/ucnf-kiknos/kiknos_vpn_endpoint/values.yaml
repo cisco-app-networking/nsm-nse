@@ -1,8 +1,8 @@
 ---
 
 registry: docker.io
-org: networkservicemesh
-tag: latest
+org: ciscoappnetworking
+tag: master
 pullPolicy: IfNotPresent
 
 nseControl:

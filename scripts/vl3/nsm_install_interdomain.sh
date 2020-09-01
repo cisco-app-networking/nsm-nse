@@ -13,8 +13,8 @@ Options:
 " >&2
 }
 
-NSM_HUB="${NSM_HUB:-"tiswanso"}"
-NSM_TAG="${NSM_TAG:-"vl3_api_rebase"}"
+NSM_HUB="${NSM_HUB:-"ciscoappnetworking"}"
+NSM_TAG="${NSM_TAG:-"vl3_latest"}"
 INSTALL_OP=${INSTALL_OP:-apply}
 
 for i in "$@"
