@@ -105,6 +105,12 @@ data:
           prefixLength: {{ .Values.nseControl.ipam.prefixLength }}
           routes: []
        ifName: "endpoint0"
+{{- if .Values.nseControl.nameserver }}
+       nameServers:
+          - {{ .Values.nseControl.nameserver }}
+       dnsZones:
+          - {{ .Values.nseControl.dnszone }}
+{{- end }}
 ---
 apiVersion: v1
 kind: Service

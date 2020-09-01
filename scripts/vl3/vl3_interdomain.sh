@@ -48,6 +48,12 @@ for i in "$@"; do
         --wcmNsrPort=?*)
             WCM_NSRPORT=${i#*=}
             ;;
+        --nameserver=?*)
+            NAMESERVER=${i#*=}
+            ;;
+        --dnszone=?*)
+            DNSZONE=${i#*=}
+            ;;
         --cleanup|--delete)
             INSTALL_OP=delete
             ;;
@@ -103,7 +109,7 @@ fi
 
 echo "---------------Install NSE-------------"
 # ${KUBEINSTALL} -f ${VL3_NSEMFST}
-helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set nseControl.ipam.defaultPrefixPool=${IPAMPOOL}} --set nseControl.nsr.addr=${WCM_NSRADDR} ${WCM_NSRPORT:+ --set nseControl.nsr.port=${WCM_NSRPORT}} --set replicaCount=2 --namespace=${NAMESPACE} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
+helm template ${VL3HELMDIR}/vl3 --set org=${NSE_HUB} --set tag=${NSE_TAG} --set pullPolicy=${PULLPOLICY} --set nsm.serviceName=${SERVICENAME} ${IPAMPOOL:+ --set nseControl.ipam.defaultPrefixPool=${IPAMPOOL}} --set nseControl.nsr.addr=${WCM_NSRADDR} ${WCM_NSRPORT:+ --set nseControl.nsr.port=${WCM_NSRPORT}} --set replicaCount=2 --namespace=${NAMESPACE} ${NAMESERVER:+ --set nseControl.nameserver=${NAMESERVER}} ${DNSZONE:+ --set nseControl.dnszone=${DNSZONE}} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 if [[ "$INSTALL_OP" != "delete" ]]; then
   sleep 20
