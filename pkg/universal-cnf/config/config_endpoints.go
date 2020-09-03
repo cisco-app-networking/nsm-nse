@@ -59,6 +59,8 @@ func buildIpPrefixFromLocal(defaultPrefixPool string) string {
 		ipamUseNsPodOctet = true
 	}
 	prefixPool := defaultPrefixPool
+	logrus.Infof("IPAM local calc--default prefix pool IP %s",
+		defaultPrefixPool)
 	// Find the 3rd octet of the pod IP
 	if defaultPrefixPool != "" {
 		prefixPoolIP, defaultPrefixIPNet, err := net.ParseCIDR(defaultPrefixPool)
@@ -67,8 +69,10 @@ func buildIpPrefixFromLocal(defaultPrefixPool string) string {
 			prefixPoolIP = net.ParseIP("1.1.0.0")
 		}
 		defaultPrefixMaskOnes, _ := defaultPrefixIPNet.Mask.Size()
+		logrus.Infof("IPAM local calc--default prefix pool IP %s (len = %d)",
+			defaultPrefixPool, defaultPrefixMaskOnes)
 		// this default IPAM pool logic assumes ipv4
-		if defaultPrefixMaskOnes >= 16 {
+		if defaultPrefixMaskOnes <= 16 {
 			var ipamUniqueOctet int
 			if ipamUseNsPodOctet {
 				podIP := net.ParseIP(nsPodIp)
