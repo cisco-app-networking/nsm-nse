@@ -26,6 +26,8 @@ import (
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
+	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
+	"net"
 )
 
 // UniversalCNFEndpoint is a Universal CNF Endpoint composite implementation
@@ -96,6 +98,34 @@ func (uce *UniversalCNFEndpoint) removeClientInterface(connection *connection.Co
 
 	// Append the interface that has to be removed.
 	removeConfig.Interfaces = append(removeConfig.Interfaces, inter)
+
+	srcIP, _, _ := net.ParseCIDR(connection.GetContext().GetIpContext().GetSrcIpAddr())
+
+	// Create a new Routes slice for the routes that are kept in the dpConfig
+	// Create a removedRoutes slice which is going to be passed to the vpp
+	var removedRoutes, newRoutes []*l3.Route
+	srcRoutes := connection.GetContext().GetIpContext().GetSrcRoutes()
+	for _, route := range uce.dpConfig.Routes {
+		if route.NextHopAddr == srcIP.String() {
+			found := false
+			for _, r := range srcRoutes {
+				if route.DstNetwork == r.Prefix {
+					found = true
+				}
+			}
+			if found {
+				removedRoutes = append(removedRoutes, route)
+			} else {
+				newRoutes = append(newRoutes, route)
+			}
+		} else {
+			newRoutes = append(newRoutes, route)
+		}
+	}
+
+	// Updating the static routes configuration
+	removeConfig.Routes = removedRoutes
+	uce.dpConfig.Routes = newRoutes
 
 	return removeConfig, nil
 }
