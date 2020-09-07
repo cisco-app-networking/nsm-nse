@@ -123,7 +123,7 @@ type UniversalCNFBackend interface {
 	NewUniversalCNFBackend() error
 	ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error
 	ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error
-	ProcessDPConfig(dpconfig interface{}, createOrUpdate bool) error
+	ProcessDPConfig(dpconfig interface{}, update bool) error
 }
 
 // UniversalCNFConfig hold the CNF configuration

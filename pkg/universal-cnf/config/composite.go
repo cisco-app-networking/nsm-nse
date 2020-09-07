@@ -17,7 +17,7 @@ package config
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
@@ -62,22 +62,58 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 	return request.GetConnection(), nil
 }
 
+// Removes the client interfaces from the dpConfig and
+// Returns a new *vpp.ConfigData which contains the removed interfaces.
+func (uce *UniversalCNFEndpoint) removeClientInterface(connection *connection.Connection) (*vpp.ConfigData, error) {
+	dstIpAddr := connection.Context.IpContext.DstIpAddr
+
+	// find the interface index in the dpConfig.Interface slice
+	index := -1
+	for i, inter := range uce.dpConfig.Interfaces {
+		if index != -1 {
+			break
+		}
+		for _, ipAddr := range inter.IpAddresses {
+			if ipAddr == dstIpAddr {
+				index = i
+				break
+			}
+		}
+	}
+
+	if index == -1 {
+		return nil, fmt.Errorf("client interface with dstIpAddr %s not found", dstIpAddr)
+	}
+
+	// Get a reference to the removed interface.
+	inter := uce.dpConfig.Interfaces[index]
+
+	// Remove the interface from the actual config.
+	uce.dpConfig.Interfaces = append(uce.dpConfig.Interfaces[:index], uce.dpConfig.Interfaces[index+1:]...)
+
+	// Create a new configuration used in the vpp to perform the removal.
+	removeConfig := uce.backend.NewDPConfig()
+
+	// Append the interface that has to be removed.
+	removeConfig.Interfaces = append(removeConfig.Interfaces, inter)
+
+	return removeConfig, nil
+}
+
 // Close implements the close handler
 func (uce *UniversalCNFEndpoint) Close(ctx context.Context, connection *connection.Connection) (*empty.Empty, error) {
 	logrus.Infof("Universal CNF DeleteConnection: %v", connection)
 
-	logrus.Info("[COSMIN] Beginning close config:", uce.dpConfig)
-	if err := uce.backend.ProcessEndpoint(uce.dpConfig, uce.endpoint.Name, uce.endpoint.VL3.Ifname, connection); err != nil {
-		logrus.Errorf("Failed to process: %+v", uce.endpoint)
-		return nil, err
+	removeConfig, err := uce.removeClientInterface(connection)
+	if err != nil && endpoint.Next(ctx) != nil {
+		return endpoint.Next(ctx).Close(ctx, connection)
 	}
 
-	if err := uce.backend.ProcessDPConfig(uce.dpConfig, false); err != nil {
+	// Remove the interfaces from the vpp agent
+	if err := uce.backend.ProcessDPConfig(removeConfig, false); err != nil {
 		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
 		return nil, err
 	}
-
-	logrus.Info("[COSMIN] ending close config:", uce.dpConfig)
 
 	if endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Close(ctx, connection)
