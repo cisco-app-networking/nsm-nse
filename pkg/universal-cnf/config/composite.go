@@ -17,7 +17,7 @@ package config
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
@@ -26,6 +26,8 @@ import (
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
+	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
+	"net"
 )
 
 // UniversalCNFEndpoint is a Universal CNF Endpoint composite implementation
@@ -50,7 +52,7 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 		return nil, err
 	}
 
-	if err := uce.backend.ProcessDPConfig(uce.dpConfig); err != nil {
+	if err := uce.backend.ProcessDPConfig(uce.dpConfig, true); err != nil {
 		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
 		return nil, err
 	}
@@ -62,9 +64,86 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 	return request.GetConnection(), nil
 }
 
+// Removes the client interfaces from the dpConfig and
+// Returns a new *vpp.ConfigData which contains the removed interfaces.
+func (uce *UniversalCNFEndpoint) removeClientInterface(connection *connection.Connection) (*vpp.ConfigData, error) {
+	dstIpAddr := connection.Context.IpContext.DstIpAddr
+
+	// find the interface index in the dpConfig.Interface slice
+	index := -1
+	for i, inter := range uce.dpConfig.Interfaces {
+		if index != -1 {
+			break
+		}
+		for _, ipAddr := range inter.IpAddresses {
+			if ipAddr == dstIpAddr {
+				index = i
+				break
+			}
+		}
+	}
+
+	if index == -1 {
+		return nil, fmt.Errorf("client interface with dstIpAddr %s not found", dstIpAddr)
+	}
+
+	// Get a reference to the removed interface.
+	inter := uce.dpConfig.Interfaces[index]
+
+	// Remove the interface from the actual config.
+	uce.dpConfig.Interfaces = append(uce.dpConfig.Interfaces[:index], uce.dpConfig.Interfaces[index+1:]...)
+
+	// Create a new configuration used in the vpp to perform the removal.
+	removeConfig := uce.backend.NewDPConfig()
+
+	// Append the interface that has to be removed.
+	removeConfig.Interfaces = append(removeConfig.Interfaces, inter)
+
+	srcIP, _, _ := net.ParseCIDR(connection.GetContext().GetIpContext().GetSrcIpAddr())
+
+	// Create a new Routes slice for the routes that are kept in the dpConfig
+	// Create a removedRoutes slice which is going to be passed to the vpp
+	var removedRoutes, newRoutes []*l3.Route
+	srcRoutes := connection.GetContext().GetIpContext().GetSrcRoutes()
+	for _, route := range uce.dpConfig.Routes {
+		if route.NextHopAddr == srcIP.String() {
+			found := false
+			for _, r := range srcRoutes {
+				if route.DstNetwork == r.Prefix {
+					found = true
+				}
+			}
+			if found {
+				removedRoutes = append(removedRoutes, route)
+			} else {
+				newRoutes = append(newRoutes, route)
+			}
+		} else {
+			newRoutes = append(newRoutes, route)
+		}
+	}
+
+	// Updating the static routes configuration
+	removeConfig.Routes = removedRoutes
+	uce.dpConfig.Routes = newRoutes
+
+	return removeConfig, nil
+}
+
 // Close implements the close handler
 func (uce *UniversalCNFEndpoint) Close(ctx context.Context, connection *connection.Connection) (*empty.Empty, error) {
 	logrus.Infof("Universal CNF DeleteConnection: %v", connection)
+
+	removeConfig, err := uce.removeClientInterface(connection)
+	if err != nil && endpoint.Next(ctx) != nil {
+		return endpoint.Next(ctx).Close(ctx, connection)
+	}
+
+	// Remove the interfaces from the vpp agent
+	if err := uce.backend.ProcessDPConfig(removeConfig, false); err != nil {
+		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
+		return nil, err
+	}
 
 	if endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Close(ctx, connection)
