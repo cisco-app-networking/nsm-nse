@@ -98,6 +98,23 @@ func (b *UniversalCNFVPPAgentBackend) ProcessClient(
 	return nil
 }
 
+func (b *UniversalCNFVPPAgentBackend) buildVppIfName(defaultIfName, serviceName string, conn *connection.Connection) string {
+	// NSC peer connection
+	if name, ok := conn.Labels["podName"]; ok {
+		logrus.Infof("Setting ifName with podName: %s", name)
+		return name
+	}
+
+	// vl3 NSE peer connection
+	if name, ok := conn.Labels["ucnf/peerName"]; ok {
+		logrus.Infof("Setting ifName with vL3 peer name: %s", name)
+		return name
+	}
+
+	// create a default interface name, using the prefix and the generated id
+	return defaultIfName + b.GetEndpointIfID(serviceName)
+}
+
 // ProcessEndpoint runs the endpoint code for VPP CNF
 func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 	dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error {
@@ -115,7 +132,8 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 		ipAddresses = append(ipAddresses, dstIP)
 	}
 
-	endpointIfName := ifName + b.GetEndpointIfID(serviceName)
+	endpointIfName := b.buildVppIfName(ifName, serviceName, conn)
+
 	rxModes := []*interfaces.Interface_RxMode{
 		&interfaces.Interface_RxMode{
 			Mode:        interfaces.Interface_RxMode_INTERRUPT,
