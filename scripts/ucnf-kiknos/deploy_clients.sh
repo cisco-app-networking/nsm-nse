@@ -56,7 +56,13 @@ if [[ "$ISTIO_CLIENT" == "true" ]]; then
   helm template ./deployments/helm/ucnf-kiknos/istio_ingress --set nsm.serviceName="$SERVICE_NAME" | kubectl --context "$CLUSTER" "$OPERATION" -f -
   sleep 1
   echo "Waiting for Istio gateway to be ready"
-  kubectl --context "$CLUSTER" wait -n istio-system --timeout=500s --for condition=Ready --all pods
+  kubectl --context "$CLUSTER" wait -n istio-system --timeout=500s --for condition=Ready --all pods || {
+    ec=$?
+    echo "kubectl wait failed, returned code ${ec}.  Gathering data"
+    kubectl cluster-info dump --context "${CLUSTER}" --all-namespaces --output-directory=/tmp/error_logs_istio_ingress/
+    kubectl get pods -A --context "${CLUSTER}"
+    exit ${ec}
+  }
   kubectl --context "$CLUSTER" label namespace default istio-injection=enabled
   helm template ./deployments/helm/ucnf-kiknos/istio_clients --set app=${SERVICE_NAME} | kubectl --context "$CLUSTER" "$OPERATION" -f -
 fi
@@ -66,5 +72,18 @@ if [[ ${OPERATION} = delete ]]; then
     CONDITION="delete"
 fi
 
+# Give pods time to exist before wait
+sleep 5
+
 echo "Waiting for client pods condition to be '$CONDITION'"
-kubectl --context "$CLUSTER" wait -n default --timeout=150s --for ${CONDITION} --all pods -l "app=$SERVICE_NAME"
+echo "Pods with label: app=$SERVICE_NAME"
+kubectl wait --context "$CLUSTER" -n default --timeout=150s --for ${CONDITION} --all pods -l "app=$SERVICE_NAME" || {
+    ec=$?
+    if [[ ${CONDITION} == "condition=Ready" ]]; then
+        echo "kubectl wait for condition ${CONDITION} failed, returned code ${ec}.  Gathering data"
+        kubectl cluster-info dump --context "${CLUSTER}" --all-namespaces --output-directory=/tmp/error_logs_dep_clients_app/
+        kubectl get pods -A --context "${CLUSTER}"
+        kubectl describe pod --context "${CLUSTER}" -l "app=$SERVICE_NAME" -n=default
+        exit ${ec}
+    fi
+}
