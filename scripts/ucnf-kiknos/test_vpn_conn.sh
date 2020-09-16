@@ -55,8 +55,8 @@ for hello in $(kubectl --context "$CLUSTER2" get pods -l app="$SERVICE" -o=name)
         echo "curl failed, returning code: ${ec}.  Gathering data"
         kubectl cluster-info dump --all-namespaces --context "$CLUSTER1" --output-directory=/tmp/error_logs_test_vpn/"${CLUSTER1}"/
         kubectl cluster-info dump --all-namespaces --context "$CLUSTER2" --output-directory=/tmp/error_logs_test_vpn/"${CLUSTER2}"/
-	free -hw
-	top -n1 -b | head -20
+        free -hw
+        top -n1 -b | head -20
         echo "Pods in ${CLUSTER1}"
         kubectl get pods -A --context "$CLUSTER1"
         echo "Pods in ${CLUSTER2}"
