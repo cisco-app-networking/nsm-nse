@@ -50,7 +50,19 @@ done
 
 for hello in $(kubectl --context "$CLUSTER2" get pods -l app="$SERVICE" -o=name); do
   for ip in "${helloIPs[@]}"; do
-    kubectl --context "$CLUSTER2" exec "$hello" -c helloworld -- curl -s "http://$ip:5000/hello"
+    kubectl --context "$CLUSTER2" exec "$hello" -c helloworld -- curl -s "http://$ip:5000/hello" || {
+        ec=$?
+        echo "curl failed, returning code: ${ec}.  Gathering data"
+        kubectl cluster-info dump --all-namespaces --context "$CLUSTER1" --output-directory=/tmp/error_logs_test_vpn/"${CLUSTER1}"/
+        kubectl cluster-info dump --all-namespaces --context "$CLUSTER2" --output-directory=/tmp/error_logs_test_vpn/"${CLUSTER2}"/
+	free -hw
+	top -n1 -b | head -20
+        echo "Pods in ${CLUSTER1}"
+        kubectl get pods -A --context "$CLUSTER1"
+        echo "Pods in ${CLUSTER2}"
+        kubectl get pods -A --context "$CLUSTER2"
+        exit ${ec}
+    }
   done
 done
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
