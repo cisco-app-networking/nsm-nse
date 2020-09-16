@@ -29,6 +29,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	PEER_NAME = "ucnf/peerName"
+)
+
 // Command is a struct to describe exec.Command call arguments
 type Command struct {
 	Name string

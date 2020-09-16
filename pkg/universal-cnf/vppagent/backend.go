@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
 	"github.com/sirupsen/logrus"
@@ -100,13 +101,13 @@ func (b *UniversalCNFVPPAgentBackend) ProcessClient(
 
 func (b *UniversalCNFVPPAgentBackend) buildVppIfName(defaultIfName, serviceName string, conn *connection.Connection) string {
 	// NSC peer connection
-	if name, ok := conn.Labels["podName"]; ok {
+	if name, ok := conn.Labels[connection.PodNameKey]; ok {
 		logrus.Infof("Setting ifName with podName: %s", name)
 		return name
 	}
 
 	// vl3 NSE peer connection
-	if name, ok := conn.Labels["ucnf/peerName"]; ok {
+	if name, ok := conn.Labels[config.PEER_NAME]; ok {
 		logrus.Infof("Setting ifName with vL3 peer name: %s", name)
 		return name
 	}

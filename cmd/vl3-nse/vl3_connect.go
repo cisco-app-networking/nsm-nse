@@ -178,7 +178,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 
 	if vl3SrcEndpointName, ok := conn.GetLabels()[LABEL_NSESOURCE]; ok {
 		// request is from another vl3 NSE
-		conn.Labels["ucnf/peerName"] = vl3SrcEndpointName
+		conn.Labels[config.PEER_NAME] = vl3SrcEndpointName
 		_ = vxc.processPeerRequest(vl3SrcEndpointName, request, request.Connection)
 
 	} else {
