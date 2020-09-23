@@ -89,9 +89,39 @@ function performNSE() {
     CONDITION="delete"
   fi
 
-  echo "Waiting for kiknos pods condition to be '$CONDITION'"
-  kubectl --context "$cluster" wait -n default --timeout=150s --for ${CONDITION} --all pods -l k8s-app=kiknos-etcd
-  kubectl --context "$cluster" wait -n default --timeout=150s --for ${CONDITION} --all pods -l networkservicemesh.io/app=${SERVICE_NAME}
+  sleep 10
+  if [[ ${OPERATION} != delete ]]; then
+    echo "Waiting for kiknos job responder-cfg-job to be complete:"
+    kubectl wait --context "$cluster" -n default --timeout=150s --for condition=complete job/responder-cfg-job || {
+      ec=$?
+      echo "kubectl wait for responder-cfg-job to complete  failed, returned code ${ec}."
+    }
+  fi
+
+  echo "Waiting for kiknos pods condition to be '$CONDITION':"
+  echo "Pod labels: k8s-app=kiknos-etcd and networkservicemesh.io/app=${SERVICE_NAME}"
+  kubectl wait --context "$cluster" -n default --timeout=30s --for ${CONDITION} --all pods -l k8s-app=kiknos-etcd || {
+    ec=$?
+    if [[ ${OPERATION} != delete ]]; then
+        echo "kubectl wait for ${CONDITION} failed, returned code ${ec}.  Gathering data"
+        kubectl cluster-info dump --all-namespaces --context "${cluster}" --output-directory=/tmp/error_logs_kiknos_etcd/
+        kubectl get pods -A --context "${cluster}"
+        kubectl describe pod --context "${cluster}" \
+            -l k8s-app=kiknos-etcd -n=default
+        exit ${ec}
+    fi
+  }
+  kubectl --context "$cluster" wait -n default --timeout=150s --for ${CONDITION} --all pods -l networkservicemesh.io/app=${SERVICE_NAME} || {
+    ec=$?
+    if [[ ${OPERATION} != delete ]]; then
+      echo "kubectl wait failed, returned code ${ec}.  Gathering data"
+      kubectl cluster-info dump --all-namespaces --output-directory=/tmp/error_logs_nsm_io/
+      kubectl get pods -A --context "${cluster}"
+      kubectl describe pod --context "${cluster}" \
+          -l networkservicemesh.io/app=${SERVICE_NAME} -n=default
+      exit ${ec}
+    fi
+  }
 
   if [[ ${OPERATION} = delete ]]; then
     echo "Delete '${SERVICE_NAME}' network service if exists"
