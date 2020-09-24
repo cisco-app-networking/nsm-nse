@@ -27,7 +27,7 @@ case $i in
     NSM_TAG="${i#*=}"
     ;;
     --spire-disabled)
-    SPIRE_DISABLED="true"
+    SPIRE_DISABLED="false"
     ;;
     -h|--help)
       print_usage
@@ -91,9 +91,10 @@ helm template ${NSMDIR}/deployments/helm/nsm \
   --set org=${NSM_HUB},tag=${NSM_TAG} \
   --set admission-webhook.org=${NSM_HUB},admission-webhook.tag=${NSM_TAG} \
   --set pullPolicy=Always \
+  --set selfSignedCA="false" \
   --set insecure="true" \
   --set global.JaegerTracing="true" \
-  ${SPIRE_DISABLED:+--set spire.enabled=false} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
+  --set spire.enabled="true"| kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 print_header "NSM-addons"
 helm template ${VL3DIR}/deployments/helm/nsm-addons \
