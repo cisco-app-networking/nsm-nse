@@ -49,6 +49,20 @@ function print_header() {
     fi
 }
 
+function generate_certs() {
+    if [ ! -x "$(command -v openssl)" ]; then
+        echo "openssl not found"
+        exit 1
+    fi
+
+    certs_location="${NSMDIR}/deployments/helm/nsm"
+
+    echo "creating certs in ${certs_location}"
+
+    openssl req -x509 -newkey rsa:4096 -keyout "${certs_location}/charts/spire/key.pem" -out "${certs_location}/charts/spire/cert.pem" -days 365 -nodes -subj '/CN=localhost'
+    echo "Certificates have been created."
+}
+
 sdir=$(dirname ${0})
 
 NSMDIR=${NSMDIR:-${GOPATH}/src/github.com/cisco-app-networking/networkservicemesh}
@@ -85,13 +99,17 @@ helm template ${NSMDIR}/deployments/helm/skydive \
 # kubednsip=$(kubectl get svc -n kube-system ${KCONF:+--kubeconfig $KCONF} | grep kube-dns | awk '{ print $3 }')
 # kinddnsip=$(kubectl get svc ${KCONF:+--kubeconfig $KCONF} | grep kind-dns | awk '{ print $3 }')
 
+print_header "Generating certificates"
+generate_certs
+print_header "Certificates have been generated"
+
 print_header "NSM"
 helm template ${NSMDIR}/deployments/helm/nsm \
   --namespace nsm-system \
   --set org=${NSM_HUB},tag=${NSM_TAG} \
   --set admission-webhook.org=${NSM_HUB},admission-webhook.tag=${NSM_TAG} \
   --set pullPolicy=Always \
-  --set selfSignedCA="false" \
+  --set spire.selfSignedCA="false" \
   --set insecure="true" \
   --set global.JaegerTracing="true" \
   --set spire.enabled="true"| kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
