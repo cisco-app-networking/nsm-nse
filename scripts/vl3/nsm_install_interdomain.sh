@@ -92,7 +92,7 @@ helm template ${NSMDIR}/deployments/helm/nsm \
   --set admission-webhook.org=${NSM_HUB},admission-webhook.tag=${NSM_TAG} \
   --set pullPolicy=Always \
   --set spire.selfSignedCA="false" \
-  --set insecure="true" \
+  --set insecure="false" \
   --set global.JaegerTracing="true" \
   --set spire.enabled="true"| kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
