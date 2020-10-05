@@ -151,3 +151,10 @@ spec:
       port: {{ .Values.metricsPort }}
       targetPort: monitoring
       protocol: TCP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.nsm.serviceName }}-acc
+  namespace: {{ .Release.Namespace }}
+
