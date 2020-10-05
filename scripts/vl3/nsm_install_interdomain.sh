@@ -65,20 +65,20 @@ fi
 print_header "Crossconnect Monitor"
 helm template ${NSMDIR}/deployments/helm/crossconnect-monitor \
   --namespace nsm-system \
-  --set insecure="true" \
+  --set insecure="false" \
   --set global.JaegerTracing="true" | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 print_header "Jaeger"
 helm template ${NSMDIR}/deployments/helm/jaeger \
   --namespace nsm-system \
-  --set insecure="true" \
+  --set insecure="false" \
   --set global.JaegerTracing="true" \
   --set monSvcType=NodePort | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 print_header "Skydive"
 helm template ${NSMDIR}/deployments/helm/skydive \
   --namespace nsm-system \
-  --set insecure="true" \
+  --set insecure="false" \
   --set global.JaegerTracing="true" | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 
@@ -109,7 +109,7 @@ helm template ${NSMDIR}/deployments/helm/proxy-nsmgr \
   --namespace nsm-system \
   --set org=${NSM_HUB},tag=${NSM_TAG} \
   --set pullPolicy=Always \
-  --set insecure="true" \
+  --set insecure="false" \
   --set global.JaegerTracing="true" \
   ${REMOTE_NSR_PORT:+ --set remoteNsrPort=${REMOTE_NSR_PORT}} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
