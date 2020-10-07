@@ -25,7 +25,7 @@ This replaces the VPP agent in the universal-cnf with the Kiknos VPP aio-agent
 You first need to clone the [Network Service Mesh repo](https://github.com/networkservicemesh/networkservicemesh)
 Please follow the instructions on where the NSM project should be in the [README.md](../../README.md)
 
-- helm v2.16.3
+- helm >= v2.16.3
 - kubectl v1.18.2
 
 ##### Kind deployment
