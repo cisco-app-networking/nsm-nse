@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
+	"google.golang.org/grpc/credentials"
 	"strconv"
 	"strings"
 
@@ -23,9 +25,15 @@ const (
 
 type validationErrors []error
 
-func NewServiceRegistry(addr string) (ServiceRegistry, ServiceRegistryClient, error) {
+func NewServiceRegistry(addr string, ctx context.Context) (ServiceRegistry, ServiceRegistryClient, error) {
+	tlscfg, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx)
+	fmt.Println("[COSMIN]: TLSCONFIG", tlscfg)
+	if err != nil {
+		fmt.Println("[COSMIN]: could not get TLS configuration", err)
+		return nil, nil, err
+	}
 	conn, err := grpc.Dial(addr,
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(credentials.NewTLS(tlscfg)),
 		grpc.WithUnaryInterceptor(grpc_prometheus.UnaryClientInterceptor),
 		grpc.WithStreamInterceptor(grpc_prometheus.StreamClientInterceptor),
 	)

@@ -26,7 +26,7 @@ spec:
       serviceAccount: {{ .Values.nsm.serviceName }}-acc
       containers:
         - name: vl3-nse
-          image: {{ .Values.registry }}/{{ .Values.org }}/vl3_ucnf-nse:{{ .Values.tag }}
+          image: {{ .Values.registry }}/cosminpetru/vl3_ucnf-nse:latest
           imagePullPolicy: {{ .Values.pullPolicy }}
           ports:
           - name: monitoring-vpp
