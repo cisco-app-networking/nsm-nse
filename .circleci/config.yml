@@ -46,7 +46,7 @@ e2e-kind-test: &e2e-kind-test
         name: Build vl3 runner container
         working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/build/ci/runner
         command: |
-          docker build --build-arg vl3_repo=https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git --build-arg vl3_branch=${CIRCLE_BRANCH:-master} --build-arg nsm_branch=vl3-latest -t vl3-runner:latest -f Dockerfile.runner .
+          docker build --build-arg vl3_repo=https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git --build-arg vl3_branch=${CIRCLE_BRANCH:-master} --build-arg nsm_branch=vl3_latest -t vl3-runner:latest -f Dockerfile.runner .
     - run:
         name: Start common runner container
         command: |
