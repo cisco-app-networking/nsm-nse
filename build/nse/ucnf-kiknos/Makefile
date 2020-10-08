@@ -49,9 +49,9 @@ METRICS_COLLECTOR_ENABLED = true
 SPIRE_ENABLED = false
 INSECURE = true
 
-.PHONY: docker-push load-images provide-image provide-image provide-image create-kind delete-kind create-aws delete-aws \
-		create-cluster delete-cluster create-cluster delete-cluster helm-init helm-install-nsm deploy-kiknos deploy-kiknos \
-		deploy-istio deploy-kiknos-clients deploy-kiknos-clients deploy-kiknos-start-vpn deploy-asa delete-context clean
+.PHONY: docker-push load-images provide-image create-kind delete-kind create-aws delete-aws \
+		create-cluster delete-cluster helm-init helm-install-nsm deploy-kiknos \
+		deploy-istio deploy-kiknos-clients deploy-kiknos-start-vpn deploy-asa delete-context clean
 
 docker-push:
 	@docker push "$(ORG)/ucnf-kiknos-vppagent:$(TAG)"

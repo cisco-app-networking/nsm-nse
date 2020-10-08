@@ -198,8 +198,8 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
    Options:
      --cluster             Cluster name (context)                                              env var: CLUSTER          - (Default: )
      --cluster-ref         Reference to pair cluster name (context)                            env var: CLUSTER_REF      - (Default: )
-     --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: mmatache)
-     --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: kiknos)
+     --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: ciscoappnetworking)
+     --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: ucnf-kiknos-vppagent)
      --pull-policy         Pull policy for the NSE image                                       env var: PULL_POLICY      - (Default: IfNotPresent)
      --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: hello-world)
      --delete              Delete NSE                                                          env var: DELETE           - (Default: false)
@@ -293,8 +293,8 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
     Options:
     --cluster             Cluster name (context)                                              env var: CLUSTER          - (Default: )
     --cluster-ref         Reference to pair cluster name (context)                            env var: CLUSTER_REF      - (Default: )
-    --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: mmatache)
-    --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: kiknos)
+    --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: ciscoappnetworking)
+    --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: ucnf-kiknos-vppagent)
     --pull-policy         Pull policy for the NSE image                                       env var: PULL_POLICY      - (Default: IfNotPresent)
     --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: hello-world)
     --delete              Delete NSE                                                          env var: DELETE           - (Default: false)
