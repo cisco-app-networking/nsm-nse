@@ -98,6 +98,7 @@ helm-init: create-cluster
 	@pushd $(NSM_PATH); ./scripts/helm-init-wrapper.sh; popd
 
 helm-install-nsm: helm-init
+	@kubectl create namespace nsm-system --context "$(CLUSTER)"
 	@pushd $(NSM_PATH); SPIRE_ENABLED=false ./scripts/helm-nsm-install.sh --chart nsm \
 		--container_repo ${CONTAINER_REPO} \
 		--container_tag ${CONTAINER_TAG} \

@@ -1,4 +1,4 @@
-FROM ciscoappnetworking/kubectl_kind:latest
+FROM ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.2.4
 
 ARG  vl3_repo=https://github.com/cisco-app-networking/nsm-nse.git
 # set this to branch or $CIRCLE_SHA1
