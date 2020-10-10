@@ -26,12 +26,12 @@ require (
 
 replace (
 	github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8
-	github.com/networkservicemesh/networkservicemesh/controlplane => github.com/cisco-app-networking/networkservicemesh/controlplane v0.2.2-vl3
-	github.com/networkservicemesh/networkservicemesh/controlplane/api => github.com/cisco-app-networking/networkservicemesh/controlplane/api v0.2.2-vl3
-	github.com/networkservicemesh/networkservicemesh/forwarder/api => github.com/cisco-app-networking/networkservicemesh/forwarder/api v0.2.2-vl3
-	github.com/networkservicemesh/networkservicemesh/k8s => github.com/cisco-app-networking/networkservicemesh/k8s v0.2.2-vl3
-	github.com/networkservicemesh/networkservicemesh/k8s/pkg/apis => github.com/cisco-app-networking/networkservicemesh/k8s/pkg/apis v0.2.2-vl3
-	github.com/networkservicemesh/networkservicemesh/pkg => github.com/cisco-app-networking/networkservicemesh/pkg v0.2.2-vl3
-	github.com/networkservicemesh/networkservicemesh/sdk => github.com/cisco-app-networking/networkservicemesh/sdk v0.2.2-vl3
-	github.com/networkservicemesh/networkservicemesh/utils => github.com/cisco-app-networking/networkservicemesh/utils v0.2.2-vl3
+	github.com/networkservicemesh/networkservicemesh/controlplane => github.com/cisco-app-networking/networkservicemesh/controlplane v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/controlplane/api => github.com/cisco-app-networking/networkservicemesh/controlplane/api v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/forwarder/api => github.com/cisco-app-networking/networkservicemesh/forwarder/api v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/k8s => github.com/cisco-app-networking/networkservicemesh/k8s v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/k8s/pkg/apis => github.com/cisco-app-networking/networkservicemesh/k8s/pkg/apis v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/pkg => github.com/cisco-app-networking/networkservicemesh/pkg v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/sdk => github.com/cisco-app-networking/networkservicemesh/sdk v0.2.3-vl3
+	github.com/networkservicemesh/networkservicemesh/utils => github.com/cisco-app-networking/networkservicemesh/utils v0.2.3-vl3
 )
