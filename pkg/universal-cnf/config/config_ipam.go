@@ -4,14 +4,22 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/gofrs/uuid"
+	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+)
+
+const (
+	insecureEnvVar = "INSECURE"
 )
 
 type IpamService interface {
@@ -105,7 +113,26 @@ func (es errors) Error() string {
 }
 
 func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	insecure, err := strconv.ParseBool(os.Getenv(insecureEnvVar))
+	if err != nil {
+		logrus.Error("Missing INSECURE env variable. Continuing with insecure mode enabled.")
+		insecure = true
+	}
+
+	var opts []grpc.DialOption
+
+	if insecure {
+		opts = append(opts, grpc.WithInsecure())
+	} else {
+		tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx)
+		if err != nil {
+			logrus.Error("Could not get TLS configuration")
+			return nil, err
+		}
+		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	}
+
+	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return &IpamServiceImpl{}, fmt.Errorf("unable to connect to ipam server: %v", err)
 	}
