@@ -4,7 +4,7 @@ version: 2.1
 defaults: &defaults
   working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
   docker:
-    - image: ciscoappnetworking/kubectl_kind:latest
+    - image: ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4
   environment:
     GOPATH: /go
     ORG: ciscoappnetworking
@@ -46,7 +46,7 @@ e2e-kind-test: &e2e-kind-test
         name: Build vl3 runner container
         working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/build/ci/runner
         command: |
-          docker build --build-arg vl3_repo=https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git --build-arg vl3_branch=${CIRCLE_BRANCH:-master} --build-arg nsm_branch=v0.2.0-vl3 -t vl3-runner:latest -f Dockerfile.runner .
+          docker build --build-arg vl3_repo=https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git --build-arg vl3_branch=${CIRCLE_BRANCH:-master} --build-arg nsm_branch=v0.2.3-vl3 -t vl3-runner:latest -f Dockerfile.runner .
     - run:
         name: Start common runner container
         command: |
