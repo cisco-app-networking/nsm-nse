@@ -1,0 +1,23 @@
+
+syntax = "proto3";
+
+import "github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider/ipprovider.proto";
+import "github.com/cisco-app-networking/nsm-nse/api/ipam/ipreceiver/ipreceiver.proto";
+
+package ippool;
+option go_package = "ipstate";
+
+
+
+service IpamStateInterrogator {
+    rpc GetAllocatedSubnets (Empty) returns (SubnetsState) {} // Request all allocated subnets
+    rpc GetActiveRanges (Empty) returns (IpRangeState) {}
+}
+
+message SubnetsState {
+    repeated Subnet subnet = 1;
+}
+
+message IpRangeState {
+    repeated IpRange range = 1;
+}
