@@ -25,7 +25,7 @@ This replaces the VPP agent in the universal-cnf with the Kiknos VPP aio-agent
 You first need to clone the [Network Service Mesh repo](https://github.com/networkservicemesh/networkservicemesh)
 Please follow the instructions on where the NSM project should be in the [README.md](../../README.md)
 
-- helm v2.16.3
+- helm >= v2.16.3
 - kubectl v1.18.2
 
 ##### Kind deployment
@@ -198,8 +198,8 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
    Options:
      --cluster             Cluster name (context)                                              env var: CLUSTER          - (Default: )
      --cluster-ref         Reference to pair cluster name (context)                            env var: CLUSTER_REF      - (Default: )
-     --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: mmatache)
-     --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: kiknos)
+     --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: ciscoappnetworking)
+     --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: ucnf-kiknos-vppagent)
      --pull-policy         Pull policy for the NSE image                                       env var: PULL_POLICY      - (Default: IfNotPresent)
      --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: hello-world)
      --delete              Delete NSE                                                          env var: DELETE           - (Default: false)
@@ -293,8 +293,8 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
     Options:
     --cluster             Cluster name (context)                                              env var: CLUSTER          - (Default: )
     --cluster-ref         Reference to pair cluster name (context)                            env var: CLUSTER_REF      - (Default: )
-    --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: mmatache)
-    --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: kiknos)
+    --nse-org             Docker image org                                                    env var: NSE_ORG          - (Default: ciscoappnetworking)
+    --nse-tag             Docker image tag                                                    env var: NSE_TAG          - (Default: ucnf-kiknos-vppagent)
     --pull-policy         Pull policy for the NSE image                                       env var: PULL_POLICY      - (Default: IfNotPresent)
     --service-name        NSM service                                                         env var: SERVICE_NAME     - (Default: hello-world)
     --delete              Delete NSE                                                          env var: DELETE           - (Default: false)

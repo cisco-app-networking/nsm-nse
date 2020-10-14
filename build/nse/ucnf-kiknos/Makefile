@@ -49,9 +49,9 @@ METRICS_COLLECTOR_ENABLED = true
 SPIRE_ENABLED = false
 INSECURE = true
 
-.PHONY: docker-push load-images provide-image provide-image provide-image create-kind delete-kind create-aws delete-aws \
-		create-cluster delete-cluster create-cluster delete-cluster helm-init helm-install-nsm deploy-kiknos deploy-kiknos \
-		deploy-istio deploy-kiknos-clients deploy-kiknos-clients deploy-kiknos-start-vpn deploy-asa delete-context clean
+.PHONY: docker-push load-images provide-image create-kind delete-kind create-aws delete-aws \
+		create-cluster delete-cluster helm-init helm-install-nsm deploy-kiknos \
+		deploy-istio deploy-kiknos-clients deploy-kiknos-start-vpn deploy-asa delete-context clean
 
 docker-push:
 	@docker push "$(ORG)/ucnf-kiknos-vppagent:$(TAG)"
@@ -98,6 +98,7 @@ helm-init: create-cluster
 	@pushd $(NSM_PATH); ./scripts/helm-init-wrapper.sh; popd
 
 helm-install-nsm: helm-init
+	@kubectl create namespace nsm-system --context "$(CLUSTER)"
 	@pushd $(NSM_PATH); SPIRE_ENABLED=false ./scripts/helm-nsm-install.sh --chart nsm \
 		--container_repo ${CONTAINER_REPO} \
 		--container_tag ${CONTAINER_TAG} \
