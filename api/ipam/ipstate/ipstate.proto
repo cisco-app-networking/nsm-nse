@@ -24,5 +24,6 @@ message IpRangesState {
 
 message StatusIdentifier {
     string fqdn = 1;
-    string connectivity_domain = 2;
+    IpFamily addr_family = 2;
+    string connectivity_domain = 3;
 }
