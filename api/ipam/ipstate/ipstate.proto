@@ -10,14 +10,19 @@ option go_package = "ipstate";
 
 
 service IpamStateInterrogator {
-    rpc GetAllocatedSubnets (Empty) returns (SubnetsState) {} // Request all allocated subnets
-    rpc GetActiveRanges (Empty) returns (IpRangeState) {}
+    rpc GetAllocatedSubnets (StatusIdentifier) returns (SubnetsState) {} // Request all allocated subnets
+    rpc GetActiveRanges (StatusIdentifier) returns (IpRangesState) {} // Request all active ranges
 }
 
 message SubnetsState {
     repeated Subnet subnet = 1;
 }
 
-message IpRangeState {
+message IpRangesState {
     repeated IpRange range = 1;
+}
+
+message StatusIdentifier {
+    string fqdn = 1;
+    string connectivity_domain = 2;
 }

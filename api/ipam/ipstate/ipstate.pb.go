@@ -65,72 +65,123 @@ func (m *SubnetsState) GetSubnet() []*ipprovider.Subnet {
 	return nil
 }
 
-type IpRangeState struct {
+type IpRangesState struct {
 	Range                []*ipreceiver.IpRange `protobuf:"bytes,1,rep,name=range,proto3" json:"range,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
 	XXX_unrecognized     []byte                `json:"-"`
 	XXX_sizecache        int32                 `json:"-"`
 }
 
-func (m *IpRangeState) Reset()         { *m = IpRangeState{} }
-func (m *IpRangeState) String() string { return proto.CompactTextString(m) }
-func (*IpRangeState) ProtoMessage()    {}
-func (*IpRangeState) Descriptor() ([]byte, []int) {
+func (m *IpRangesState) Reset()         { *m = IpRangesState{} }
+func (m *IpRangesState) String() string { return proto.CompactTextString(m) }
+func (*IpRangesState) ProtoMessage()    {}
+func (*IpRangesState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b9c757518148bec6, []int{1}
 }
 
-func (m *IpRangeState) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_IpRangeState.Unmarshal(m, b)
+func (m *IpRangesState) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IpRangesState.Unmarshal(m, b)
 }
-func (m *IpRangeState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_IpRangeState.Marshal(b, m, deterministic)
+func (m *IpRangesState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IpRangesState.Marshal(b, m, deterministic)
 }
-func (m *IpRangeState) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IpRangeState.Merge(m, src)
+func (m *IpRangesState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IpRangesState.Merge(m, src)
 }
-func (m *IpRangeState) XXX_Size() int {
-	return xxx_messageInfo_IpRangeState.Size(m)
+func (m *IpRangesState) XXX_Size() int {
+	return xxx_messageInfo_IpRangesState.Size(m)
 }
-func (m *IpRangeState) XXX_DiscardUnknown() {
-	xxx_messageInfo_IpRangeState.DiscardUnknown(m)
+func (m *IpRangesState) XXX_DiscardUnknown() {
+	xxx_messageInfo_IpRangesState.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_IpRangeState proto.InternalMessageInfo
+var xxx_messageInfo_IpRangesState proto.InternalMessageInfo
 
-func (m *IpRangeState) GetRange() []*ipreceiver.IpRange {
+func (m *IpRangesState) GetRange() []*ipreceiver.IpRange {
 	if m != nil {
 		return m.Range
 	}
 	return nil
 }
 
+type StatusIdentifier struct {
+	Fqdn                 string   `protobuf:"bytes,1,opt,name=fqdn,proto3" json:"fqdn,omitempty"`
+	ConnectivityDomain   string   `protobuf:"bytes,2,opt,name=connectivity_domain,json=connectivityDomain,proto3" json:"connectivity_domain,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *StatusIdentifier) Reset()         { *m = StatusIdentifier{} }
+func (m *StatusIdentifier) String() string { return proto.CompactTextString(m) }
+func (*StatusIdentifier) ProtoMessage()    {}
+func (*StatusIdentifier) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b9c757518148bec6, []int{2}
+}
+
+func (m *StatusIdentifier) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StatusIdentifier.Unmarshal(m, b)
+}
+func (m *StatusIdentifier) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StatusIdentifier.Marshal(b, m, deterministic)
+}
+func (m *StatusIdentifier) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StatusIdentifier.Merge(m, src)
+}
+func (m *StatusIdentifier) XXX_Size() int {
+	return xxx_messageInfo_StatusIdentifier.Size(m)
+}
+func (m *StatusIdentifier) XXX_DiscardUnknown() {
+	xxx_messageInfo_StatusIdentifier.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StatusIdentifier proto.InternalMessageInfo
+
+func (m *StatusIdentifier) GetFqdn() string {
+	if m != nil {
+		return m.Fqdn
+	}
+	return ""
+}
+
+func (m *StatusIdentifier) GetConnectivityDomain() string {
+	if m != nil {
+		return m.ConnectivityDomain
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*SubnetsState)(nil), "ippool.SubnetsState")
-	proto.RegisterType((*IpRangeState)(nil), "ippool.IpRangeState")
+	proto.RegisterType((*IpRangesState)(nil), "ippool.IpRangesState")
+	proto.RegisterType((*StatusIdentifier)(nil), "ippool.StatusIdentifier")
 }
 
 func init() { proto.RegisterFile("ipstate.proto", fileDescriptor_b9c757518148bec6) }
 
 var fileDescriptor_b9c757518148bec6 = []byte{
-	// 273 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x91, 0xc1, 0x4a, 0xc3, 0x40,
-	0x10, 0x86, 0x5b, 0xc4, 0x8a, 0x6b, 0x6b, 0x21, 0x2a, 0x48, 0x4f, 0x12, 0x50, 0xbc, 0x34, 0x81,
-	0x8a, 0xe2, 0xc1, 0x8b, 0x82, 0x48, 0xc0, 0x53, 0x7a, 0xf3, 0xb6, 0xd9, 0x0e, 0x71, 0x30, 0xd9,
-	0x19, 0x76, 0xa7, 0x11, 0x9f, 0xc2, 0x57, 0x96, 0x64, 0x13, 0xa8, 0x07, 0x2f, 0xde, 0x66, 0x98,
-	0xf9, 0xfe, 0xfd, 0x76, 0x57, 0xcd, 0x90, 0xbd, 0x68, 0x81, 0x84, 0x1d, 0x09, 0x45, 0x13, 0x64,
-	0x26, 0xaa, 0x16, 0xaf, 0x25, 0xca, 0xfb, 0xb6, 0x48, 0x0c, 0xd5, 0xa9, 0x41, 0x6f, 0x68, 0xa9,
-	0x99, 0x97, 0x16, 0xe4, 0x93, 0xdc, 0x07, 0xda, 0x32, 0xb5, 0xbe, 0x5e, 0x5a, 0x0f, 0xa9, 0x66,
-	0x4c, 0x91, 0x75, 0x9d, 0x22, 0xb3, 0xa3, 0x06, 0x37, 0xe0, 0x76, 0xca, 0x90, 0xfa, 0xaf, 0x34,
-	0x07, 0x06, 0xb0, 0xe9, 0xd2, 0x86, 0x32, 0xa4, 0xc5, 0x77, 0x6a, 0xba, 0xde, 0x16, 0x16, 0xc4,
-	0xaf, 0x5b, 0xf3, 0xe8, 0x4a, 0x4d, 0x7c, 0xd7, 0x9f, 0x8f, 0x2f, 0xf6, 0xae, 0x8f, 0x56, 0xc7,
-	0x49, 0xb8, 0x44, 0x12, 0xb6, 0xf2, 0x7e, 0x1a, 0xdf, 0xaa, 0x69, 0xc6, 0xb9, 0xb6, 0x25, 0x04,
-	0xee, 0x52, 0xed, 0xbb, 0xb6, 0xeb, 0xb1, 0xf9, 0x80, 0xf5, 0x4b, 0x79, 0x98, 0xae, 0xbe, 0xc7,
-	0xea, 0x2c, 0x63, 0x5d, 0x77, 0x50, 0x66, 0x05, 0x9c, 0xa3, 0x52, 0x0b, 0xb9, 0xe8, 0x41, 0x9d,
-	0xbc, 0x80, 0x3c, 0x56, 0x15, 0x19, 0x2d, 0xb0, 0xe9, 0xa5, 0xa2, 0xd9, 0x10, 0xf4, 0x5c, 0xb3,
-	0x7c, 0x2d, 0x4e, 0x7f, 0xeb, 0x04, 0xe9, 0x78, 0x14, 0xdd, 0xab, 0x79, 0x4b, 0x1b, 0xc1, 0x06,
-	0xba, 0x03, 0xff, 0x26, 0x77, 0xb5, 0xe3, 0xd1, 0xd3, 0xe1, 0xdb, 0x41, 0xff, 0x6b, 0xc5, 0xa4,
-	0x7b, 0x92, 0x9b, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x97, 0x88, 0xaf, 0xdb, 0xc7, 0x01, 0x00,
-	0x00,
+	// 328 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0x41, 0x4b, 0x3b, 0x31,
+	0x10, 0xc5, 0xff, 0xfb, 0x57, 0x2b, 0x8d, 0xd6, 0x4a, 0x6a, 0x61, 0xe9, 0xa9, 0x2c, 0x28, 0xbd,
+	0x74, 0x17, 0x2a, 0xf4, 0xae, 0x14, 0xca, 0x82, 0xa7, 0xed, 0x41, 0xf0, 0x22, 0xe9, 0xee, 0x74,
+	0x1d, 0xec, 0x26, 0x31, 0x99, 0x56, 0xfc, 0x42, 0x7e, 0x4e, 0xd9, 0x64, 0x2b, 0xb5, 0x07, 0x0f,
+	0xde, 0x66, 0x78, 0x6f, 0x7e, 0x99, 0x97, 0x84, 0x75, 0x50, 0x5b, 0x12, 0x04, 0xb1, 0x36, 0x8a,
+	0x14, 0x6f, 0xa1, 0xd6, 0x4a, 0xad, 0x07, 0x0f, 0x25, 0xd2, 0xcb, 0x66, 0x19, 0xe7, 0xaa, 0x4a,
+	0x72, 0xb4, 0xb9, 0x1a, 0x0b, 0xad, 0xc7, 0x12, 0xe8, 0x5d, 0x99, 0x57, 0x94, 0x65, 0x22, 0x6d,
+	0x35, 0x96, 0x16, 0x12, 0xa1, 0x31, 0x41, 0x2d, 0xaa, 0x04, 0xb5, 0x36, 0x6a, 0x8b, 0x05, 0x98,
+	0xbd, 0xd2, 0x53, 0xff, 0x44, 0x33, 0x90, 0x03, 0x6e, 0x1d, 0x6d, 0x57, 0x7a, 0x5a, 0x34, 0x65,
+	0xe7, 0x8b, 0xcd, 0x52, 0x02, 0xd9, 0x45, 0xbd, 0x39, 0xbf, 0x61, 0x2d, 0xeb, 0xfa, 0x30, 0x18,
+	0x1e, 0x8d, 0xce, 0x26, 0x17, 0xb1, 0x0f, 0x11, 0x7b, 0x57, 0xd6, 0xa8, 0xd1, 0x94, 0x75, 0x52,
+	0x9d, 0x09, 0x59, 0x42, 0x33, 0x78, 0xcd, 0x4e, 0x4c, 0xdd, 0x36, 0x73, 0xdd, 0xdd, 0x5c, 0xe3,
+	0xca, 0xbc, 0x1a, 0x3d, 0xb2, 0xcb, 0xda, 0xbf, 0xb1, 0x69, 0x01, 0x92, 0x70, 0x85, 0x60, 0x38,
+	0x67, 0xc7, 0xab, 0xb7, 0x42, 0x86, 0xc1, 0x30, 0x18, 0xb5, 0x33, 0x57, 0xf3, 0x84, 0xf5, 0x72,
+	0x25, 0x25, 0xe4, 0x84, 0x5b, 0xa4, 0x8f, 0xe7, 0x42, 0x55, 0x02, 0x65, 0xf8, 0xdf, 0x59, 0xf8,
+	0xbe, 0x34, 0x73, 0xca, 0xe4, 0x33, 0x60, 0xfd, 0x54, 0x8b, 0xca, 0x6d, 0x93, 0x4a, 0x02, 0x63,
+	0x54, 0x29, 0x48, 0x19, 0x3e, 0x67, 0xbd, 0x39, 0xd0, 0xdd, 0x7a, 0xad, 0x72, 0x41, 0x50, 0x34,
+	0x71, 0x79, 0xf8, 0x9d, 0xec, 0x60, 0x9f, 0xc1, 0xd5, 0xcf, 0xcc, 0x3e, 0x60, 0xf4, 0x8f, 0xcf,
+	0x58, 0xb7, 0x06, 0xd5, 0xe7, 0x82, 0x8f, 0xfe, 0x0b, 0xa4, 0x7f, 0x70, 0x01, 0x3b, 0xca, 0x7d,
+	0xfb, 0xe9, 0xb4, 0xf9, 0x26, 0xcb, 0x96, 0x7b, 0x83, 0xdb, 0xaf, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x7b, 0xd5, 0xb2, 0xb2, 0x38, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -145,8 +196,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type IpamStateInterrogatorClient interface {
-	GetAllocatedSubnets(ctx context.Context, in *ipprovider.Empty, opts ...grpc.CallOption) (*SubnetsState, error)
-	GetActiveRanges(ctx context.Context, in *ipprovider.Empty, opts ...grpc.CallOption) (*IpRangeState, error)
+	GetAllocatedSubnets(ctx context.Context, in *StatusIdentifier, opts ...grpc.CallOption) (*SubnetsState, error)
+	GetActiveRanges(ctx context.Context, in *StatusIdentifier, opts ...grpc.CallOption) (*IpRangesState, error)
 }
 
 type ipamStateInterrogatorClient struct {
@@ -157,7 +208,7 @@ func NewIpamStateInterrogatorClient(cc *grpc.ClientConn) IpamStateInterrogatorCl
 	return &ipamStateInterrogatorClient{cc}
 }
 
-func (c *ipamStateInterrogatorClient) GetAllocatedSubnets(ctx context.Context, in *ipprovider.Empty, opts ...grpc.CallOption) (*SubnetsState, error) {
+func (c *ipamStateInterrogatorClient) GetAllocatedSubnets(ctx context.Context, in *StatusIdentifier, opts ...grpc.CallOption) (*SubnetsState, error) {
 	out := new(SubnetsState)
 	err := c.cc.Invoke(ctx, "/ippool.IpamStateInterrogator/GetAllocatedSubnets", in, out, opts...)
 	if err != nil {
@@ -166,8 +217,8 @@ func (c *ipamStateInterrogatorClient) GetAllocatedSubnets(ctx context.Context, i
 	return out, nil
 }
 
-func (c *ipamStateInterrogatorClient) GetActiveRanges(ctx context.Context, in *ipprovider.Empty, opts ...grpc.CallOption) (*IpRangeState, error) {
-	out := new(IpRangeState)
+func (c *ipamStateInterrogatorClient) GetActiveRanges(ctx context.Context, in *StatusIdentifier, opts ...grpc.CallOption) (*IpRangesState, error) {
+	out := new(IpRangesState)
 	err := c.cc.Invoke(ctx, "/ippool.IpamStateInterrogator/GetActiveRanges", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -177,18 +228,18 @@ func (c *ipamStateInterrogatorClient) GetActiveRanges(ctx context.Context, in *i
 
 // IpamStateInterrogatorServer is the server API for IpamStateInterrogator service.
 type IpamStateInterrogatorServer interface {
-	GetAllocatedSubnets(context.Context, *ipprovider.Empty) (*SubnetsState, error)
-	GetActiveRanges(context.Context, *ipprovider.Empty) (*IpRangeState, error)
+	GetAllocatedSubnets(context.Context, *StatusIdentifier) (*SubnetsState, error)
+	GetActiveRanges(context.Context, *StatusIdentifier) (*IpRangesState, error)
 }
 
 // UnimplementedIpamStateInterrogatorServer can be embedded to have forward compatible implementations.
 type UnimplementedIpamStateInterrogatorServer struct {
 }
 
-func (*UnimplementedIpamStateInterrogatorServer) GetAllocatedSubnets(ctx context.Context, req *ipprovider.Empty) (*SubnetsState, error) {
+func (*UnimplementedIpamStateInterrogatorServer) GetAllocatedSubnets(ctx context.Context, req *StatusIdentifier) (*SubnetsState, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllocatedSubnets not implemented")
 }
-func (*UnimplementedIpamStateInterrogatorServer) GetActiveRanges(ctx context.Context, req *ipprovider.Empty) (*IpRangeState, error) {
+func (*UnimplementedIpamStateInterrogatorServer) GetActiveRanges(ctx context.Context, req *StatusIdentifier) (*IpRangesState, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetActiveRanges not implemented")
 }
 
@@ -197,7 +248,7 @@ func RegisterIpamStateInterrogatorServer(s *grpc.Server, srv IpamStateInterrogat
 }
 
 func _IpamStateInterrogator_GetAllocatedSubnets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ipprovider.Empty)
+	in := new(StatusIdentifier)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -209,13 +260,13 @@ func _IpamStateInterrogator_GetAllocatedSubnets_Handler(srv interface{}, ctx con
 		FullMethod: "/ippool.IpamStateInterrogator/GetAllocatedSubnets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IpamStateInterrogatorServer).GetAllocatedSubnets(ctx, req.(*ipprovider.Empty))
+		return srv.(IpamStateInterrogatorServer).GetAllocatedSubnets(ctx, req.(*StatusIdentifier))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _IpamStateInterrogator_GetActiveRanges_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ipprovider.Empty)
+	in := new(StatusIdentifier)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -227,7 +278,7 @@ func _IpamStateInterrogator_GetActiveRanges_Handler(srv interface{}, ctx context
 		FullMethod: "/ippool.IpamStateInterrogator/GetActiveRanges",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IpamStateInterrogatorServer).GetActiveRanges(ctx, req.(*ipprovider.Empty))
+		return srv.(IpamStateInterrogatorServer).GetActiveRanges(ctx, req.(*StatusIdentifier))
 	}
 	return interceptor(ctx, in, info, handler)
 }
