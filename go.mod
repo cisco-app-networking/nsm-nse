@@ -26,8 +26,6 @@ require (
 
 replace (
 	github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8
-	github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider/ipprovider.proto => ./api/ipam/ipprovider/ipprovider.proto
-	github.com/cisco-app-networking/nsm-nse/api/ipam/ipreceiver/ipreceiver.proto => ./api/ipam/ipreceiver/ipreceiver.proto
 	github.com/networkservicemesh/networkservicemesh/controlplane => github.com/tiswanso/networkservicemesh/controlplane v0.2.0-vl3
 	github.com/networkservicemesh/networkservicemesh/controlplane/api => github.com/tiswanso/networkservicemesh/controlplane/api v0.2.0-vl3
 	github.com/networkservicemesh/networkservicemesh/forwarder/api => github.com/tiswanso/networkservicemesh/forwarder/api v0.2.0-vl3

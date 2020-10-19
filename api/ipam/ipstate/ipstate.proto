@@ -11,7 +11,7 @@ option go_package = "ipstate";
 
 service IpamStateInterrogator {
     rpc GetAllocatedSubnets (StatusIdentifier) returns (SubnetsState) {} // Request all allocated subnets
-    rpc GetActiveRanges (StatusIdentifier) returns (IpRangesState) {} // Request all active ranges
+    rpc GetAllocatedRanges (StatusIdentifier) returns (IpRangesState) {} // Request all active ranges
 }
 
 message SubnetsState {
@@ -23,7 +23,6 @@ message IpRangesState {
 }
 
 message StatusIdentifier {
-    string fqdn = 1;
-    IpFamily addr_family = 2;
-    string connectivity_domain = 3;
+    IpFamily addr_family = 1;
+    string connectivity_domain = 2;
 }
