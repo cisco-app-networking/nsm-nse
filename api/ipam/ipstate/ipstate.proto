@@ -10,8 +10,8 @@ option go_package = "ipstate";
 
 
 service IpamStateInterrogator {
-    rpc GetAllocatedSubnets (SubnetIdentifier) returns (SubnetsState) {} // Request all allocated subnets
-    rpc GetAllocatedRanges (SubnetIdentifier) returns (IpRangesState) {} // Request all active ranges
+    rpc GetAllocatedSubnets (PrefixIdentifier) returns (SubnetsState) {} // Request all allocated subnets
+    rpc GetAllocatedRanges (PrefixIdentifier) returns (IpRangesState) {} // Request all active ranges
 }
 
 message SubnetsState {
@@ -22,7 +22,7 @@ message IpRangesState {
     repeated IpRange range = 1;
 }
 
-message SubnetIdentifier {
+message PrefixIdentifier {
     IpFamily addr_family = 1;
     string connectivity_domain = 2;
 }
