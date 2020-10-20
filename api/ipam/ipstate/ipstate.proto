@@ -23,6 +23,7 @@ message IpRangesState {
 }
 
 message PrefixIdentifier {
-    IpFamily addr_family = 1;
-    string connectivity_domain = 2;
+    string fqdn = 1;
+    IpFamily addr_family = 2;
+    string connectivity_domain = 3;
 }
