@@ -11,7 +11,7 @@ option go_package = "ipstate";
 
 service IpamStateInterrogator {
     rpc GetAllocatedSubnets (PrefixIdentifier) returns (SubnetsState) {} // Request all allocated subnets
-    rpc GetAllocatedRanges (PrefixIdentifier) returns (IpRangesState) {} // Request all active ranges
+    rpc GetAllocatedRanges (PrefixIdentifier) returns (IpRangesState) {} // Request all allocated ranges
 }
 
 message SubnetsState {
