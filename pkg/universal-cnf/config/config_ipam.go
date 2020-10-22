@@ -117,14 +117,15 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 
 	var opts []grpc.DialOption
 
-	if insecure {
-		opts = append(opts, grpc.WithInsecure())
-	} else {
+	// If we have a service provider and we want to run in secure mode
+	if !insecure && tools.GetConfig().SecurityProvider != nil {
 		if tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx); err != nil {
 			opts = append(opts, grpc.WithInsecure())
 		} else {
 			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		}
+	} else {
+		opts = append(opts, grpc.WithInsecure())
 	}
 
 	conn, err := grpc.Dial(addr, opts...)

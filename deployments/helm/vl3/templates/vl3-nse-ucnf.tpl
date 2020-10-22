@@ -23,7 +23,7 @@ spec:
         wcm/nsr.port: {{ .Values.nseControl.nsr.port | quote }}
 {{- end }}
     spec:
-      serviceAccount: {{ .Values.nsm.serviceName }}-acc
+      serviceAccount: {{ .Values.nsm.serviceName }}-service-account
       containers:
         - name: vl3-nse
           image: {{ .Values.registry }}/{{ .Values.org }}/vl3_ucnf-nse:{{ .Values.tag }}
@@ -158,6 +158,6 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.nsm.serviceName }}-acc
+  name: {{ .Values.nsm.serviceName }}-service-account
   namespace: {{ .Release.Namespace }}
 

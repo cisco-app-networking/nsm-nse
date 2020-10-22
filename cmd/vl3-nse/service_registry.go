@@ -40,10 +40,10 @@ func NewServiceRegistry(addr string, ctx context.Context) (ServiceRegistry, Serv
 	}
 
 	if !insecure && tools.GetConfig().SecurityProvider != nil {
-		if tlscfg, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx); err != nil {
+		if tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx); err != nil {
 			opts = append(opts, grpc.WithInsecure())
 		} else {
-			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlscfg)))
+			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		}
 	} else {
 		opts = append(opts, grpc.WithInsecure())
