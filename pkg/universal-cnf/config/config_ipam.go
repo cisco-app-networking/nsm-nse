@@ -120,12 +120,11 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 	if insecure {
 		opts = append(opts, grpc.WithInsecure())
 	} else {
-		tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx)
-		if err != nil {
-			logrus.Error("Could not get TLS configuration")
-			return nil, err
+		if tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx); err != nil {
+			opts = append(opts, grpc.WithInsecure())
+		} else {
+			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		}
-		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	}
 
 	conn, err := grpc.Dial(addr, opts...)
