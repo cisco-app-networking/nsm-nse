@@ -26,7 +26,7 @@ spec:
       serviceAccount: {{ .Values.nsm.serviceName }}-acc
       containers:
         - name: vl3-nse
-          image: {{ .Values.registry }}/cosminpetru/vl3_ucnf-nse:latest
+          image: {{ .Values.registry }}/{{ .Values.org }}/vl3_ucnf-nse:{{ .Values.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           ports:
           - name: monitoring-vpp
@@ -53,7 +53,7 @@ spec:
             - name: NSREGISTRY_PORT
               value: "5000"
             - name: INSECURE
-              value: "false"
+              value: {{ .Values.insecure }}
 {{- if .Values.ipamUniqueOctet }}
             - name: NSE_IPAM_UNIQUE_OCTET
               value: {{ .Values.ipamUniqueOctet | quote }}
