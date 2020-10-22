@@ -18,10 +18,6 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-const (
-	insecureEnvVar = "INSECURE"
-)
-
 type IpamService interface {
 	AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (string, error)
 }
@@ -113,7 +109,7 @@ func (es errors) Error() string {
 }
 
 func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
-	insecure, err := strconv.ParseBool(os.Getenv(insecureEnvVar))
+	insecure, err := strconv.ParseBool(os.Getenv(tools.InsecureEnv))
 	if err != nil {
 		logrus.Error("Missing INSECURE env variable. Continuing with insecure mode enabled.")
 		insecure = true
