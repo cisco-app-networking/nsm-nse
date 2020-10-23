@@ -8,14 +8,15 @@ tag: master
 pullPolicy: IfNotPresent
 vppMetricsPort: 9191
 metricsPort: 2112
+insecure: true
 
 nseControl:
   nsr:
     port: 5005
     addr: vl3-service.wcm-cisco.com
     cd: vl3-service-connectivity-domain
-# nameserver: 1.2.3.4
-# dnszone: cappnet-example.com
+  # nameserver: 1.2.3.4
+  # dnszone: cappnet-example.com
   ipam:
     defaultPrefixPool: 192.168.0.0/16
     prefixLength: 22

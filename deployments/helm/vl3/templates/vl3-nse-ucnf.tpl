@@ -23,6 +23,7 @@ spec:
         wcm/nsr.port: {{ .Values.nseControl.nsr.port | quote }}
 {{- end }}
     spec:
+      serviceAccount: {{ .Values.nsm.serviceName }}-service-account
       containers:
         - name: vl3-nse
           image: {{ .Values.registry }}/{{ .Values.org }}/vl3_ucnf-nse:{{ .Values.tag }}
@@ -51,6 +52,8 @@ spec:
               value: "nsmgr.nsm-system"
             - name: NSREGISTRY_PORT
               value: "5000"
+            - name: INSECURE
+              value: "{{ .Values.insecure }}"
 {{- if .Values.ipamUniqueOctet }}
             - name: NSE_IPAM_UNIQUE_OCTET
               value: {{ .Values.ipamUniqueOctet | quote }}
@@ -151,3 +154,10 @@ spec:
       port: {{ .Values.metricsPort }}
       targetPort: monitoring
       protocol: TCP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.nsm.serviceName }}-service-account
+  namespace: {{ .Release.Namespace }}
+
