@@ -14,3 +14,4 @@ COPY vl3_nse /bin/cnf-vppagent
 
 COPY etc/ /etc/
 COPY etc/supervisord/supervisord.conf /opt/vpp-agent/dev/supervisor.conf
+COPY etc/supervisord/init_hook.sh /usr/bin/init_hook.sh
