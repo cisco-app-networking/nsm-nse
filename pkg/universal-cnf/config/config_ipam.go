@@ -111,7 +111,7 @@ func (es errors) Error() string {
 func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 	insecure, err := strconv.ParseBool(os.Getenv(tools.InsecureEnv))
 	if err != nil {
-		logrus.Error("Missing INSECURE env variable. Continuing with insecure mode enabled.")
+		logrus.Info("Missing INSECURE env variable. Continuing with insecure mode enabled.")
 		insecure = true
 	}
 
@@ -120,11 +120,17 @@ func NewIpamService(ctx context.Context, addr string) (IpamService, error) {
 	// If we have a service provider and we want to run in secure mode
 	if !insecure && tools.GetConfig().SecurityProvider != nil {
 		if tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx); err != nil {
+			logrus.Errorf(
+				"Failed getting tls config with error: %v. GRPC connection will be insecure.",
+				err,
+			)
 			opts = append(opts, grpc.WithInsecure())
 		} else {
+			logrus.Info("GRPC connection will be secured.")
 			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 		}
 	} else {
+		logrus.Info("GRPC connection will be insecure.")
 		opts = append(opts, grpc.WithInsecure())
 	}
 
