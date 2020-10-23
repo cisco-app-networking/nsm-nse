@@ -10,12 +10,14 @@ Options:
   --nsm-tag=STRING          Tag for NSM images
                             (default=\"vl3_api_rebase\", environment variable: NSM_TAG)
   --spire-disabled          Disable spire
+  --secure                  Make NSM components run in secure mode.
 " >&2
 }
 
 NSM_HUB="${NSM_HUB:-"ciscoappnetworking"}"
 NSM_TAG="${NSM_TAG:-"vl3_latest"}"
 INSTALL_OP=${INSTALL_OP:-apply}
+INSECURE=${INSECURE:-true}
 
 for i in "$@"
 do
@@ -28,6 +30,9 @@ case $i in
     ;;
     --spire-disabled)
     SPIRE_DISABLED="true"
+    ;;
+    --secure)
+    INSECURE=false
     ;;
     -h|--help)
       print_usage
@@ -65,20 +70,20 @@ fi
 print_header "Crossconnect Monitor"
 helm template ${NSMDIR}/deployments/helm/crossconnect-monitor \
   --namespace nsm-system \
-  --set insecure="true" \
+  --set insecure=${INSECURE} \
   --set global.JaegerTracing="true" | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 print_header "Jaeger"
 helm template ${NSMDIR}/deployments/helm/jaeger \
   --namespace nsm-system \
-  --set insecure="true" \
+  --set insecure=${INSECURE} \
   --set global.JaegerTracing="true" \
   --set monSvcType=NodePort | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 print_header "Skydive"
 helm template ${NSMDIR}/deployments/helm/skydive \
   --namespace nsm-system \
-  --set insecure="true" \
+  --set insecure=${INSECURE} \
   --set global.JaegerTracing="true" | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 
@@ -91,7 +96,8 @@ helm template ${NSMDIR}/deployments/helm/nsm \
   --set org=${NSM_HUB},tag=${NSM_TAG} \
   --set admission-webhook.org=${NSM_HUB},admission-webhook.tag=${NSM_TAG} \
   --set pullPolicy=Always \
-  --set insecure="true" \
+  --set spire.selfSignedCA="false" \
+  --set insecure=${INSECURE} \
   --set global.JaegerTracing="true" \
   ${SPIRE_DISABLED:+--set spire.enabled=false} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
@@ -108,7 +114,7 @@ helm template ${NSMDIR}/deployments/helm/proxy-nsmgr \
   --namespace nsm-system \
   --set org=${NSM_HUB},tag=${NSM_TAG} \
   --set pullPolicy=Always \
-  --set insecure="true" \
+  --set insecure=${INSECURE} \
   --set global.JaegerTracing="true" \
   ${REMOTE_NSR_PORT:+ --set remoteNsrPort=${REMOTE_NSR_PORT}} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
