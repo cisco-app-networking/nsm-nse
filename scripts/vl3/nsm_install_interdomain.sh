@@ -29,7 +29,7 @@ case $i in
     NSM_TAG="${i#*=}"
     ;;
     --spire-disabled)
-    SPIRE_DISABLED="false"
+    SPIRE_DISABLED="true"
     ;;
     --secure)
     INSECURE=false

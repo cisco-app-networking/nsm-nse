@@ -53,7 +53,7 @@ spec:
             - name: NSREGISTRY_PORT
               value: "5000"
             - name: INSECURE
-              value: {{ .Values.insecure }}
+              value: "{{ .Values.insecure }}"
 {{- if .Values.ipamUniqueOctet }}
             - name: NSE_IPAM_UNIQUE_OCTET
               value: {{ .Values.ipamUniqueOctet | quote }}

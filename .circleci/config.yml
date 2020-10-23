@@ -54,7 +54,6 @@ e2e-kind-test: &e2e-kind-test
     - run:
         name: Run vl3 test
         command: |
-
           docker exec -e NSE_HUB=${ORG} -e NSE_TAG=${CIRCLE_SHA1} -t vl3-run bash -c "/go/run_vl3.sh"
     - run:
         name: Dump KinD Cluster state
@@ -167,7 +166,7 @@ jobs:
           name: Build ucnf-kiknos docker image
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build 
+            ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build
       - run:
           name: Save docker images
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
