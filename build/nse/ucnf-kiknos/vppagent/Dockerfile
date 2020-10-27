@@ -16,7 +16,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags '-extldflags "-static"' -o /go/bi
 FROM ${VPP_AGENT} as runtime
 COPY --from=build /go/bin/cnf-vppagent /bin/cnf-vppagent
 COPY ./build/nse/universal-cnf/vppagent/etc/ /etc/
-COPY ./build/nse/universal-cnf/vppagent/etc/supervisord/supervisord.conf /opt/vpp-agent/dev/supervisor.conf
+COPY ./build/nse/ucnf-kiknos/vppagent/etc/supervisord/supervisord.conf /opt/aio-agent/dev/supervisor.conf
+COPY ./build/nse/ucnf-kiknos/vppagent/etc/supervisord/init_hook.sh /usr/bin/init_hook.sh
 RUN set -ex; \
     rm /opt/aio-agent/dev/etcd.conf; \
     echo 'endpoint: "localhost:9113"' > /opt/aio-agent/dev/grpc.conf ; \
