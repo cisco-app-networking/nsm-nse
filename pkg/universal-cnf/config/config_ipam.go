@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"cisco-app-networking.github.io/nsm-nse/api/ipam/ipprovider"
+	"cisco-app-networking.github.io/nsm-nse/pkg/nseconfig"
 	"github.com/gofrs/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"

@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
+	"cisco-app-networking.github.io/nsm-nse/pkg/nseconfig"
+	"cisco-app-networking.github.io/nsm-nse/pkg/universal-cnf/config"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"

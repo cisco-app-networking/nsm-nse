@@ -10,8 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/cisco-app-networking/nsm-nse/api/serviceregistry"
-	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
+	"cisco-app-networking.github.io/nsm-nse/api/serviceregistry"
+	"cisco-app-networking.github.io/nsm-nse/pkg/metrics"
 )
 
 const (

@@ -22,7 +22,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"cisco-app-networking.github.io/nsm-nse/pkg/nseconfig"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 
@@ -117,7 +117,7 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			var err error
 			ipamService, err := NewIpamService(ctx, e.VL3.IPAM.ServerAddress)
 			if err != nil {
-				logrus.Warningf("Unable to connect to IPAM Service %v",err)
+				logrus.Warningf("Unable to connect to IPAM Service %v", err)
 			} else {
 				configuration.IPAddress, err = ipamService.AllocateSubnet(e)
 				if err != nil {
