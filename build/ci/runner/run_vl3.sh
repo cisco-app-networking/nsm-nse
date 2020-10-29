@@ -15,7 +15,7 @@ KUBECONFDIR=${KUBECONFDIR:-/etc/kubeconfigs}
 SERVICENAME=ucnf
 NSE_NS=${NSE_NS:-default}
 NSE_HUB=${NSE_HUB:-"tiswanso"}
-NSE_TAG=${NSE_TAG:-"latest"}
+NSE_TAG=${NSE_TAG:-"ipsec-fwdr"}
 
 kubeconfs=$(ls ${KUBECONFDIR})
 
@@ -53,6 +53,9 @@ pushd /go/src/github.com/cisco-app-networking/nsm-nse
 clus1_IP=$(kubectl get node --kubeconfig ${KCONF1} --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
 clus2_IP=$(kubectl get node --kubeconfig ${KCONF2} --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+
+NSE_HUB=ciscoappnetworking
+NSE_TAG=master
 
 echo "# **** Install vL3 in cluster 1 (point at cluster2's IP=${clus2_IP})"
 REMOTE_IP=${clus2_IP} KCONF=${KCONF1} NSE_HUB=${NSE_HUB} NSE_TAG=${NSE_TAG} NAMESPACE=${NSE_NS} scripts/vl3/vl3_interdomain.sh --ipamOctet=22 --serviceName=${SERVICENAME}
