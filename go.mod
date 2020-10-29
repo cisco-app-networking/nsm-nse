@@ -3,7 +3,7 @@ module cisco-app-networking.github.io/nsm-nse
 go 1.14
 
 require (
-	cisco-app-networking.github.io/nsm-nse v0.2.3-vl3
+	github.com/codahale/hdrhistogram v0.9.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.5

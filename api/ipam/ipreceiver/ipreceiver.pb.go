@@ -4,10 +4,10 @@
 package ipreceiver
 
 import (
+	ipprovider "cisco-app-networking.github.io/nsm-nse/api/ipam/ipprovider"
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	ipprovider "github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
