@@ -88,6 +88,13 @@ func (m *IpPrefix) Validate() error {
 	return nil
 }
 
+func (m *IpFamily) Validate() error {
+	if m.GetFamily() == IpFamily_IPV4 || m.GetFamily() == IpFamily_IPV6 {
+		return nil
+	}
+	return errors.Errorf("IpFamily parameter is not valid")
+}
+
 func (m *IpPrefix) ToIpNet() *net.IPNet {
 	_, ipNet, _ := net.ParseCIDR(m.GetSubnet())
 	return ipNet

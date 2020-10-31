@@ -3,15 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	"cisco-app-networking.github.io/nsm-nse/api/serviceregistry"
 	"cisco-app-networking.github.io/nsm-nse/pkg/metrics"
+	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
 )
 
 const (
@@ -23,12 +26,35 @@ const (
 
 type validationErrors []error
 
-func NewServiceRegistry(addr string) (ServiceRegistry, ServiceRegistryClient, error) {
-	conn, err := grpc.Dial(addr,
-		grpc.WithInsecure(),
+func NewServiceRegistry(addr string, ctx context.Context) (ServiceRegistry, ServiceRegistryClient, error) {
+	opts := []grpc.DialOption{
 		grpc.WithUnaryInterceptor(grpc_prometheus.UnaryClientInterceptor),
 		grpc.WithStreamInterceptor(grpc_prometheus.StreamClientInterceptor),
-	)
+	}
+
+	insecure, err := strconv.ParseBool(os.Getenv(tools.InsecureEnv))
+	if err != nil {
+		logrus.Info("Missing INSECURE env variable. Continuing with insecure mode.")
+		insecure = true
+	}
+
+	if !insecure && tools.GetConfig().SecurityProvider != nil {
+		if tlsConfig, err := tools.GetConfig().SecurityProvider.GetTLSConfig(ctx); err != nil {
+			logrus.Errorf(
+				"Failed getting tls config with error: %v. GRPC connection will be insecure.",
+				err,
+			)
+			opts = append(opts, grpc.WithInsecure())
+		} else {
+			logrus.Info("GRPC connection will be secured.")
+			opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+		}
+	} else {
+		logrus.Info("GRPC connection will be insecure.")
+		opts = append(opts, grpc.WithInsecure())
+	}
+
+	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to connect to ServiceRegistry: %w", err)
 	}

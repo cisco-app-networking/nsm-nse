@@ -231,7 +231,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 	if err != nil {
 		logger.Errorf("vL3 workload params not in labels: %v", err)
 	} else {
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr)
+		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr, ctx)
 		if err != nil {
 			logger.Error(err)
 		} else {
@@ -262,7 +262,7 @@ func (vxc *vL3ConnectComposite) Close(ctx context.Context, conn *connection.Conn
 		logrus.WithFields(logrus.Fields{
 			"SrcIP": processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"),
 		}).Infof("vL3 Removing workload instance")
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr)
+		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr, ctx)
 		if err != nil {
 			logrus.Error(err)
 		} else {

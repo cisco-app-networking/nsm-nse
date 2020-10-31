@@ -17,6 +17,37 @@ defaults-machine: &defaults-machine
     GOPATH: ~/go
     ORG: ciscoappnetworking
 
+commands:
+  publish-steps:
+    parameters:
+      tag:
+        type: string
+        default: ${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: /go/src/_save
+      - run:
+          name: Restore the built images
+          command: |
+            docker load --input /go/src/_save/images.tar
+      - run:
+          name: Tag and publish the images
+          command: |
+            export TAG=<< parameters.tag >>
+            echo "Tag for images: ${TAG}"
+            TAGSUFFIX=$(date +%Y%m%d)
+            PUB_ORG=${DOCKER_ORG:-$DOCKER_USER}
+            docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
+            for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent"; do
+              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${TAG}
+              docker push ${PUB_ORG}/${image}:${TAG}
+              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${TAG}-${TAGSUFFIX}
+              docker push ${PUB_ORG}/${image}:${TAG}-${TAGSUFFIX}
+            done
+
+
 e2e-kind-test: &e2e-kind-test
   steps:
     - setup_remote_docker
@@ -54,7 +85,6 @@ e2e-kind-test: &e2e-kind-test
     - run:
         name: Run vl3 test
         command: |
-
           docker exec -e NSE_HUB=${ORG} -e NSE_TAG=${CIRCLE_SHA1} -t vl3-run bash -c "/go/run_vl3.sh"
     - run:
         name: Dump KinD Cluster state
@@ -128,29 +158,6 @@ e2e-kind-kiknos-test: &e2e-kind-kiknos-test
     - store_artifacts:
         path: /tmp/cluster_state
 
-publish-steps: &publish-steps
-  steps:
-    - checkout
-    - setup_remote_docker
-    - attach_workspace:
-        at: /go/src/_save
-    - run:
-        name: Restore the built images
-        command: |
-          docker load --input /go/src/_save/images.tar
-    - run:
-        name: Tag and publish the images
-        command: |
-          TAGSUFFIX=$(date +%Y%m%d)
-          PUB_ORG=${DOCKER_ORG:-$DOCKER_USER}
-          docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
-          for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent"; do
-              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${CIRCLE_BRANCH}
-              docker push ${PUB_ORG}/${image}:${CIRCLE_BRANCH}
-              docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
-              docker push ${PUB_ORG}/${image}:${CIRCLE_BRANCH}-${TAGSUFFIX}
-          done
-
 
 jobs:
   build-NSEs:
@@ -167,7 +174,7 @@ jobs:
           name: Build ucnf-kiknos docker image
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build 
+            ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build
       - run:
           name: Save docker images
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
@@ -190,7 +197,14 @@ jobs:
 
   publish-NSEs:
     <<: *defaults
-    <<: *publish-steps
+    steps:
+      - publish-steps
+
+  publish-tagged-images:
+    <<: *defaults
+    steps:
+      - publish-steps:
+          tag: ${CIRCLE_TAG}
 
 
 orbs:
@@ -209,10 +223,45 @@ workflows:
       - publish-NSEs:
           context: nse-publish
           requires:
-            - build-NSEs
+            - e2e-kind-integration
+            - e2e-kiknos-integration
           filters:
             branches:
               only:
                 - master
                 - /release.*/
+  test-and-push-tagged:
+    jobs:
+      - build-NSEs:
+          filters:
+            branches:
+              ignore: /.*/ # will run only for git tagged commits
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-vl3/
+      - e2e-kind-integration:
+          requires:
+            - build-NSEs
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-vl3/
+      - e2e-kiknos-integration:
+          requires:
+            - build-NSEs
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-vl3/
+      - publish-tagged-images:
+          context: nse-publish
+          requires:
+            - e2e-kind-integration
+            - e2e-kiknos-integration
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-vl3/
 
