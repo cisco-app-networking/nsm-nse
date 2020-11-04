@@ -29,6 +29,10 @@ VPP_AGENT?=ligato/vpp-agent:v3.0.1
 
 include build/nse/nses.mk
 
+test-e2e:
+	@echo "Running e2e tests.."
+	./test/e2e/run_e2e.sh
+
 .PHONY: build-all
 build-all: $(addsuffix -build,$(addprefix ${PREFIX}-,$(NSE_NAMES)))
 	@echo "Built NSEs: ${NSE_NAMES}"
