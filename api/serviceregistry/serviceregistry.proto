@@ -11,6 +11,10 @@ service Registry{
   rpc RemoveWorkload (ServiceWorkload) returns (Empty) {} // Remove service from list
 }
 
+service RegistryState {
+  rpc GetRegisteredWorkloads (Empty) returns (RegisteredWorkloads) {}
+}
+
 message Empty {}
 
 message WorkloadEvent {
@@ -41,4 +45,8 @@ message WorkloadIdentifier {
   string cluster = 1;
   string podName = 2;
   string name = 3;
+}
+
+message RegisteredWorkloads {
+  repeated ServiceWorkload Workloads = 1;
 }
