@@ -17,6 +17,16 @@ defaults-machine: &defaults-machine
     GOPATH: ~/go
     ORG: ciscoappnetworking
 
+# Golang testing environment.
+defaults-go-tester: &defaults-go-tester
+  working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
+  docker:
+    - image: cimg/go:1.13
+  environment:
+    GOPATH: /go
+    ORG: ciscoappnetworking
+
+
 commands:
   publish-steps:
     parameters:
@@ -158,6 +168,18 @@ e2e-kind-kiknos-test: &e2e-kind-kiknos-test
     - store_artifacts:
         path: /tmp/cluster_state
 
+run-all-go-tests: &run-all-go-tests
+  steps:
+    - checkout:
+        path: ~/go/src/github.com/cisco-app-networking/nsm-nse
+    - run:
+        name: Run all go unit tests
+        working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse/
+        # runs all the go test recursively
+        command: |
+          export GOPATH=~/go
+          go test ./...
+
 
 jobs:
   build-NSEs:
@@ -206,6 +228,10 @@ jobs:
       - publish-steps:
           tag: ${CIRCLE_TAG}
 
+  go-test-integration:
+    <<: *defaults-go-tester
+    <<: *run-all-go-tests
+
 
 orbs:
   helm: circleci/helm@0.2.1
@@ -230,6 +256,7 @@ workflows:
               only:
                 - master
                 - /release.*/
+      - go-test-integration
   test-and-push-tagged:
     jobs:
       - build-NSEs:
@@ -259,6 +286,12 @@ workflows:
           requires:
             - e2e-kind-integration
             - e2e-kiknos-integration
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-vl3/
+      - go-test-integration:
           filters:
             branches:
               ignore: /.*/

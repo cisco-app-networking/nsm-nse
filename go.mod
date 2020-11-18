@@ -12,11 +12,13 @@ require (
 	github.com/networkservicemesh/networkservicemesh/controlplane/api v0.3.0
 	github.com/networkservicemesh/networkservicemesh/pkg v0.3.0
 	github.com/networkservicemesh/networkservicemesh/sdk v0.3.0
+	github.com/onsi/gomega v1.7.0
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.1.0
 	github.com/sirupsen/logrus v1.4.2
 	go.ligato.io/vpp-agent/v3 v3.1.0
+	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/grpc v1.27.1
 	gopkg.in/yaml.v2 v2.2.8
