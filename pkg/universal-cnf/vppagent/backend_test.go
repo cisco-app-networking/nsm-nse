@@ -5,10 +5,11 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 
-	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
-	connectioncontext "github.com/networkservicemesh/networkservicemesh/controlplane/api/connectioncontext"
+	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connectioncontext"
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
+
+	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	vpp_l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
 )
@@ -98,7 +99,6 @@ func TestProcessEndpoint(t *testing.T) {
 
 	b.ProcessEndpoint(vppconfig, serviceName, ifName, conn)
 
-	//make sure the expected interface has been added to vppconfig
 	assert.NotNil(t, vppconfig)
 	assert.NotNil(t, vppconfig.Interfaces)
 	assert.Equal(t, 1, len(vppconfig.Interfaces))
