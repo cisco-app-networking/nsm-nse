@@ -75,7 +75,6 @@ func TestBuildVppIfNameDefault(t *testing.T) {
 }
 
 func TestProcessEndpoint(t *testing.T) {
-
 	b := UniversalCNFVPPAgentBackend{}
 	vppconfig := &vpp.ConfigData{}
 	conn := &connection.Connection{
@@ -130,6 +129,7 @@ func TestProcessEndpoint(t *testing.T) {
 	assert.Equal(t, 1, len(vppconfig.Routes))
 
 	route := vppconfig.Routes[0]
+
 	assert.Equal(t, vppl3.Route_INTER_VRF, route.Type)
 	assert.Equal(t, srcIpRouteEndpoint, route.DstNetwork)
 	assert.Equal(t, srcIpAddrEndpoint, route.NextHopAddr)
@@ -179,6 +179,7 @@ func TestProcessClient(t *testing.T) {
 	assert.Equal(t, 1, len(vppconfig.Routes))
 
 	route := vppconfig.Routes[0]
+
 	assert.Equal(t, vppl3.Route_INTER_VRF, route.Type)
 	assert.Equal(t, dstIpRouteClient, route.DstNetwork)
 	assert.Equal(t, dstIpAddrClient, route.NextHopAddr)
