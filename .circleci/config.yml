@@ -23,7 +23,7 @@ defaults-go-tester: &defaults-go-tester
   docker:
     - image: cimg/go:1.15
   environment:
-    GOPATH: /home/go
+    GOPATH: /home/circleci/go
     ORG: ciscoappnetworking
 
 
