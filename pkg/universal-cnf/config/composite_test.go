@@ -61,92 +61,54 @@ var (
 	vl3DNSZones    = []string{""}
 )
 
-// the mock implementer of the interface UniversalCNFBackend
-type MockUcnfBackendProcessDPConfig struct {
-}
-
-/*
-these are the implementations of the ucnf endpoint backend interface, and these mock functions are used for testing
-the ProcessDPconfig function call
-*/
-func (m *MockUcnfBackendProcessDPConfig) NewDPConfig() *vpp.ConfigData {
-	return &vpp.ConfigData{}
-}
-
-func (m *MockUcnfBackendProcessDPConfig) NewUniversalCNFBackend() error {
-	return nil
-}
-
-func (m *MockUcnfBackendProcessDPConfig) ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error {
-	return nil
-}
-
-func (m *MockUcnfBackendProcessDPConfig) ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error {
-	return nil
-
-}
-
-func (m *MockUcnfBackendProcessDPConfig) ProcessDPConfig(dpconfig interface{}, update bool) error {
-	return fmt.Errorf("failed to run ProcessDPConfig() method")
-}
-
 // mock implementor
-type MockUcnfBackendReturnNil struct {
+type MockUcnfBackend struct {
+	newDPConfig            func() *vpp.ConfigData
+	newUniversalCNFBackEnd func() error
+	processClient          func(dpconfig interface{}, ifName string, conn *connection.Connection) error
+	processDPConfig        func(dpconfig interface{}, update bool) error
+	processEndpoints       func(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error
 }
 
 /*
-these are the mock functions that will return nil only, which means that the Request() and Close() functions will
-run till the end without getting errors from ProcessEndpoint and ProcessDPConfig function calls
+mock functions returning the defined overriding functions otherwise will return nil by default
 */
-func (m *MockUcnfBackendReturnNil) NewDPConfig() *vpp.ConfigData {
-	return &vpp.ConfigData{}
+func (m *MockUcnfBackend) NewDPConfig() *vpp.ConfigData {
+	if m.newDPConfig == nil {
+		return &vpp.ConfigData{}
+	}
+	return m.newDPConfig()
 }
 
-func (m *MockUcnfBackendReturnNil) NewUniversalCNFBackend() error {
-	return nil
+func (m *MockUcnfBackend) NewUniversalCNFBackend() error {
+	if m.newUniversalCNFBackEnd == nil {
+		return nil
+	}
+	return m.newUniversalCNFBackEnd()
 }
 
-func (m *MockUcnfBackendReturnNil) ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error {
-	return nil
+func (m *MockUcnfBackend) ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error {
+	if m.processClient == nil {
+		return nil
+	}
+	return m.processClient(dpconfig, ifName, conn)
 }
 
-func (m *MockUcnfBackendReturnNil) ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error {
-	return nil
+func (m *MockUcnfBackend) ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error {
+	if m.processEndpoints == nil {
+		return nil
+	}
+	return m.processEndpoints(dpconfig, serviceName, ifName, conn)
 }
 
-func (m *MockUcnfBackendReturnNil) ProcessDPConfig(dpconfig interface{}, update bool) error {
-	return nil
+func (m *MockUcnfBackend) ProcessDPConfig(dpconfig interface{}, update bool) error {
+	if m.processDPConfig == nil {
+		return nil
+	}
+	return m.processDPConfig(dpconfig, update)
 }
 
-// mock implementor
-type MockUcnfBackendProcessEndpoint struct {
-}
-
-/*
-these are the implementations of the ucnf endpoint backend interface
-mock functions are used for testingthe ProcessEndpoint function call
-*/
-func (m *MockUcnfBackendProcessEndpoint) NewDPConfig() *vpp.ConfigData {
-	return &vpp.ConfigData{}
-}
-
-func (m *MockUcnfBackendProcessEndpoint) NewUniversalCNFBackend() error {
-	return nil
-}
-
-func (m *MockUcnfBackendProcessEndpoint) ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error {
-	return nil
-}
-
-func (m *MockUcnfBackendProcessEndpoint) ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error {
-	return fmt.Errorf("failed to run ProcessEndpoint function")
-}
-
-func (m *MockUcnfBackendProcessEndpoint) ProcessDPConfig(dpconfig interface{}, update bool) error {
-	return nil
-}
-
-func createUcnfEndpoint() (e *nseconfig.Endpoint) {
+func createNseConfigEndpoint() (e *nseconfig.Endpoint) {
 	e = &nseconfig.Endpoint{
 		Name:    ucnfeName,
 		Labels:  ucnfeLabels,
@@ -172,7 +134,7 @@ func createUcnfEndpoint() (e *nseconfig.Endpoint) {
 	return
 }
 
-func createConnection() (conn *connection.Connection) {
+func createNsmConnection() (conn *connection.Connection) {
 	conn = &connection.Connection{
 		Id:             connId,
 		NetworkService: connNetworkService,
@@ -213,7 +175,7 @@ func createConnection() (conn *connection.Connection) {
 /*
 assigning an empty interface to dpConfig to prevent crashing, it cannot be a null pointer
 */
-func createDpConfig() (dpConfig *vpp.ConfigData) {
+func createVppDpConfig() (dpConfig *vpp.ConfigData) {
 	dpConfig = &vpp.ConfigData{
 		Interfaces: []*vpp_interfaces.Interface{},
 	}
@@ -222,9 +184,9 @@ func createDpConfig() (dpConfig *vpp.ConfigData) {
 
 func initUcnfEndpoint() (ucnfe UniversalCNFEndpoint) {
 	ucnfe = UniversalCNFEndpoint{
-		endpoint: createUcnfEndpoint(),
-		backend:  &MockUcnfBackendReturnNil{},
-		dpConfig: createDpConfig(),
+		endpoint: createNseConfigEndpoint(),
+		backend:  &MockUcnfBackend{},
+		dpConfig: createVppDpConfig(),
 	}
 	return
 }
@@ -235,8 +197,28 @@ func TestMain(m *testing.M) {
 }
 
 /*
-this test ensures that the Request function can get return values fromProcessEndpoint function
-and ProcessDPConfig function
+description is the log describing what the test do
+positiveTest is a flag to determine whether positive or negative tests
+*/
+type ucnfBackendTest struct {
+	mockBackend  *MockUcnfBackend
+	description  string
+	positiveTest bool
+}
+
+/*
+run either positive or negative tests depending on the flag
+ */
+func runTest(g *GomegaWithT, err error, flag bool){
+	if !flag{
+		g.Expect(err).Should(HaveOccurred(), fmt.Sprintf("ERROR : %v", err))
+	} else {
+		g.Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("ERROR : %v", err))
+	}
+}
+
+/*
+this test ensures that the Request function can get return values fromProcessEndpoint function and ProcessDPConfig function
 */
 func TestRequest(t *testing.T) {
 	g := NewWithT(t)
@@ -244,21 +226,31 @@ func TestRequest(t *testing.T) {
 	r := &networkservice.NetworkServiceRequest{}
 	ucnfe := initUcnfEndpoint()
 
-	logrus.Println("all functions return nil")
-	_, err := ucnfe.Request(ctx, r)
-	g.Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("ERROR : %v", err))
+	tables := []ucnfBackendTest{
+		{mockBackend: &MockUcnfBackend{processDPConfig: func(dpconfig interface{}, update bool) error {
+			return nil
+		},
+		}, description: "method ProcessDPConfig()  should return nil", positiveTest: true},
+		{mockBackend: &MockUcnfBackend{processEndpoints: func(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error {
+			return nil
+		},
+		}, description: "method ProcessEndpoints() should return nil", positiveTest: true},
+		{mockBackend: &MockUcnfBackend{processDPConfig: func(dpconfig interface{}, update bool) error {
+			return fmt.Errorf("failed to run ProcessDPConfig() method")
+		},
+		}, description: "method ProcessDPConfig() should return err", positiveTest: false},
+		{mockBackend: &MockUcnfBackend{processEndpoints: func(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error {
+			return fmt.Errorf("failed to run ProcessEndpoint() method")
+		},
+		}, description: "method ProcessEndpoints() should return err", positiveTest: false},
+	}
 
-	// Deploy backend that contains mock functions returning err
-	ucnfe.backend = &MockUcnfBackendProcessEndpoint{}
-	logrus.Println("ProcessEndpoint function should return err")
-	_, err = ucnfe.Request(ctx, r)
-	g.Expect(err).Should(HaveOccurred(), fmt.Sprintf("ERROR: %v", err))
-
-	ucnfe.backend = &MockUcnfBackendProcessDPConfig{}
-	logrus.Println("ProcessDPConfig function should return err")
-	_, err = ucnfe.Request(ctx, r)
-	g.Expect(err).Should(HaveOccurred(), fmt.Sprintf("ERROR: %v", err))
-
+	for _, table := range tables {
+		ucnfe.backend = table.mockBackend
+		logrus.Printf(table.description)
+		_, err := ucnfe.Request(ctx, r)
+		runTest(g, err, table.positiveTest)
+	}
 }
 
 /*
@@ -268,15 +260,22 @@ func TestClose(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.TODO()
 	ucnfe := initUcnfEndpoint()
-	conn := createConnection()
+	conn := createNsmConnection()
 
-	logrus.Println("all functions return nil")
-	_, err := ucnfe.Close(ctx, conn)
-	g.Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("ERROR : %v", err))
-
-	logrus.Println("ProcessDPconfig should return err")
-	ucnfe.backend = &MockUcnfBackendProcessDPConfig{}
-	_, err = ucnfe.Close(ctx, conn)
-	g.Expect(err).Should(HaveOccurred(), fmt.Sprintf("ERROR : %v", err))
-
+	tables := []ucnfBackendTest{
+		{mockBackend: &MockUcnfBackend{processDPConfig: func(dpconfig interface{}, update bool) error {
+			return nil
+		},
+		}, description: "method ProcessDPConfig() should return nil", positiveTest: true},
+		{mockBackend: &MockUcnfBackend{processDPConfig: func(dpconfig interface{}, update bool) error {
+			return fmt.Errorf("failed to run ProcessDPConfig() method")
+		},
+		}, description: "method ProcessDPConfig() should return err", positiveTest: false},
+	}
+	for _, table := range tables {
+		ucnfe.backend = table.mockBackend
+		logrus.Printf(table.description)
+		_, err := ucnfe.Close(ctx, conn)
+		runTest(g, err, table.positiveTest)
+	}
 }
