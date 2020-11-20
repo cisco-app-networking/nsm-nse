@@ -23,8 +23,7 @@ defaults-go-tester: &defaults-go-tester
   docker:
     - image: cimg/go:1.15
   environment:
-    #GOPATH: /home/circleci/go
-    GOPATH: /go
+    GOPATH: /home/circleci/go
     ORG: ciscoappnetworking
 
 
@@ -178,7 +177,6 @@ run-all-go-tests: &run-all-go-tests
         working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse/
         # runs all the
         command: |
-          export GOPATH=~/go
           go test ./...
 
 
