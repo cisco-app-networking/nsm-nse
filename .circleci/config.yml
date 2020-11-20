@@ -23,7 +23,7 @@ defaults-go-tester: &defaults-go-tester
   docker:
     - image: cimg/go:1.15
   environment:
-    GOPATH: /go
+    GOPATH: /home/go
     ORG: ciscoappnetworking
 
 
@@ -171,10 +171,10 @@ e2e-kind-kiknos-test: &e2e-kind-kiknos-test
 run-all-go-tests: &run-all-go-tests
   steps:
     - checkout:
-        path: /go/src/github.com/cisco-app-networking/nsm-nse
+        path: ~/go/src/github.com/cisco-app-networking/nsm-nse
     - run:
         name: Run all go unit tests
-        working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/
+        working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse/
         # runs all the go test recursively
         command: |
           go test ./...
