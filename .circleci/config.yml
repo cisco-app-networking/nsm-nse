@@ -177,6 +177,7 @@ run-all-go-tests: &run-all-go-tests
         name: Run all go unit tests
         working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse/
         # runs all the
+        command: |
           export GOPATH=~/go
           go test ./...
 
