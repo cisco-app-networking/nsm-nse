@@ -21,7 +21,7 @@ defaults-machine: &defaults-machine
 defaults-go-tester: &defaults-go-tester
   working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
   docker:
-    - image: cimg/go:1.13
+    - image: cimg/go:1.15
   environment:
     GOPATH: /go
     ORG: ciscoappnetworking
