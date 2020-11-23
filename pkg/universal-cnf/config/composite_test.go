@@ -272,6 +272,7 @@ func TestClose(t *testing.T) {
 		},
 		}, description: "method ProcessDPConfig() should return err", positiveTest: false},
 	}
+
 	for _, table := range tables {
 		ucnfe.backend = table.mockBackend
 		logrus.Printf(table.description)
@@ -279,3 +280,4 @@ func TestClose(t *testing.T) {
 		runTest(g, err, table.positiveTest)
 	}
 }
+

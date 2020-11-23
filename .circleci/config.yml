@@ -175,7 +175,7 @@ run-all-go-tests: &run-all-go-tests
     - run:
         name: Run all go unit tests
         working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse/
-        # runs all the
+        # runs all the go tests recursively
         command: |
           go test ./...
 
