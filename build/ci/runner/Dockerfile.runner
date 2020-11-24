@@ -9,7 +9,7 @@ ARG  nsm_branch=vl3_latest
 
 RUN  git clone $vl3_repo /go/src/github.com/cisco-app-networking/nsm-nse && \
      cd /go/src/github.com/cisco-app-networking/nsm-nse && \
-     git checkout $vl3_branch
+     git checkout $vl3_branch \
      git fetch origin pull/42/head:vl3_latest
 
 RUN  git clone $nsm_repo /go/src/github.com/cisco-app-networking/networkservicemesh && \
