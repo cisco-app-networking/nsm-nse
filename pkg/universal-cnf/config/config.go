@@ -18,6 +18,7 @@ package config
 import (
 	"context"
 	"io/ioutil"
+	"os"
 	"os/exec"
 
 	"github.com/davecgh/go-spew/spew"
@@ -31,6 +32,12 @@ import (
 
 const (
 	PEER_NAME = "ucnf/peerName"
+	PodName = "nsepod.name"
+
+	nsePodNameVar = "NSE_POD_NAME"
+	nsePodName = "example"
+	clusterVar = "CLUSTER_NAME"
+	cluster = "test"
 )
 
 // Command is a struct to describe exec.Command call arguments
@@ -177,4 +184,18 @@ func (c *UniversalCNFConfig) GetBackend() UniversalCNFBackend {
 // Dump dumps the current state of the CNF config using spew
 func (c *UniversalCNFConfig) Dump() {
 	spew.Dump(c)
+}
+
+func GetEndpointName() string {
+	podName, ok := os.LookupEnv(nsePodNameVar)
+	if !ok {
+		podName = nsePodName
+	}
+
+	clusterName, ok := os.LookupEnv(clusterVar)
+	if !ok {
+		clusterName = cluster
+	}
+
+	return clusterName + "_" + podName
 }
