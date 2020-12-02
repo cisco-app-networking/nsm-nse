@@ -19,7 +19,8 @@ spec:
       serviceAccount: {{ .Values.nsm.serviceName }}-service-account
       containers:
         - name: ucnf-nse
-          image: {{ .Values.registry }}/{{ .Values.org }}/universal-cnf-vppagent:{{ .Values.tag }}
+          {{- /* image: {{ .Values.registry }}/{{ .Values.org }}/universal-cnf-vppagent:{{ .Values.tag }} */}}
+          image: networkservicemesh/universal-cnf-vppagent:master
           imagePullPolicy: {{ .Values.pullPolicy }}
           ports:
           - name: monitoring-vpp
@@ -74,14 +75,13 @@ metadata:
 data:
   config.yaml: |
     endpoints:
-    - name: {{ .Values.nsm.serviceName | quote }}
+    - name: "ucnf-nse-{{ .Values.nsm.serviceName }}"
       labels:
-        app: "ucnf-nse-{{ .Values.nsm.serviceName }}"
-      vl3:
-        ipam:
-          defaultPrefixPool: {{ .Values.nseControl.ipam.defaultPrefixPool | quote }}
-          routes: []
-        ifName: "endpoint0"
+        app: {{ .Values.nsm.serviceName | quote }}
+      ipam:
+        prefixpool: {{ .Values.ipam.prefixPool | quote }}
+        routes: []
+      ifname: "endpoint0"
 ---
 apiVersion: v1
 kind: Service
@@ -103,16 +103,3 @@ kind: ServiceAccount
 metadata:
   name: {{ .Values.nsm.serviceName }}-service-account
   namespace: {{ .Release.Namespace }}
----
-apiVersion: networkservicemesh.io/v1alpha1
-kind: NetworkService
-metadata:
-  name: ucnf-nse-{{ .Values.nsm.serviceName }}
-spec:
-  payload: IP
-  matches:
-    - match:
-      route:
-        - destination:
-          destinationSelector:
-            app: "ucnf-nse-{{ .Values.nsm.serviceName }}"
