@@ -25,9 +25,14 @@ NSM_PATH?=${TOP}/../../networkservicemesh/networkservicemesh
 CLUSTER_RULES_PREFIX?=kind
 PREFIX?=k8s
 CONTAINER_BUILD_PREFIX?=docker
-VPP_AGENT?=ligato/vpp-agent:v3.0.1
+VPP_AGENT?=ligato/vpp-agent:v3.2.0
+VPP_IMG?=ligato/vpp-base:20.05
 
 include build/nse/nses.mk
+
+test-e2e:
+	@echo "Running e2e tests.."
+	env VPP_IMG=$(VPP_IMG) ./test/e2e/run_e2e.sh
 
 .PHONY: build-all
 build-all: $(addsuffix -build,$(addprefix ${PREFIX}-,$(NSE_NAMES)))
