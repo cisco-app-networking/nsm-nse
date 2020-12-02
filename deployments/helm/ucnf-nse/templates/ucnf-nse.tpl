@@ -19,8 +19,7 @@ spec:
       serviceAccount: {{ .Values.nsm.serviceName }}-service-account
       containers:
         - name: ucnf-nse
-          {{- /* image: {{ .Values.registry }}/{{ .Values.org }}/universal-cnf-vppagent:{{ .Values.tag }} */}}
-          image: networkservicemesh/universal-cnf-vppagent:master
+          image: {{ .Values.registry }}/{{ .Values.org }}/universal-cnf-vppagent:{{ .Values.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           ports:
           - name: monitoring-vpp
