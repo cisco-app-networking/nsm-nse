@@ -82,6 +82,11 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 			}, ucnfEndpoint.VL3.IPAM.DefaultPrefixPool, ucnfEndpoint.VL3.IPAM.ServerAddress, ucnfEndpoint.NseControl.ConnectivityDomain),
 	}
 
+	if ucnfEndpoint.AwsTgwEndpoint != nil {
+		awsTgwEndpoint := newAwsTgwConnector(ucnfEndpoint.AwsTgwEndpoint)
+		compositeEndpoints = append(compositeEndpoints, awsTgwEndpoint)
+	}
+
 	return &compositeEndpoints
 }
 
