@@ -15,7 +15,7 @@ import (
 )
 
 func TestRemoveClientInterface(t *testing.T) {
-	cases := map[string]struct {
+	for testName, c := range map[string]struct {
 		interfaces    []*interfaces.Interface
 		conn          *connection.Connection
 		routes        []*l3.Route
@@ -69,9 +69,7 @@ func TestRemoveClientInterface(t *testing.T) {
 			routes1,
 			fmt.Errorf("client interface with dstIpAddr %s not found", conn1.Context.IpContext.DstIpAddr),
 		},
-	}
-
-	for testName, c := range cases {
+	} {
 		t.Logf("Running test case: %s", testName)
 
 		ucnfBackend := &mocks.UniversalCNFBackend{}
@@ -148,7 +146,6 @@ var conn1 = &connection.Connection{
 		},
 	},
 	Labels: map[string]string{
-		"":          "",
 		"namespace": "nsm-system",
 		"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
 	},
@@ -187,7 +184,6 @@ var conn2 = &connection.Connection{
 		},
 	},
 	Labels: map[string]string{
-		"":          "",
 		"namespace": "nsm-system",
 		"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
 	},
@@ -229,7 +225,6 @@ var conn3 = &connection.Connection{
 		},
 	},
 	Labels: map[string]string{
-		"":          "",
 		"namespace": "nsm-system",
 		"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
 	},
