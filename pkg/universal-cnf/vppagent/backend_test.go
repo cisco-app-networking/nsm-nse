@@ -3,14 +3,26 @@ package vppagent
 import (
 	"os"
 	"testing"
-	"github.com/stretchr/testify/assert"
 
+	"github.com/stretchr/testify/assert"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
-	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
-	connectioncontext "github.com/networkservicemesh/networkservicemesh/controlplane/api/connectioncontext"
-	"github.com/networkservicemesh/networkservicemesh/sdk/common"
 	interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
-	vpp_l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
+	vppl3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
+
+	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
+	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connectioncontext"
+	"github.com/networkservicemesh/networkservicemesh/sdk/common"
+)
+
+const (
+	dstIpAddrClient = "192.168.22.2"
+	dstIpRouteClient =  "192.168.0.0/16"
+	ifName = "endpoint0"
+	podName = "helloworld-ucnf-78956df47b-r5fj4"
+	srcIpAddrEndpoint = "192.168.22.1"
+	srcIpRouteEndpoint = "192.168.0.1/16"
+	serviceName = "ucnf"
+	workspaceEnv = "workspace"
 )
 
 func TestBuildVppIfNameNSCPeer(t *testing.T) {
@@ -64,25 +76,16 @@ func TestBuildVppIfNameDefault(t *testing.T) {
 
 func TestProcessEndpoint(t *testing.T) {
 
-	const (
-		srcIpAddr = "192.168.22.1"
-		srcIpRoute = "192.168.0.1/16"
-		workspaceEnv = "workspace"
-	)
-
-	podName := "helloworld-ucnf-78956df47b-r5fj4"
 	b := UniversalCNFVPPAgentBackend{}
 	vppconfig := &vpp.ConfigData{}
-	serviceName := "ucnf"
-	ifName := "endpoint0"
 	conn := &connection.Connection{
 		Context: &connectioncontext.ConnectionContext{
 			IpContext: &connectioncontext.IPContext{
-				SrcIpAddr: srcIpAddr + "/30",
+				SrcIpAddr: srcIpAddrEndpoint + "/30",
 				SrcIpRequired: true,
 				DstIpRequired: true,
 				SrcRoutes: []*connectioncontext.Route{
-					&connectioncontext.Route{Prefix: srcIpRoute},
+					&connectioncontext.Route{Prefix: srcIpRouteEndpoint},
 				},
 			},
 		},
@@ -127,29 +130,23 @@ func TestProcessEndpoint(t *testing.T) {
 	assert.Equal(t, 1, len(vppconfig.Routes))
 
 	route := vppconfig.Routes[0]
-	assert.Equal(t, vpp_l3.Route_INTER_VRF, route.Type)
-	assert.Equal(t, srcIpRoute, route.DstNetwork)
-	assert.Equal(t, srcIpAddr, route.NextHopAddr)
+	assert.Equal(t, vppl3.Route_INTER_VRF, route.Type)
+	assert.Equal(t, srcIpRouteEndpoint, route.DstNetwork)
+	assert.Equal(t, srcIpAddrEndpoint, route.NextHopAddr)
 }
 
 func TestProcessClient(t *testing.T) {
-	const (
-		dstIpAddr = "192.168.22.2"
-		dstIpRoute =  "192.168.0.0/16"
-		workspaceEnv = "workspace"
-	)
 
 	b := UniversalCNFVPPAgentBackend{}
 	vppconfig := &vpp.ConfigData{}
-	ifName := "endpoint0"
 	conn := &connection.Connection{
 		Context: &connectioncontext.ConnectionContext{
 			IpContext: &connectioncontext.IPContext{
-				DstIpAddr: dstIpAddr +"/30",
+				DstIpAddr: dstIpAddrClient +"/30",
 				SrcIpRequired: true,
 				DstIpRequired: true,
 				DstRoutes: []*connectioncontext.Route{
-					&connectioncontext.Route{Prefix: dstIpRoute},
+					&connectioncontext.Route{Prefix: dstIpRouteClient},
 				},
 			},
 		},
@@ -182,7 +179,7 @@ func TestProcessClient(t *testing.T) {
 	assert.Equal(t, 1, len(vppconfig.Routes))
 
 	route := vppconfig.Routes[0]
-	assert.Equal(t, vpp_l3.Route_INTER_VRF, route.Type)
-	assert.Equal(t, dstIpRoute, route.DstNetwork)
-	assert.Equal(t, dstIpAddr, route.NextHopAddr)
+	assert.Equal(t, vppl3.Route_INTER_VRF, route.Type)
+	assert.Equal(t, dstIpRouteClient, route.DstNetwork)
+	assert.Equal(t, dstIpAddrClient, route.NextHopAddr)
 }
