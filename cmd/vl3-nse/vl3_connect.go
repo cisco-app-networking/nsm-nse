@@ -445,7 +445,7 @@ func removeDuplicates(elements []string) []string {
 }
 
 // newVL3ConnectComposite creates a new VL3 composite
-func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, nseControlAddr, connDomain string) *vL3ConnectComposite {
+var newVL3ConnectComposite = func(configuration *common.NSConfiguration, vL3NetCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, nseControlAddr, connDomain string) *vL3ConnectComposite {
 	nsRegAddr, ok := os.LookupEnv("NSREGISTRY_ADDR")
 	if !ok {
 		nsRegAddr = NSREGISTRY_ADDR
