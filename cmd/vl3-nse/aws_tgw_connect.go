@@ -30,7 +30,7 @@ func newAwsTgwConnector(ate *nseconfig.AwsTgwEndpoint) *AwsTgwConnector {
 		return newAwsTgwConnector
 	}
 
-	logrus.Infof("newAwsTgwConnector returning")
+	logrus.Errorf("newAwsTgwConnector(): got nil AwsTgwEndpoint, returning nil")
 
 	return nil
 }
