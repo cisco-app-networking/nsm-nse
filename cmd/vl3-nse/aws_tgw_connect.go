@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/sirupsen/logrus"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
-	"github.com/sirupsen/logrus"
 )
 
 type AwsTgwConnector struct {
