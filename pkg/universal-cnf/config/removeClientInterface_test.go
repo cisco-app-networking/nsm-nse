@@ -14,6 +14,156 @@ import (
 	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
 )
 
+var (
+	interfaces1 = []*interfaces.Interface{
+		{
+			IpAddresses: []string{"192.168.22.2/30"},
+		},
+	}
+
+	interfaces2 = []*interfaces.Interface{
+		{
+			IpAddresses: []string{"192.168.22.1/30", "192.168.22.0/30"},
+		},
+	}
+
+	interfaces3 = []*interfaces.Interface{
+		{
+			IpAddresses: []string{"192.168.22.2/30", "192.168.22.1/30", "192.168.22.0/30"},
+		},
+	}
+
+	routes1 = []*l3.Route{
+		{
+			NextHopAddr: "192.168.22.1",
+			DstNetwork:  "192.168.0.0/16",
+		},
+	}
+
+	routes2 = []*l3.Route{
+		{
+			NextHopAddr: "192.168.22.2",
+			DstNetwork:  "192.168.0.0/16",
+		},
+	}
+
+	conn1 = &connection.Connection{
+		Id:             "2",
+		NetworkService: "ucnf",
+		Mechanism: &connection.Mechanism{
+			Cls:  "LOCAL",
+			Type: "MEMIF",
+			Parameters: map[string]string{
+				"description": "NSM Endpoint",
+				"name":        "nsm2DoJzgpRd",
+				"netnsInode":  "4026534215",
+				"socketfile":  "nsm2DoJzgpRd/memif.sock",
+			},
+		},
+		Context: &connectioncontext.ConnectionContext{
+			IpContext: &connectioncontext.IPContext{
+				SrcIpAddr:     "192.168.22.1/30",
+				DstIpAddr:     "192.168.22.2/30",
+				SrcIpRequired: true,
+				DstIpRequired: true,
+				DstRoutes: []*connectioncontext.Route{
+					{Prefix: "192.168.0.0/16"},
+				},
+			},
+		},
+		Labels: map[string]string{
+			"namespace": "nsm-system",
+			"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
+		},
+		Path: &connection.Path{
+			PathSegments: []*connection.PathSegment{
+				{
+					Name: "kind-2-control-plane",
+				},
+			},
+		},
+	}
+
+	//Changed DstIpAddr
+	conn2 = &connection.Connection{
+		Id:             "2",
+		NetworkService: "ucnf",
+		Mechanism: &connection.Mechanism{
+			Cls:  "LOCAL",
+			Type: "MEMIF",
+			Parameters: map[string]string{
+				"description": "NSM Endpoint",
+				"name":        "nsm2DoJzgpRd",
+				"netnsInode":  "4026534215",
+				"socketfile":  "nsm2DoJzgpRd/memif.sock",
+			},
+		},
+		Context: &connectioncontext.ConnectionContext{
+			IpContext: &connectioncontext.IPContext{
+				SrcIpAddr:     "192.168.22.1/30",
+				DstIpAddr:     "192.168.22.3/30",
+				SrcIpRequired: true,
+				DstIpRequired: true,
+				DstRoutes: []*connectioncontext.Route{
+					{Prefix: "192.168.0.0/16"},
+				},
+			},
+		},
+		Labels: map[string]string{
+			"namespace": "nsm-system",
+			"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
+		},
+		Path: &connection.Path{
+			PathSegments: []*connection.PathSegment{
+				{
+					Name: "kind-2-control-plane",
+				},
+			},
+		},
+	}
+
+	//With SrcRoutes
+	conn3 = &connection.Connection{
+		Id:             "2",
+		NetworkService: "ucnf",
+		Mechanism: &connection.Mechanism{
+			Cls:  "LOCAL",
+			Type: "MEMIF",
+			Parameters: map[string]string{
+				"description": "NSM Endpoint",
+				"name":        "nsm2DoJzgpRd",
+				"netnsInode":  "4026534215",
+				"socketfile":  "nsm2DoJzgpRd/memif.sock",
+			},
+		},
+		Context: &connectioncontext.ConnectionContext{
+			IpContext: &connectioncontext.IPContext{
+				SrcIpAddr:     "192.168.22.1/30",
+				DstIpAddr:     "192.168.22.2/30",
+				SrcIpRequired: true,
+				DstIpRequired: true,
+				DstRoutes: []*connectioncontext.Route{
+					{Prefix: "192.168.0.0/16"},
+				},
+				SrcRoutes: []*connectioncontext.Route{
+					{Prefix: "192.168.0.0/16"},
+				},
+			},
+		},
+		Labels: map[string]string{
+			"namespace": "nsm-system",
+			"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
+		},
+		Path: &connection.Path{
+			PathSegments: []*connection.PathSegment{
+				{
+					Name: "kind-2-control-plane",
+				},
+			},
+		},
+	}
+)
+
 func TestRemoveClientInterface(t *testing.T) {
 	for testName, c := range map[string]struct {
 		interfaces    []*interfaces.Interface
@@ -87,152 +237,4 @@ func TestRemoveClientInterface(t *testing.T) {
 			assert.Equal(t, 1, len(removeConfig.Interfaces))
 		}
 	}
-}
-
-var interfaces1 = []*interfaces.Interface{
-	{
-		IpAddresses: []string{"192.168.22.2/30"},
-	},
-}
-
-var interfaces2 = []*interfaces.Interface{
-	{
-		IpAddresses: []string{"192.168.22.1/30", "192.168.22.0/30"},
-	},
-}
-
-var interfaces3 = []*interfaces.Interface{
-	{
-		IpAddresses: []string{"192.168.22.2/30", "192.168.22.1/30", "192.168.22.0/30"},
-	},
-}
-
-var routes1 = []*l3.Route{
-	{
-		NextHopAddr: "192.168.22.1",
-		DstNetwork:  "192.168.0.0/16",
-	},
-}
-
-var routes2 = []*l3.Route{
-	{
-		NextHopAddr: "192.168.22.2",
-		DstNetwork:  "192.168.0.0/16",
-	},
-}
-
-var conn1 = &connection.Connection{
-	Id:             "2",
-	NetworkService: "ucnf",
-	Mechanism: &connection.Mechanism{
-		Cls:  "LOCAL",
-		Type: "MEMIF",
-		Parameters: map[string]string{
-			"description": "NSM Endpoint",
-			"name":        "nsm2DoJzgpRd",
-			"netnsInode":  "4026534215",
-			"socketfile":  "nsm2DoJzgpRd/memif.sock",
-		},
-	},
-	Context: &connectioncontext.ConnectionContext{
-		IpContext: &connectioncontext.IPContext{
-			SrcIpAddr:     "192.168.22.1/30",
-			DstIpAddr:     "192.168.22.2/30",
-			SrcIpRequired: true,
-			DstIpRequired: true,
-			DstRoutes: []*connectioncontext.Route{
-				{Prefix: "192.168.0.0/16"},
-			},
-		},
-	},
-	Labels: map[string]string{
-		"namespace": "nsm-system",
-		"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
-	},
-	Path: &connection.Path{
-		PathSegments: []*connection.PathSegment{
-			{
-				Name: "kind-2-control-plane",
-			},
-		},
-	},
-}
-
-//Changed DstIpAddr
-var conn2 = &connection.Connection{
-	Id:             "2",
-	NetworkService: "ucnf",
-	Mechanism: &connection.Mechanism{
-		Cls:  "LOCAL",
-		Type: "MEMIF",
-		Parameters: map[string]string{
-			"description": "NSM Endpoint",
-			"name":        "nsm2DoJzgpRd",
-			"netnsInode":  "4026534215",
-			"socketfile":  "nsm2DoJzgpRd/memif.sock",
-		},
-	},
-	Context: &connectioncontext.ConnectionContext{
-		IpContext: &connectioncontext.IPContext{
-			SrcIpAddr:     "192.168.22.1/30",
-			DstIpAddr:     "192.168.22.3/30",
-			SrcIpRequired: true,
-			DstIpRequired: true,
-			DstRoutes: []*connectioncontext.Route{
-				{Prefix: "192.168.0.0/16"},
-			},
-		},
-	},
-	Labels: map[string]string{
-		"namespace": "nsm-system",
-		"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
-	},
-	Path: &connection.Path{
-		PathSegments: []*connection.PathSegment{
-			{
-				Name: "kind-2-control-plane",
-			},
-		},
-	},
-}
-
-//With SrcRoutes
-var conn3 = &connection.Connection{
-	Id:             "2",
-	NetworkService: "ucnf",
-	Mechanism: &connection.Mechanism{
-		Cls:  "LOCAL",
-		Type: "MEMIF",
-		Parameters: map[string]string{
-			"description": "NSM Endpoint",
-			"name":        "nsm2DoJzgpRd",
-			"netnsInode":  "4026534215",
-			"socketfile":  "nsm2DoJzgpRd/memif.sock",
-		},
-	},
-	Context: &connectioncontext.ConnectionContext{
-		IpContext: &connectioncontext.IPContext{
-			SrcIpAddr:     "192.168.22.1/30",
-			DstIpAddr:     "192.168.22.2/30",
-			SrcIpRequired: true,
-			DstIpRequired: true,
-			DstRoutes: []*connectioncontext.Route{
-				{Prefix: "192.168.0.0/16"},
-			},
-			SrcRoutes: []*connectioncontext.Route{
-				{Prefix: "192.168.0.0/16"},
-			},
-		},
-	},
-	Labels: map[string]string{
-		"namespace": "nsm-system",
-		"podName":   "helloworld-ucnf-6454c88c5f-pw98x",
-	},
-	Path: &connection.Path{
-		PathSegments: []*connection.PathSegment{
-			{
-				Name: "kind-2-control-plane",
-			},
-		},
-	},
 }
