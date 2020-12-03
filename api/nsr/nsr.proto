@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+
+package svreg;
+option go_package = "nsr";
+
+
+service NsrService{
+	rpc GetNses (NseRequest) returns (NsrResponse) {} // Request register of a new service
+}
+
+message NseRequest {
+	string address = 1;
+	string networkService = 2;
+}
+
+message NsrResponse {
+	repeated Nse nses = 1;
+}
+
+message Nse {
+	string name = 1;
+	string networkServiceName = 2;
+	string networkServiceManagerName = 3;
+	map<string, string> labels = 4;
+	string state = 5;
+}
