@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
+	interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
+	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
 
 	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config/mocks"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connectioncontext"
-	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
-	interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
-	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
 )
 
 var (
