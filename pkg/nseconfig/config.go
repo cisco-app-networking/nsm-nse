@@ -13,20 +13,20 @@ type Config struct {
 }
 
 type Endpoint struct {
-	Name   		string `yaml:"name"`
-	Labels 		Labels `yaml:"labels"`
-	NseName 	string `yaml:"nseName"` //TODO temporary in order to be able to run examples
-	NseControl 	*NseControl `yaml:"nseControl"`
-	VL3 		VL3 `yaml:"vl3"`
-	AwsTgwEndpoint *AwsTgwEndpoint
+	Name   		string 		`yaml:"name"`
+	Labels 		Labels 		`yaml:"labels"`
+	NseName 	string 		`yaml:"nseName"` //TODO temporary in order to be able to run examples
+	NseControl 	*NseControl 	`yaml:"nseControl"`
+	VL3 		VL3 		`yaml:"vl3"`
+	AwsTgwEndpoint *AwsTgwEndpoint 	`yaml:"awsTgwEndpoint"`
 }
 
 // fields required for nse to attach to an AWS TGW
 type AwsTgwEndpoint struct {
 	// TODO: this is not an exhaustive list, revise this list of fields as
 	// the AWS TGW connector feature gets fleshed out
-	TransitGatewayID 	string `yaml:"transitGatewayID"`
-	TransitGatewayName 	string `yaml:"transitGatewayName"`
+	TransitGatewayID 	string	`yaml:"transitGatewayID"`
+	TransitGatewayName 	string	`yaml:"transitGatewayName"`
 }
 
 type NseControl struct {

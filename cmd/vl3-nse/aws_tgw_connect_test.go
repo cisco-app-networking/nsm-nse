@@ -11,19 +11,20 @@ import (
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 )
 
+const (
+	TransitGatewayID   = "1"
+	TransitGatewayName = "test"
+)
+
 func TestNewAwsTgwConnector(t *testing.T) {
-	const (
-		TransitGatewayID = "1"
-		TransitGatewayName = "test"
-	)
 
 	ate := nseconfig.AwsTgwEndpoint{
-		TransitGatewayID: TransitGatewayID,
+		TransitGatewayID:   TransitGatewayID,
 		TransitGatewayName: TransitGatewayName,
 	}
 
 	expected := &AwsTgwConnector{
-		TransitGatewayID: TransitGatewayID,
+		TransitGatewayID:   TransitGatewayID,
 		TransitGatewayName: TransitGatewayName,
 	}
 
