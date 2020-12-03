@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestNewAwsTgwConnector(t *testing.T) {
