@@ -50,6 +50,7 @@ commands:
             done
 
 
+
 e2e-kind-test: &e2e-kind-test
   steps:
     - setup_remote_docker
