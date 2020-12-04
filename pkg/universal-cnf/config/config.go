@@ -34,10 +34,10 @@ const (
 	PEER_NAME = "ucnf/peerName"
 	PodName = "nsepod.name"
 
-	nsePodNameVar = "NSE_POD_NAME"
-	nsePodName = "example"
-	clusterVar = "CLUSTER_NAME"
-	cluster = "test"
+	nsePodNameEnv  = "NSE_POD_NAME"
+	nsePodName     = "example"
+	clusterNameEnv = "CLUSTER_NAME"
+	cluster        = "test"
 )
 
 // Command is a struct to describe exec.Command call arguments
@@ -187,12 +187,12 @@ func (c *UniversalCNFConfig) Dump() {
 }
 
 func GetEndpointName() string {
-	podName, ok := os.LookupEnv(nsePodNameVar)
+	podName, ok := os.LookupEnv(nsePodNameEnv)
 	if !ok {
 		podName = nsePodName
 	}
 
-	clusterName, ok := os.LookupEnv(clusterVar)
+	clusterName, ok := os.LookupEnv(clusterNameEnv)
 	if !ok {
 		clusterName = cluster
 	}
