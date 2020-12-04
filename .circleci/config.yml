@@ -40,6 +40,8 @@ commands:
             TAGSUFFIX=$(date +%Y%m%d)
             PUB_ORG=${DOCKER_ORG:-$DOCKER_USER}
             docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
+            make docker-universal-cnf-vppagent-build
+            docker push ${PUB_ORG}/universal-cnf-vppagent:master
             for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent"; do
               docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${TAG}
               docker push ${PUB_ORG}/${image}:${TAG}
