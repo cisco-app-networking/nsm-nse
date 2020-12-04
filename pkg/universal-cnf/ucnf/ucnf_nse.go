@@ -46,6 +46,7 @@ func NewUcnfNse(configPath string, verify bool, backend config.UniversalCNFBacke
 	}
 
 	err = nseconfig.NewConfig(yamlDecoder, cnfConfig)
+
 	if err != nil {
 		logrus.Warningf("NSE config errors: %v", err)
 	}
