@@ -13,15 +13,14 @@ insecure: true
 nseControl:
   nsr:
     port: 5005
+    addr: vl3-service.wcm-cisco.com
+    cd: vl3-service-connectivity-domain
+  ipam:
+    prefixLength: 24
+    defaultPrefixPool: 192.168.0.0/16
 
 nsm:
   serviceName: ucnf-nse-service
-
-ipam:
-  prefixPool: 172.16.1.0/24
-  # prefixPool: 10.60.1.0/24
-  # prefixPool: 10.30.1.0/24
-  # prefixPool: 192.168.0.0/16
 
 global:
 
