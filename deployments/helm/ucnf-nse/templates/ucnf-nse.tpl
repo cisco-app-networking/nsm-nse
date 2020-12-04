@@ -77,10 +77,16 @@ data:
     - name: "ucnf-nse-{{ .Values.nsm.serviceName }}"
       labels:
         app: {{ .Values.nsm.serviceName | quote }}
-      ipam:
-        prefixpool: {{ .Values.ipam.prefixPool | quote }}
-        routes: []
-      ifname: "endpoint0"
+      nseControl:
+        name: {{ .Values.nsm.serviceName | quote }}
+        address: "{{ .Values.nseControl.nsr.addr }}"
+        connectivityDomain: "{{ .Values.nsm.serviceName }}-connectivity-domain"
+      vl3:
+        ipam:
+          defaultPrefixPool: {{ .Values.nseControl.ipam.defaultPrefixPool | quote }}
+          prefixLength: {{ .Values.nseControl.ipam.prefixLength }}
+          routes: []
+        ifName: "endpoint0"
 ---
 apiVersion: v1
 kind: Service
