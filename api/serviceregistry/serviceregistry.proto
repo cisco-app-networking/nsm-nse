@@ -45,6 +45,7 @@ message WorkloadIdentifier {
   string cluster = 1;
   string podName = 2;
   string name = 3;
+  string nseName = 4;
 }
 
 message RegisteredWorkloads {

@@ -100,6 +100,8 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 	result := &ProcessEndpoints{}
 
 	for _, e := range endpoints {
+		endpointLabels := e.Labels
+		endpointLabels[PodName] = GetEndpointName()
 
 		configuration := &common.NSConfiguration{
 			NsmServerSocket:        nsconfig.NsmServerSocket,
@@ -107,7 +109,7 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			Workspace:              nsconfig.Workspace,
 			EndpointNetworkService: e.Name,
 			ClientNetworkService:   nsconfig.ClientNetworkService,
-			EndpointLabels:         labelStringFromMap(e.Labels),
+			EndpointLabels:         labelStringFromMap(endpointLabels),
 			ClientLabels:           nsconfig.ClientLabels,
 			MechanismType:          memif.MECHANISM,
 			IPAddress:              "",
