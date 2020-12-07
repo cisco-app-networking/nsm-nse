@@ -236,7 +236,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 			logger.Error(err)
 		} else {
 			err = serviceRegistry.RegisterWorkload(ctx, conn.Labels, vxc.connDomain,
-				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"))
+				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"), config.GetEndpointName())
 			if err != nil {
 				logger.Error(err)
 			}
@@ -267,7 +267,7 @@ func (vxc *vL3ConnectComposite) Close(ctx context.Context, conn *connection.Conn
 			logrus.Error(err)
 		} else {
 			err = serviceRegistry.RemoveWorkload(ctx, conn.Labels, vxc.connDomain,
-				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"))
+				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"), config.GetEndpointName())
 			if err != nil {
 				logrus.Error(err)
 			}

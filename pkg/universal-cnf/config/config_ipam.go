@@ -10,7 +10,6 @@ import (
 
 	"github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
-	"github.com/gofrs/uuid"
 	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -34,7 +33,7 @@ func (i *IpamServiceImpl) AllocateSubnet(ucnfEndpoint *nseconfig.Endpoint) (stri
 		subnet, err = i.IpamAllocator.AllocateSubnet(context.Background(), &ipprovider.SubnetRequest{
 			Identifier: &ipprovider.Identifier{
 				Fqdn:               ucnfEndpoint.NseControl.Address,
-				Name:               ucnfEndpoint.NseControl.Name + uuid.Must(uuid.NewV4()).String(),
+				Name:               GetEndpointName(),
 				ConnectivityDomain: ucnfEndpoint.NseControl.ConnectivityDomain,
 			},
 			AddrFamily: &ipprovider.IpFamily{Family: ipprovider.IpFamily_IPV4},
