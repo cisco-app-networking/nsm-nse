@@ -40,12 +40,13 @@ commands:
             TAGSUFFIX=$(date +%Y%m%d)
             PUB_ORG=${DOCKER_ORG:-$DOCKER_USER}
             docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
-            for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent"; do
+            for image in "vl3_ucnf-nse" "ucnf-kiknos-vppagent" "universal-cnf-vppagent"; do
               docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${TAG}
               docker push ${PUB_ORG}/${image}:${TAG}
               docker tag ${ORG}/${image}:${CIRCLE_SHA1} ${PUB_ORG}/${image}:${TAG}-${TAGSUFFIX}
               docker push ${PUB_ORG}/${image}:${TAG}-${TAGSUFFIX}
             done
+
 
 
 e2e-kind-test: &e2e-kind-test
@@ -176,10 +177,15 @@ jobs:
           command: |
             ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build
       - run:
+          name: Build universal-cnf-vppagent docker image
+          working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
+          command: |
+            ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-universal-cnf-vppagent-build
+      - run:
           name: Save docker images
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            images_to_save+=("${ORG}/vl3_ucnf-nse:${CIRCLE_SHA1}" "${ORG}/ucnf-kiknos-vppagent:${CIRCLE_SHA1}")
+            images_to_save+=("${ORG}/vl3_ucnf-nse:${CIRCLE_SHA1}" "${ORG}/ucnf-kiknos-vppagent:${CIRCLE_SHA1}" "${ORG}/universal-cnf-vppagent:${CIRCLE_SHA1}")
             mkdir -p _save
             docker save "${images_to_save[@]}" >_save/images.tar
       - persist_to_workspace:
