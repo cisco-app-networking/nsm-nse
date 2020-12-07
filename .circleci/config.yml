@@ -185,7 +185,7 @@ jobs:
           name: Save docker images
           working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
           command: |
-            images_to_save+=("${ORG}/vl3_ucnf-nse:${CIRCLE_SHA1}" "${ORG}/ucnf-kiknos-vppagent:${CIRCLE_SHA1}")
+            images_to_save+=("${ORG}/vl3_ucnf-nse:${CIRCLE_SHA1}" "${ORG}/ucnf-kiknos-vppagent:${CIRCLE_SHA1}" "${ORG}/universal-cnf-vppagent:${CIRCLE_SHA1}")
             mkdir -p _save
             docker save "${images_to_save[@]}" >_save/images.tar
       - persist_to_workspace:
