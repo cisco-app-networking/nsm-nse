@@ -66,8 +66,8 @@ func NewServiceRegistry(addr string, ctx context.Context) (ServiceRegistry, Serv
 }
 
 type ServiceRegistry interface {
-	RegisterWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error
-	RemoveWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error
+	RegisterWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string, endpointName string) error
+	RemoveWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string, endpointName string) error
 }
 
 type ServiceRegistryClient interface {
@@ -79,7 +79,7 @@ type serviceRegistry struct {
 	connection     *grpc.ClientConn
 }
 
-func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error {
+func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string, endpointName string) error {
 	ports, err := processPortsFromLabel(workloadLabels[PORT], ";")
 	if err != nil {
 		logrus.Error(err)
@@ -90,6 +90,7 @@ func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels m
 		Cluster: workloadLabels[CLUSTER_NAME],
 		PodName: workloadLabels[POD_NAME],
 		Name:    workloadLabels[SERVICE_NAME],
+		NseName: endpointName,
 	}
 
 	workload := &serviceregistry.Workload{
@@ -119,7 +120,7 @@ func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels m
 	return nil
 }
 
-func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string) error {
+func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string, endpointName string) error {
 	ports, err := processPortsFromLabel(workloadLabels[PORT], ";")
 	if err != nil {
 		logrus.Error(err)
@@ -130,6 +131,7 @@ func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map
 		Cluster: workloadLabels[CLUSTER_NAME],
 		PodName: workloadLabels[POD_NAME],
 		Name:    workloadLabels[SERVICE_NAME],
+		NseName: endpointName,
 	}
 
 	workload := &serviceregistry.Workload{
