@@ -69,12 +69,12 @@ The actions which UCNF supports are as follows:
         * `name` - the name of the NS to be requested
         * `labels` - the labels to be sent with the NS connection request
         * `routes` - a list of IPv4/v6 route prefixes that the Client will announce to the connecting Endpoint
-        * `ifname`- the name of the network interface to be created for this connection
+        * `ifName`- the name of the network interface to be created for this connection
     * `dpconfig` - forwarder specific YAML configuration
  * `endpoints`
     * `name` - the name of the NS to be announced
     * `labels` - the labels to be assigned with this Endpoint
-    * `ifname` - the base of the name of the network interface to be created upon Client connection. The actual interface name will have an index added to the base
+    * `ifName` - the base of the name of the network interface to be created upon Client connection. The actual interface name will have an index added to the base
     * `ipam`
         * `prefixpool` - a single prefix to define the IP pool that the NSE will use to distribute point to point IP subnets from
         * `routes` - a list of IPv4/v6 route prefixes Endpoint
@@ -86,7 +86,7 @@ A sample file to illustrate this scheme is shown below:
     initactions:
       - client:
           name: "packet-filtering"
-          ifname: "client0"
+          ifName: "client0"
           routes: ["10.60.3.0/24"]
           labels:
             app: "packet-filter"
@@ -97,7 +97,7 @@ A sample file to illustrate this scheme is shown below:
       ipam:
         prefixpool: "10.60.3.0/24"
         routes: ["10.60.1.0/24", "10.60.2.0/24"]
-      ifname: "endpoint0"
+      ifName: "endpoint0"
       action:
         dpconfig:
           acls:
