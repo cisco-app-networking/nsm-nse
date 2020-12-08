@@ -18,6 +18,7 @@ const (
 	dstIpAddrClient = "192.168.22.2"
 	dstIpRouteClient =  "192.168.0.0/16"
 	ifName = "endpoint0"
+	mechanismType = "MEMIF"
 	podName = "helloworld-ucnf-78956df47b-r5fj4"
 	srcIpAddrEndpoint = "192.168.22.1"
 	srcIpRouteEndpoint = "192.168.0.1/16"
@@ -28,7 +29,6 @@ const (
 func TestBuildVppIfNameNSCPeer(t *testing.T) {
 
 	b := UniversalCNFVPPAgentBackend{}
-	podName := "helloworld-ucnf-78956df47b-r5fj4"
 	conn := &connection.Connection{
 		Labels: map[string]string {
 			"podName": podName,
@@ -44,7 +44,6 @@ func TestBuildVppIfNameNSCPeer(t *testing.T) {
 func TestBuildVppIfNameVL3NSEPeer(t *testing.T) {
 
 	b := UniversalCNFVPPAgentBackend{}
-	podName := "helloworld-ucnf-78956df47b-r5fj4"
 	conn := &connection.Connection{
 		Labels: map[string]string {
 			"ucnf/peerName": podName,
@@ -59,17 +58,14 @@ func TestBuildVppIfNameVL3NSEPeer(t *testing.T) {
 
 func TestBuildVppIfNameDefault(t *testing.T) {
 
-	serviceName := "ucnf"
-	defaultIfName := "endpoint0"
-
 	b := UniversalCNFVPPAgentBackend{
 		EndpointIfID: map[string]int {},
 	}
 
 	conn := &connection.Connection{}
 
-	expected := defaultIfName + "/0"
-	got := b.buildVppIfName(defaultIfName, serviceName, conn)
+	expected := ifName + "/0"
+	got := b.buildVppIfName(ifName, serviceName, conn)
 
 	assert.Equal(t, expected, got)
 }
@@ -93,7 +89,7 @@ func TestProcessEndpoint(t *testing.T) {
 			"podName": podName,
 		},
 		Mechanism: &connection.Mechanism{
-			Type: "MEMIF",
+			Type: mechanismType,
 		},
 	}
 
@@ -151,7 +147,7 @@ func TestProcessClient(t *testing.T) {
 			},
 		},
 		Mechanism: &connection.Mechanism{
-			Type: "MEMIF",
+			Type: mechanismType,
 		},
 	}
 
