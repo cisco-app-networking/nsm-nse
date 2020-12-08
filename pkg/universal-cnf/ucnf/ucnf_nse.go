@@ -40,7 +40,7 @@ func NewUcnfNse(configPath string, verify bool, backend config.UniversalCNFBacke
 	decodedYAML.SetStrict(true) // enable strict decoding to help debug potential issues for decoding YAMLs
 	err = nseconfig.NewConfig(decodedYAML, cnfConfig)
 	if err != nil {
-		logrus.Fatal("NSE config errors: %v", err)
+		logrus.Fatal(err)
 	}
 
 	if err := backend.NewUniversalCNFBackend(); err != nil {
