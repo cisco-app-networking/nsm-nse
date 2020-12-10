@@ -20,7 +20,7 @@ nseControl:
     defaultPrefixPool: 192.168.0.0/16
 
 nsm:
-  serviceName: ucnf-nse-service
+  serviceName: pass-through-nse
 
 global:
 
