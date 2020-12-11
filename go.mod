@@ -19,6 +19,7 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
 	go.ligato.io/vpp-agent/v3 v3.2.0
+	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
