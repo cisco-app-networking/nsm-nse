@@ -175,10 +175,14 @@ run-all-go-tests: &run-all-go-tests
     - run:
         name: Run all go unit tests
         working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse/
-        # runs all the go tests recursively
+        # runs all the go tests recursively (excluding /test/e2e directory)
         command: |
-          go test ./...
-
+          go test $(go list ./... | grep -v /test/e2e)
+    #- run:
+    #    name: Run all go unit tests with coverage tests
+    #    working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse/
+    #    command: |
+    #      go test $(go list ./... | grep -v /test/e2e) -coverprofile .testCoverage.txt
 
 jobs:
   build-NSEs:
