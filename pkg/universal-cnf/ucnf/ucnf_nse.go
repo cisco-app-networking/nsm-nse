@@ -7,7 +7,7 @@ import (
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/networkservicemesh/networkservicemesh/sdk/common"
+	"cisco-app-networking.github.io/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )

@@ -18,8 +18,8 @@ package config
 import (
 	"context"
 
-	"github.com/networkservicemesh/networkservicemesh/sdk/client"
-	"github.com/networkservicemesh/networkservicemesh/sdk/common"
+	"cisco-app-networking.github.io/networkservicemesh/sdk/client"
+	"cisco-app-networking.github.io/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"
 )
 

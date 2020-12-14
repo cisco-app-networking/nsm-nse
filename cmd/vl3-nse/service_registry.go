@@ -14,7 +14,7 @@ import (
 
 	"github.com/cisco-app-networking/nsm-nse/api/serviceregistry"
 	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
-	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
+	"cisco-app-networking.github.io/networkservicemesh/pkg/tools"
 )
 
 const (

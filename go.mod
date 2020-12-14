@@ -3,13 +3,13 @@ module cisco-app-networking.github.io/nsm-nse
 go 1.14
 
 require (
+	cisco-app-networking.github.io/networkservicemesh/controlplane/api v1.0.10
+	cisco-app-networking.github.io/networkservicemesh/pkg v1.0.10
+	cisco-app-networking.github.io/networkservicemesh/sdk v1.0.10
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/protobuf v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645
-	github.com/networkservicemesh/networkservicemesh/controlplane/api v0.3.0
-	github.com/networkservicemesh/networkservicemesh/pkg v0.3.0
-	github.com/networkservicemesh/networkservicemesh/sdk v0.3.0
 	github.com/onsi/gomega v1.10.3
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1
@@ -24,15 +24,4 @@ require (
 	gotest.tools v2.2.0+incompatible
 )
 
-replace (
-	github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8
-	github.com/cisco-app-networking/nsm-nse => ./
-	github.com/networkservicemesh/networkservicemesh/controlplane => cisco-app-networking.github.io/networkservicemesh/controlplane v1.0.6
-	github.com/networkservicemesh/networkservicemesh/controlplane/api => cisco-app-networking.github.io/networkservicemesh/controlplane/api v1.0.6
-	github.com/networkservicemesh/networkservicemesh/forwarder/api => cisco-app-networking.github.io/networkservicemesh/forwarder/api v1.0.6
-	github.com/networkservicemesh/networkservicemesh/k8s => cisco-app-networking.github.io/networkservicemesh/k8s v1.0.6
-	github.com/networkservicemesh/networkservicemesh/k8s/pkg/apis => cisco-app-networking.github.io/networkservicemesh/k8s/pkg/apis v1.0.6
-	github.com/networkservicemesh/networkservicemesh/pkg => cisco-app-networking.github.io/networkservicemesh/pkg v1.0.6
-	github.com/networkservicemesh/networkservicemesh/sdk => cisco-app-networking.github.io/networkservicemesh/sdk v1.0.6
-	github.com/networkservicemesh/networkservicemesh/utils => cisco-app-networking.github.io/networkservicemesh/utils v1.0.6
-)
+replace github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8

@@ -10,7 +10,7 @@ import (
 
 	"github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
-	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
+	"cisco-app-networking.github.io/networkservicemesh/pkg/tools"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"

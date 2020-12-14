@@ -18,7 +18,7 @@ package vppagent
 import (
 	"os"
 
-	"github.com/networkservicemesh/networkservicemesh/sdk/common"
+	"cisco-app-networking.github.io/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"
 )
 
