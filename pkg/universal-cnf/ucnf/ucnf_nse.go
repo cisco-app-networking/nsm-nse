@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/adodon2go/nsm-nse/pkg/nseconfig"
-	"github.com/adodon2go/nsm-nse/pkg/universal-cnf/config"
+	"cisco-app-networking.github.io/nsm-nse/pkg/nseconfig"
+	"cisco-app-networking.github.io/nsm-nse/pkg/universal-cnf/config"
 	"github.com/davecgh/go-spew/spew"
 	"cisco-app-networking.github.io/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"

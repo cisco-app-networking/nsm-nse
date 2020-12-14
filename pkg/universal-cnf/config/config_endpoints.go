@@ -22,7 +22,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/adodon2go/nsm-nse/pkg/nseconfig"
+	"cisco-app-networking.github.io/nsm-nse/pkg/nseconfig"
 	"cisco-app-networking.github.io/networkservicemesh/controlplane/api/connection/mechanisms/memif"
 	"cisco-app-networking.github.io/networkservicemesh/controlplane/api/networkservice"
 

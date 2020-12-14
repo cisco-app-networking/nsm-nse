@@ -7,7 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	ipprovider "github.com/adodon2go/nsm-nse/api/ipam/ipprovider"
+	ipprovider "cisco-app-networking.github.io/nsm-nse/api/ipam/ipprovider"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"

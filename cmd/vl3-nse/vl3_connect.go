@@ -19,8 +19,8 @@ import (
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	"google.golang.org/grpc"
 
-	"github.com/adodon2go/nsm-nse/pkg/metrics"
-	"github.com/adodon2go/nsm-nse/pkg/universal-cnf/config"
+	"cisco-app-networking.github.io/nsm-nse/pkg/metrics"
+	"cisco-app-networking.github.io/nsm-nse/pkg/universal-cnf/config"
 )
 
 const (

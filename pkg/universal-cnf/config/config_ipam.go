@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/adodon2go/nsm-nse/api/ipam/ipprovider"
-	"github.com/adodon2go/nsm-nse/pkg/nseconfig"
+	"cisco-app-networking.github.io/nsm-nse/api/ipam/ipprovider"
+	"cisco-app-networking.github.io/nsm-nse/pkg/nseconfig"
 	"cisco-app-networking.github.io/networkservicemesh/pkg/tools"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
