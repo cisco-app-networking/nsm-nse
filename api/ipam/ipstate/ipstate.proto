@@ -1,8 +1,8 @@
 
 syntax = "proto3";
 
-import "github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider/ipprovider.proto";
-import "github.com/cisco-app-networking/nsm-nse/api/ipam/ipreceiver/ipreceiver.proto";
+import "github.com/adodon2go/nsm-nse/api/ipam/ipprovider/ipprovider.proto";
+import "github.com/adodon2go/nsm-nse/api/ipam/ipreceiver/ipreceiver.proto";
 
 package ippool;
 option go_package = "ipstate";

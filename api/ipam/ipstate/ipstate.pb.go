@@ -6,8 +6,8 @@ package ipstate
 import (
 	context "context"
 	fmt "fmt"
-	ipprovider "github.com/cisco-app-networking/nsm-nse/api/ipam/ipprovider"
-	ipreceiver "github.com/cisco-app-networking/nsm-nse/api/ipam/ipreceiver"
+	ipprovider "github.com/adodon2go/nsm-nse/api/ipam/ipprovider"
+	ipreceiver "github.com/adodon2go/nsm-nse/api/ipam/ipreceiver"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"

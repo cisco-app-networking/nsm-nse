@@ -25,9 +25,9 @@ import (
 	"cisco-app-networking.github.io/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"
 
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/ucnf"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/vppagent"
+	"github.com/adodon2go/nsm-nse/pkg/nseconfig"
+	"github.com/adodon2go/nsm-nse/pkg/universal-cnf/ucnf"
+	"github.com/adodon2go/nsm-nse/pkg/universal-cnf/vppagent"
 )
 
 const (

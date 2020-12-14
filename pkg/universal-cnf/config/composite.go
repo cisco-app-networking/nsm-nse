@@ -18,7 +18,7 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"github.com/adodon2go/nsm-nse/pkg/nseconfig"
 	"github.com/golang/protobuf/ptypes/empty"
 	"cisco-app-networking.github.io/networkservicemesh/controlplane/api/connection"
 	"cisco-app-networking.github.io/networkservicemesh/controlplane/api/connectioncontext"

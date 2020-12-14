@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/cisco-app-networking/nsm-nse/api/serviceregistry"
-	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
+	"github.com/adodon2go/nsm-nse/api/serviceregistry"
+	"github.com/adodon2go/nsm-nse/pkg/metrics"
 	"cisco-app-networking.github.io/networkservicemesh/pkg/tools"
 )
 
