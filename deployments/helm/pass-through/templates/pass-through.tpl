@@ -49,6 +49,8 @@ spec:
               value: "{{ .Values.insecure }}"
             - name: METRICS_PORT
               value: {{ .Values.metricsPort | quote }}
+            - name: STRICT_DECODING
+              value: "true"
           securityContext:
             capabilities:
               add:
