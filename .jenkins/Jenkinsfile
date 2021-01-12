@@ -1,0 +1,26 @@
+docker.image('debian').withRun('-v /var/run/docker.sock:/var/run/docker.sock'){
+
+    checkout scm
+    sh 'ls'
+    sh "sudo apt-get update && sudo apt-get install -y docker-ce"
+    sh "rm go1* && wget https://storage.googleapis.com/golang/go1.15.6.linux-amd64.tar.gz"
+    sh "sudo rm -rf /usr/local/go/"
+    sh "sudo tar -C /usr/local -xzf go1.15.6.linux-amd64.tar.gz"
+
+    HOME = '/home/ubuntu/'
+    GOROOT = '/usr/local/go'
+    GOPATH = '/home/ubuntu/go'
+    PATH = '${GOPATH}/bin:${GOROOT}/bin:${PATH}'
+
+    sh '''
+         export GOROOT=/usr/local/go
+         export GOPATH=/home/ubuntu/go
+         export PATH=${GOPATH}/bin:${GOROOT}/bin:${PATH}
+         CGO_ENABLED=1
+         GO111MODULE=on
+         go version
+
+         echo run tests with latest VPP...
+         ./test/e2e/run_e2e.sh
+    '''
+}
