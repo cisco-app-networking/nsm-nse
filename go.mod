@@ -3,8 +3,10 @@ module github.com/cisco-app-networking/nsm-nse
 go 1.14
 
 require (
+	github.com/aws/aws-sdk-go v1.36.4
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -19,7 +21,10 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
 	go.ligato.io/vpp-agent/v3 v3.2.0
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
+	golang.org/x/net v0.0.0-20201207224615-747e23833adb // indirect
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/tools v0.0.0-20201208062317-e652b2f42cc7 // indirect
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776

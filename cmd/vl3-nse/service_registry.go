@@ -109,7 +109,7 @@ func (s *serviceRegistry) RegisterWorkload(ctx context.Context, workloadLabels m
 	logrus.Infof("Sending workload register request: %v", serviceWorkload)
 	_, err = s.registryClient.RegisterWorkload(ctx, serviceWorkload)
 	if err != nil {
-		logrus.Errorf("service registration not successful: %w", err)
+		logrus.Errorf("service registration not successful: %v", err)
 		return err
 	}
 
@@ -150,7 +150,7 @@ func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map
 	logrus.Infof("Sending workload remove request: %v", serviceWorkload)
 	_, err = s.registryClient.RemoveWorkload(ctx, serviceWorkload)
 	if err != nil {
-		logrus.Errorf("service removal not successful: %w", err)
+		logrus.Errorf("service removal not successful: %v", err)
 		return err
 	}
 

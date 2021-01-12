@@ -80,7 +80,13 @@ func (e vL3CompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfigura
 			&vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList, func() string {
 				return ucnfEndpoint.NseName
 			}, ucnfEndpoint.VL3.IPAM.DefaultPrefixPool, ucnfEndpoint.VL3.IPAM.ServerAddress, ucnfEndpoint.NseControl.ConnectivityDomain),
+		newAwsTgwConnector(ucnfEndpoint.AwsTgwEndpoint),
 	}
+
+	//if ucnfEndpoint.AwsTgwEndpoint != nil {
+	//	awsTgwEndpoint := newAwsTgwConnector(ucnfEndpoint.AwsTgwEndpoint)
+	//	compositeEndpoints = append(compositeEndpoints, awsTgwEndpoint)
+	//}
 
 	return &compositeEndpoints
 }
