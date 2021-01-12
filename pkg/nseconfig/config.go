@@ -25,8 +25,11 @@ type Endpoint struct {
 type AwsTgwEndpoint struct {
 	// TODO: this is not an exhaustive list, revise this list of fields as
 	// the AWS TGW connector feature gets fleshed out
+	Region                  string  `yaml:"region"`
+	SubnetID                string  `yaml:"subnetID"`
 	TransitGatewayID 	string	`yaml:"transitGatewayID"`
 	TransitGatewayName 	string	`yaml:"transitGatewayName"`
+	VpcID                   string  `yaml:"vpcID"`
 }
 
 type NseControl struct {
