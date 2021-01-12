@@ -5,8 +5,8 @@ echo "Preparing vpp-agent end-to-end tests.."
 
 args=($*)
 VPP_IMG="${VPP_IMG:-ligato/vpp-base}"
-testname="vpp-agent-e2e-test"
-imgname="vpp-agent-e2e-tests"
+testname="${NSMNSE_E2E_TEST_NAME:-vpp-agent-e2e-test}"
+imgname="${NSMNSE_E2E_TEST_IMG:-vpp-agent-e2e-tests}"
 
 # Compile vpp-agent for testing
 go build -o ./test/e2e/vpp-agent.test \
@@ -36,10 +36,9 @@ docker build \
 vppver=$(docker run --rm -i "$VPP_IMG" dpkg-query -f '${Version}' -W vpp)
 
 cleanup() {
-	echo "stopping test container"
+  echo "Removing the image.."
 	set -x
-	docker stop -t 1 "${testname}" 2>/dev/null
-	docker rm -v "${testname}" 2>/dev/null
+	docker image rm "${imgname}" 2>/dev/null
 }
 
 trap 'cleanup' EXIT
@@ -51,6 +50,7 @@ echo "============================================================="
 # Run e2e tests
 if docker run -i \
 	--name "${testname}" \
+	--rm \
 	--pid=host \
 	--privileged \
 	--label io.ligato.vpp-agent.testsuite=e2e \
@@ -71,3 +71,4 @@ else
 	echo >&2 "-------------------------------------------------------------"
 	exit $res
 fi
+

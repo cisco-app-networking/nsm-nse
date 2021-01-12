@@ -1,0 +1,40 @@
+docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
+    environment{
+        CGO_ENABLED = 0
+        GO111MODULE = on
+    }
+    stage ('Install Docker Client') {
+        sh "apt-get update"
+        sh '''
+           apt-get install -y \
+           apt-transport-https \
+           ca-certificates \
+           curl \
+           gnupg-agent \
+           software-properties-common
+        '''
+        sh "curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -"
+        sh '''
+           add-apt-repository \
+           "deb [arch=amd64] https://download.docker.com/linux/debian \
+           $(lsb_release -cs) \
+           stable"
+        '''
+        sh "apt-get update && apt-get install -y docker-ce-cli"
+    }
+    stage ('Checkout SCM') {
+        checkout scm
+    }
+    stage ('Go Test Environment Variables') {
+        suffix="-${env.JOB_NAME}-${currentBuild.number}".toLowerCase().replaceAll("[^a-z0-9]","_")
+        sh "echo ${suffix}\n" +
+           "export PATH=$PATH:/usr/local/go/bin\n" +
+           "export NSMNSE_E2E_TEST_IMG=e2e-img${suffix}\n" +
+           "export NSMNSE_E2E_TEST_NAME=e2e-name${suffix}\n" +
+           "./test/e2e/run_e2e.sh\n"
+    }
+    stage ('Clean Up') {
+        deleteDir()
+    }
+}
+
