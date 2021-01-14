@@ -14,7 +14,7 @@ node {
         stage ('Checkout SCM') {
             checkout scm
         }
-        stage ('Go Test Environment Variables') {
+        stage ('Test: VPP Agent End-to-End Test') {
             withEnv(["GOPATH=${env.WORKSPACE}/go", "GOROOT=/usr/local/go", "PATH+GO=/usr/local/go/bin"]){
                 sh "./test/e2e/run_e2e.sh"
             }
