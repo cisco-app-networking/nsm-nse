@@ -1,3 +1,4 @@
+//The Jenkinsfile runs entire build in a golang container and mounts the /var/run/docker.sock file to allow access to the host docker within the container
 docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
     environment{
         CGO_ENABLED = 0
@@ -32,9 +33,6 @@ docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/
            "export NSMNSE_E2E_TEST_IMG=e2e-img${suffix}\n" +
            "export NSMNSE_E2E_TEST_NAME=e2e-name${suffix}\n" +
            "./test/e2e/run_e2e.sh\n"
-    }
-    stage ('Clean Up') {
-        deleteDir()
     }
 }
 
