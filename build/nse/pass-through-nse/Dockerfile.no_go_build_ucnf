@@ -1,0 +1,16 @@
+ARG VPP_AGENT
+
+FROM ${VPP_AGENT} as runtime
+
+RUN set -ex; \
+	rm /opt/vpp-agent/dev/etcd.conf; \
+	echo 'endpoint: "0.0.0.0:9113"' > /opt/vpp-agent/dev/grpc.conf; \
+	echo "disabled: true" > /opt/vpp-agent/dev/linux-plugin.conf; \
+	echo "disabled: false" > /opt/vpp-agent/dev/telemetry.conf; \
+	mkdir -p $HOME/.agentctl; \
+	echo "grpc-port: 9113" > $HOME/.agentctl/config.yaml
+
+COPY pass_through_nse /bin/cnf-vppagent
+
+COPY etc/ /etc/
+COPY etc/supervisord/supervisord.conf /opt/vpp-agent/dev/supervisor.conf
