@@ -1,30 +1,32 @@
-package integration
+package integration_test
 
 import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+
+	. "github.com/cisco-app-networking/nsm-nse/test/integration"
 )
 
 func TestAgentInSync(t *testing.T) {
-	ctx := Setup(t)
+	test := Setup(t)
 
-	agent := ctx.SetupVPPAgent("agent")
-	Expect(agent.configInSync()).To(BeTrue())
+	agent := test.SetupVPPAgent("agent")
+	Expect(agent.ConfigInSync()).To(BeTrue())
 }
 
 func TestStartStopMicroservice(t *testing.T) {
 	ctx := Setup(t)
 
 	agent := ctx.SetupVPPAgent("agent")
-	ms := ctx.StartMicroservice("microservice1")
+	ms := ctx.SetupMicroservice("microservice1")
 
 	msAvailable := func() bool {
-		return agent.checkServiceAvailable(ms)
+		return agent.CheckServiceAvailable(ms)
 	}
 	Eventually(msAvailable).Should(BeTrue())
 
-	ms.stop()
+	ms.Stop()
 	Eventually(msAvailable).Should(BeFalse())
 }
 
@@ -35,10 +37,10 @@ func TestStartStopAgent(t *testing.T) {
 	agent2 := ctx.SetupVPPAgent("agent2")
 
 	agent2Available := func() bool {
-		return agent1.checkServiceAvailable(agent2)
+		return agent1.CheckServiceAvailable(agent2)
 	}
 	Eventually(agent2Available).Should(BeTrue())
 
-	agent2.stop()
+	agent2.Stop()
 	Eventually(agent2Available).Should(BeFalse())
 }

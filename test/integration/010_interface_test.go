@@ -1,16 +1,17 @@
-package integration
+package integration_test
 
 import (
 	"path"
 	"testing"
 
 	. "github.com/onsi/gomega"
-	vpp_l2 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l2"
-
 	"go.ligato.io/vpp-agent/v3/proto/ligato/kvscheduler"
 	linux_interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/linux/interfaces"
 	linux_namespace "go.ligato.io/vpp-agent/v3/proto/ligato/linux/namespace"
 	vpp_interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
+	vpp_l2 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l2"
+
+	. "github.com/cisco-app-networking/nsm-nse/test/integration"
 )
 
 // TestInterfaceAfPacket connects VPP with a microservice via AF-PACKET + VETH interfaces
@@ -19,7 +20,7 @@ func TestInterfaceAfPacket(t *testing.T) {
 	test := Setup(t)
 
 	agent := test.SetupVPPAgent("agent")
-	ms := test.StartMicroservice("microservice")
+	appService := test.SetupMicroservice("app")
 
 	// Prepare configuration
 	const (
@@ -63,33 +64,33 @@ func TestInterfaceAfPacket(t *testing.T) {
 		},
 		Namespace: &linux_namespace.NetNamespace{
 			Type:      linux_namespace.NetNamespace_MICROSERVICE,
-			Reference: ms.label(),
+			Reference: appService.Label(),
 		},
 	}
 
 	// Apply configuration
-	Expect(agent.configUpdate(afPacket, veth1, veth2)).To(Succeed())
+	Expect(agent.ConfigUpdate(afPacket, veth1, veth2)).To(Succeed())
 
 	// Assert expected state
 	afPacketState := func() kvscheduler.ValueState {
-		return agent.valueStateOf(afPacket)
+		return agent.ValueStateOf(afPacket)
 	}
 	Eventually(afPacketState).Should(Equal(kvscheduler.ValueState_CONFIGURED))
-	Expect(agent.valueStateOf(veth1)).To(Equal(kvscheduler.ValueState_CONFIGURED))
-	Expect(agent.valueStateOf(veth2)).To(Equal(kvscheduler.ValueState_CONFIGURED))
-	Expect(agent.configInSync()).To(BeTrue())
+	Expect(agent.ValueStateOf(veth1)).To(Equal(kvscheduler.ValueState_CONFIGURED))
+	Expect(agent.ValueStateOf(veth2)).To(Equal(kvscheduler.ValueState_CONFIGURED))
+	Expect(agent.ConfigInSync()).To(BeTrue())
 
 	// Run pings from VPP to/from microservice
-	Expect(agent.pingFromVPP(veth2IP)).To(Succeed())
-	Expect(ms.ping(afPacketIP)).To(Succeed())
+	Expect(agent.PingFromVPP(veth2IP)).To(Succeed())
+	Expect(appService.Ping(afPacketIP)).To(Succeed())
 }
 
 func TestInterfaceAfPacketVNF(t *testing.T) {
 	// Setup test environment
 	test := Setup(t)
 
-	clientService := test.StartMicroservice("client")
-	appService := test.StartMicroservice("app")
+	clientService := test.SetupMicroservice("client")
+	appService := test.SetupMicroservice("app")
 	vswitchAgent := test.SetupVPPAgent("vswitch")
 	vnfAgent := test.SetupVPPAgent("vnf")
 
@@ -103,7 +104,7 @@ func TestInterfaceAfPacketVNF(t *testing.T) {
 		appServiceIP    = "192.168.1.2"
 	)
 	var (
-		memifSocket = path.Join(defaultTestShareDir, "memif.sock")
+		memifSocket = path.Join(test.ShareDir(), "memif.sock")
 	)
 
 	// Configure vswitch agent
@@ -142,7 +143,7 @@ func TestInterfaceAfPacketVNF(t *testing.T) {
 			},
 			Namespace: &linux_namespace.NetNamespace{
 				Type:      linux_namespace.NetNamespace_MICROSERVICE,
-				Reference: clientService.label(),
+				Reference: clientService.Label(),
 			},
 		}
 		afpacket2 := &vpp_interfaces.Interface{
@@ -179,7 +180,7 @@ func TestInterfaceAfPacketVNF(t *testing.T) {
 			},
 			Namespace: &linux_namespace.NetNamespace{
 				Type:      linux_namespace.NetNamespace_MICROSERVICE,
-				Reference: appService.label(),
+				Reference: appService.Label(),
 			},
 		}
 		memif1 := &vpp_interfaces.Interface{
@@ -233,7 +234,7 @@ func TestInterfaceAfPacketVNF(t *testing.T) {
 		}
 
 		// Apply configuration
-		Expect(vswitchAgent.configUpdate(
+		Expect(vswitchAgent.ConfigUpdate(
 			afpacket1, veth1a, veth1b,
 			afpacket2, veth2a, veth2b,
 			memif1, memif2, bd,
@@ -241,10 +242,10 @@ func TestInterfaceAfPacketVNF(t *testing.T) {
 		)).To(Succeed())
 
 		agentConfigured := func() bool {
-			return vswitchAgent.valueIsConfigured(afpacket1) && vswitchAgent.valueIsConfigured(afpacket2)
+			return vswitchAgent.ValueIsConfigured(afpacket1) && vswitchAgent.ValueIsConfigured(afpacket2)
 		}
 		Eventually(agentConfigured).Should(BeTrue(), "Agent should be configured")
-		Expect(vswitchAgent.configInSync()).To(BeTrue())
+		Expect(vswitchAgent.ConfigInSync()).To(BeTrue())
 	}
 
 	// Configure vnf agent
@@ -283,22 +284,22 @@ func TestInterfaceAfPacketVNF(t *testing.T) {
 		}
 
 		// Configure agent
-		Expect(vnfAgent.configUpdate(memif1, memif2, xconn1, xconn2)).To(Succeed())
+		Expect(vnfAgent.ConfigUpdate(memif1, memif2, xconn1, xconn2)).To(Succeed())
 		agentConfigured := func() bool {
-			return vnfAgent.valueIsConfigured(memif1) && vnfAgent.valueIsConfigured(memif2)
+			return vnfAgent.ValueIsConfigured(memif1) && vnfAgent.ValueIsConfigured(memif2)
 		}
 		Eventually(agentConfigured).Should(BeTrue())
 
 		// Wait until interfaces are UP
 		interfacesUp := func() bool {
-			return vnfAgent.interfaceIsUp(memif1) && vnfAgent.interfaceIsUp(memif2)
+			return vnfAgent.InterfaceIsUp(memif1) && vnfAgent.InterfaceIsUp(memif2)
 		}
 		Eventually(interfacesUp).Should(BeTrue())
 
-		Expect(vnfAgent.configInSync()).To(BeTrue())
+		Expect(vnfAgent.ConfigInSync()).To(BeTrue())
 	}
 
 	// Run ping from client to app
-	Expect(clientService.ping(appServiceIP)).To(Succeed(), "Client should be able to ping app")
-	Expect(appService.ping(clientServiceIP)).To(Succeed(), "App should be able to ping client")
+	Expect(clientService.Ping(appServiceIP)).To(Succeed(), "Client should be able to ping app")
+	Expect(appService.Ping(clientServiceIP)).To(Succeed(), "App should be able to ping client")
 }

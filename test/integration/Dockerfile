@@ -29,6 +29,8 @@ RUN set -eux; \
     mv gotestsum /usr/local/bin/gotestsum; \
     rm gotestsum.tar.gz
 
+ENV TEST=integration
+
 COPY integration.test /
 
 COPY entrypoint.sh /entrypoint.sh
