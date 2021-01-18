@@ -11,8 +11,10 @@ export VPP_AGENT="${VPP_AGENT:-ligato/vpp-agent:latest}"
 export TESTDATA_DIR="$SCRIPT_DIR/resources"
 export GOTESTSUM_FORMAT="${GOTESTSUM_FORMAT:-testname}"
 
-testname="nsmnse-integration-test"
-imgname="nsmnse-integration-tests"
+testname=${NSMNSE_E2E_TEST_NAME:-"nsmnse-integration-test"}
+imgname=${NSMNSE_E2E_TEST_IMG:-"nsmnse-integration-tests"}
+
+# TODO: make this configurable when upstream adds support
 sharevolumename="share-for-vpp-agent-e2e-tests"
 
 # Compile testing suite
@@ -32,6 +34,8 @@ cleanup() {
     set +e
 
 	  echo "Cleaning up nsm-nse integration tests.."
+
+    # TODO: remove only resources that were started by this test
 
 	  docker stop -t 1 "${testname}" 2>/dev/null
 	  docker rm -v "${testname}" 2>/dev/null
@@ -58,7 +62,7 @@ fi
 vppver=$(docker run --rm -i "$VPP_AGENT" dpkg-query -f '${Version}' -W vpp)
 
 echo "=========================================================================="
-echo -e " NSM-NSE INTEGRATION TEST - $(date) "
+echo -e " NSM-NSE INTEGRATION TESTS - $(date) "
 echo "=========================================================================="
 echo "-    VPP_AGENT: $VPP_AGENT"
 echo "-     image ID: $(docker inspect $VPP_AGENT -f '{{.Id}}')"
