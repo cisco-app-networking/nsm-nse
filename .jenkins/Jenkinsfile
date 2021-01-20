@@ -32,6 +32,6 @@ docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/
            "export PATH=$PATH:/usr/local/go/bin\n" +
            "export NSMNSE_E2E_TEST_IMG=e2e-img${suffix}\n" +
            "export NSMNSE_E2E_TEST_NAME=e2e-name${suffix}\n" +
-           "./test/e2e/run_e2e.sh\n"
+           "./test/integration/run.sh\n"
     }
 }
