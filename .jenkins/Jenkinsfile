@@ -26,7 +26,7 @@ docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/
     stage ('Checkout SCM') {
         checkout scm
     }
-    stage ('Go Test Environment Variables') {
+    stage ('VPP Integration Test') {
         suffix="-${env.JOB_NAME}-${currentBuild.number}".toLowerCase().replaceAll("[^a-z0-9]","_")
         sh "echo ${suffix}\n" +
            "export PATH=$PATH:/usr/local/go/bin\n" +
