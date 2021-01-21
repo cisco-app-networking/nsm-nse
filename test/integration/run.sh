@@ -17,6 +17,10 @@ imgname=${NSMNSE_E2E_TEST_IMG:-"nsmnse-integration-tests"}
 # TODO: make this configurable when upstream adds support
 sharevolumename="share-for-vpp-agent-e2e-tests"
 
+# Prints out current running container
+echo "-----------docker ps 1----------"
+docker ps -a
+
 # Compile testing suite
 go test -c -o ./test/integration/integration.test \
 	  -tags 'osusergo netgo e2e' \
@@ -61,6 +65,10 @@ fi
 
 vppver=$(docker run --rm -i "$VPP_AGENT" dpkg-query -f '${Version}' -W vpp)
 
+# Prints out current running container
+echo "-----------docker ps 2----------"
+docker ps -a
+
 echo "=========================================================================="
 echo -e " NSM-NSE INTEGRATION TESTS - $(date) "
 echo "=========================================================================="
@@ -96,3 +104,7 @@ else
     echo >&2 "-------------------------------------------------------------"
     exit $res
 fi
+
+# Prints out current running container
+echo "-----------docker ps 3----------"
+docker ps -a
