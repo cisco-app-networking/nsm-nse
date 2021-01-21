@@ -1,9 +1,10 @@
 # Integration Tests
 
-This section contains information about NSM-NSE integration tests for the VPP agent.
+This section contains information about NSM-NSE integration tests for VPP/VPP-Agent.
 
-The integration tests are implemented as Go tests. They follow a pattern that is very similar to 
-the [official e2e tests from Ligato vpp-agent](https://docs.ligato.io/en/latest/testing/end-to-end-tests) (`go.ligato.io/vpp-agent/v3/tests/e2e`).
+The integration tests are implemented as Go tests and connect to Docker client to manage containers for testing. 
+
+Tests follow a pattern that is very similar to the [e2e tests in vpp-agent](https://docs.ligato.io/en/latest/testing/end-to-end-tests).
 
 ## Running Tests
 
@@ -14,7 +15,7 @@ the [official e2e tests from Ligato vpp-agent](https://docs.ligato.io/en/latest/
 
 The easiest way to run the entire integration test suite is to execute `test/integration/run.sh` script.
 
-Tests are executed using [gotestsum](https://github.com/gotestyourself/gotestsum).
+Tests are executed via [gotestsum](https://github.com/gotestyourself/gotestsum) in a Docker container.
 
 ### Run With Latest VPP-Agent
 
@@ -38,33 +39,35 @@ This script supports the addition of extra arguments for the test run.
 
 ```sh
 # Run test cases containing AfPacket in name
-./tests/integration/run.sh -test.run=AfPacket
+./test/integration/run.sh -test.run=AfPacket
 ```
 
 ### Run With Any Flags Supported By `go test`
 
 ```sh
 # Run tests in verbose mode
-./tests/integration/run.sh -test.v
+./test/integration/run.sh -test.v
 ```
 
 ## Writing Tests
 
-When writing new test case, begin with calling `Setup()` in each test.
+When writing a new test case, call `Setup()` as first thing in each test. The `Setup()` will take care of setting up testing environment. 
 
 ```go
 func TestSomething(t *testing.T) {
+    // Setup test environment
     test := Setup(t)
     
     // testing..
 }
 ```
 
-The `Setup()` will take care of starting all the needed testing environment and return
-_test context_ which provides methods to manage resources in the test or assert conditions.
+The `Setup()` returns `TestContext` that provides methods to manage resources used in the test, run various actions or assert expected conditions.
 
 ```go
 func TestSomething(t *testing.T) {
+    test := Setup(t)
+    
     // Start VPP-Agent container
     agent := test.SetupVPPAgent("agent")
     
@@ -75,7 +78,7 @@ func TestSomething(t *testing.T) {
 }
 ```
 
-Check out test case `TestInterfaceAfPacket` in the [`010_interface_test.go`](010_interface_test.go) for simple test example that uses one agent and one microservice. For more advanced example, see test case `TestInterfaceAfPacketVNF` in the [`010_interface_test.go`](010_interface_test.go) which runs multi-agent setup.
+Check out test `TestInterfaceAfPacket` in the [`010_interface_test.go`](010_interface_test.go) for simple test example that uses one agent and one microservice. For more advanced example, see test `TestInterfaceAfPacketVNF` in the [`010_interface_test.go`](010_interface_test.go) which runs multi-agent setup.
 
 The Gomega test framework is also ready to use for each test case, but not mandatory to use. See [Gomega online documentation](https://onsi.github.io/gomega/#making-assertions) for more info.
 
