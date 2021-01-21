@@ -39,15 +39,19 @@ This script supports the addition of extra arguments for the test run.
 
 ```sh
 # Run test cases containing AfPacket in name
-./test/integration/run.sh -test.run=AfPacket
+./test/integration/run.sh -test.run=AfPacketVNF
 ```
 
-### Run With Any Flags Supported By `go test`
+### Run with standard verbose mode
+
+To use different output format use env var `GOTESTSUM_FORMAT`.
 
 ```sh
 # Run tests in verbose mode
-./test/integration/run.sh -test.v
+GOTESTSUM_FORMAT=standard-verbose ./test/integration/run.sh
 ```
+
+More output format can be found here: https://github.com/gotestyourself/gotestsum#output-format
 
 ## Writing Tests
 
