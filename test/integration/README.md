@@ -1,6 +1,10 @@
 # Integration Tests
 
-This section contains information about NSM-NSE integration tests for VPP/VPP-Agent.
+This document contains information about NSM-NSE integration tests for VPP/VPP-Agent.
+
+Table of contents:
+- [Running Tests](#running-tests)
+- [Writing Tests](#writing-tests)
 
 The integration tests are implemented as Go tests and connect to Docker client to manage containers for testing. 
 
@@ -82,10 +86,21 @@ func TestSomething(t *testing.T) {
 }
 ```
 
+### Test Examples
+
 Check out test `TestInterfaceAfPacket` in the [`010_interface_test.go`](010_interface_test.go) for simple test example that uses one agent and one microservice. For more advanced example, see test `TestInterfaceAfPacketVNF` in the [`010_interface_test.go`](010_interface_test.go) which runs multi-agent setup.
+
+Here's diagram showing topology of test case `TestInterfaceAfPacketVNF`.
+
+![](./test-topology-diagram1.png)
+
+Link to diagram: https://drive.google.com/file/d/11kjtv62tFUliipl14w_CNBZtUL1Klj5Y/view?usp=sharing
 
 The Gomega test framework is also ready to use for each test case, but not mandatory to use. See [Gomega online documentation](https://onsi.github.io/gomega/#making-assertions) for more info.
 
 ## References
 
-For more info checkout Ligato documentation: https://docs.ligato.io/en/latest/
+- vpp-agent API: https://github.com/ligato/vpp-agent/tree/master/proto
+  - VPP: https://github.com/ligato/vpp-agent/blob/master/proto/ligato/vpp/vpp.proto
+  - Linux: https://github.com/ligato/vpp-agent/blob/master/proto/ligato/linux/linux.proto
+- Ligato documentation: https://docs.ligato.io/en/latest/
