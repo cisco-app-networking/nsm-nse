@@ -14,8 +14,8 @@ Options:
 " >&2
 }
 
-NSM_HUB="${NSM_HUB:-"ciscoappnetworking"}"
-NSM_TAG="${NSM_TAG:-"vl3_latest"}"
+NSM_HUB="${NSM_HUB:-"tiswanso"}"
+NSM_TAG="${NSM_TAG:-"ipsec-fwdr"}"
 INSTALL_OP=${INSTALL_OP:-apply}
 INSECURE=${INSECURE:-true}
 
@@ -99,6 +99,7 @@ helm template ${NSMDIR}/deployments/helm/nsm \
   --set spire.selfSignedCA="false" \
   --set insecure=${INSECURE} \
   --set global.JaegerTracing="true" \
+  --set preferredRemoteMechanism="IPSEC" \
   ${SPIRE_DISABLED:+--set spire.enabled=false} | kubectl ${INSTALL_OP} ${KCONF:+--kubeconfig $KCONF} -f -
 
 print_header "NSM-addons"
