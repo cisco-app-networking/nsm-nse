@@ -70,6 +70,117 @@ type vL3ConnectComposite struct {
 	nseControlAddr string
 }
 
+// newVL3ConnectComposite creates a new VL3 composite
+var newVL3ConnectComposite = func(configuration *common.NSConfiguration, vL3NetCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, nseControlAddr, connDomain string) *vL3ConnectComposite {
+	nsRegAddr, ok := os.LookupEnv("NSREGISTRY_ADDR")
+	if !ok {
+		nsRegAddr = NSREGISTRY_ADDR
+	}
+	nsRegPort, ok := os.LookupEnv("NSREGISTRY_PORT")
+	if !ok {
+		nsRegPort = NSREGISTRY_PORT
+	}
+
+	// ensure the env variables are processed
+	if configuration == nil {
+		configuration = &common.NSConfiguration{}
+		configuration.FromEnv()
+	}
+
+	logrus.Infof("newVL3ConnectComposite")
+
+	var nsDiscoveryClient registry.NetworkServiceDiscoveryClient
+
+	/*
+		regAddr := net.ParseIP(nsRegAddr)
+		if regAddr == nil {
+			regAddrList, err := net.LookupHost(nsRegAddr)
+			if err != nil {
+				logrus.Errorf("nsmConnection registry address resolution Error: %v", err)
+			} else {
+				logrus.Infof("newVL3ConnectComposite: resolved %s to %v", nsRegAddr, regAddrList)
+				for _, regAddrVal := range regAddrList {
+					if regAddr = net.ParseIP(regAddrVal); regAddr != nil {
+						logrus.Infof("newVL3ConnectComposite: NSregistry using IP %s", regAddrVal)
+						break
+					}
+				}
+			}
+		}
+		regPort, _ := strconv.Atoi(nsRegPort)
+		nsRegGrpcClient, err := tools.SocketOperationCheck(&net.TCPAddr{IP: regAddr, Port: regPort})
+	*/
+	nsRegGrpcClient, err := tools.DialTCP(nsRegAddr + ":" + nsRegPort)
+	if err != nil {
+		logrus.Errorf("nsmRegistryConnection GRPC Client Socket Error: %v", err)
+		//return nil
+	} else {
+		logrus.Infof("newVL3ConnectComposite socket operation ok... create networkDiscoveryClient")
+		nsDiscoveryClient = registry.NewNetworkServiceDiscoveryClient(nsRegGrpcClient)
+		if nsDiscoveryClient == nil {
+			logrus.Errorf("newVL3ConnectComposite networkDiscoveryClient nil")
+		} else {
+			logrus.Infof("newVL3ConnectComposite networkDiscoveryClient ok")
+		}
+	}
+
+	// create remote_networkservice API connection
+
+	//var nsClient networkservice.NetworkServiceClient
+	/*
+		nsGrpcClient, err := tools.DialTCP(nsRegAddr + ":" + nsPort)
+		if err != nil {
+			logrus.Errorf("nsmConnection GRPC Client Socket Error: %v", err)
+			//return nil
+		} else {
+			logrus.Infof("newVL3ConnectComposite socket operation ok... create network-service client")
+			nsClient = networkservice.NewNetworkServiceClient(nsGrpcClient)
+			logrus.Infof("newVL3ConnectComposite network-service client ok")
+		}
+	*/
+	// Call the NS Client initiation
+	/* nsConfig := &common.NSConfiguration{
+		ClientNetworkService:   configuration.EndpointNetworkService,
+		ClientLabels: "",
+		Routes:            configuration.Routes,
+	} */
+	nsConfig := configuration
+	nsConfig.ClientLabels = ""
+	var nsmClient *client.NsmClient
+	nsmClient, err = client.NewNSMClient(context.TODO(), nsConfig)
+	if err != nil {
+		logrus.Errorf("Unable to create the NSM client %v", err)
+	}
+	/*
+		nsmConn, err := common.NewNSMConnection(context.TODO(), configuration)
+		if err != nil {
+			logrus.Errorf("nsmConnection Client Connection Error: %v", err)
+		} else {
+			nsClient = nsmConn.NsClient
+		}
+	*/
+
+	newVL3ConnectComposite := &vL3ConnectComposite{
+		nsConfig:           configuration,
+		remoteNsIpList:     remoteIpList,
+		vL3NetCidr:         vL3NetCidr,
+		myEndpointName:     "",
+		vl3NsePeers:        make(map[string]*vL3NsePeer),
+		nsRegGrpcClient:    nsRegGrpcClient,
+		nsDiscoveryClient:  nsDiscoveryClient,
+		nsmClient:          nsmClient,
+		backend:            backend,
+		myNseNameFunc:      getNseName,
+		defaultRouteIpCidr: defaultCdPrefix,
+		nseControlAddr:     nseControlAddr,
+		connDomain:         connDomain,
+	}
+
+	logrus.Infof("newVL3ConnectComposite returning")
+
+	return newVL3ConnectComposite
+}
+
 func (peer *vL3NsePeer) setPeerState(state vL3PeerState) {
 	peer.Lock()
 	defer peer.Unlock()
@@ -442,115 +553,4 @@ func removeDuplicates(elements []string) []string {
 		}
 	}
 	return result
-}
-
-// newVL3ConnectComposite creates a new VL3 composite
-func newVL3ConnectComposite(configuration *common.NSConfiguration, vL3NetCidr string, backend config.UniversalCNFBackend, remoteIpList []string, getNseName fnGetNseName, defaultCdPrefix, nseControlAddr, connDomain string) *vL3ConnectComposite {
-	nsRegAddr, ok := os.LookupEnv("NSREGISTRY_ADDR")
-	if !ok {
-		nsRegAddr = NSREGISTRY_ADDR
-	}
-	nsRegPort, ok := os.LookupEnv("NSREGISTRY_PORT")
-	if !ok {
-		nsRegPort = NSREGISTRY_PORT
-	}
-
-	// ensure the env variables are processed
-	if configuration == nil {
-		configuration = &common.NSConfiguration{}
-		configuration.FromEnv()
-	}
-
-	logrus.Infof("newVL3ConnectComposite")
-
-	var nsDiscoveryClient registry.NetworkServiceDiscoveryClient
-
-	/*
-		regAddr := net.ParseIP(nsRegAddr)
-		if regAddr == nil {
-			regAddrList, err := net.LookupHost(nsRegAddr)
-			if err != nil {
-				logrus.Errorf("nsmConnection registry address resolution Error: %v", err)
-			} else {
-				logrus.Infof("newVL3ConnectComposite: resolved %s to %v", nsRegAddr, regAddrList)
-				for _, regAddrVal := range regAddrList {
-					if regAddr = net.ParseIP(regAddrVal); regAddr != nil {
-						logrus.Infof("newVL3ConnectComposite: NSregistry using IP %s", regAddrVal)
-						break
-					}
-				}
-			}
-		}
-		regPort, _ := strconv.Atoi(nsRegPort)
-		nsRegGrpcClient, err := tools.SocketOperationCheck(&net.TCPAddr{IP: regAddr, Port: regPort})
-	*/
-	nsRegGrpcClient, err := tools.DialTCP(nsRegAddr + ":" + nsRegPort)
-	if err != nil {
-		logrus.Errorf("nsmRegistryConnection GRPC Client Socket Error: %v", err)
-		//return nil
-	} else {
-		logrus.Infof("newVL3ConnectComposite socket operation ok... create networkDiscoveryClient")
-		nsDiscoveryClient = registry.NewNetworkServiceDiscoveryClient(nsRegGrpcClient)
-		if nsDiscoveryClient == nil {
-			logrus.Errorf("newVL3ConnectComposite networkDiscoveryClient nil")
-		} else {
-			logrus.Infof("newVL3ConnectComposite networkDiscoveryClient ok")
-		}
-	}
-
-	// create remote_networkservice API connection
-
-	//var nsClient networkservice.NetworkServiceClient
-	/*
-		nsGrpcClient, err := tools.DialTCP(nsRegAddr + ":" + nsPort)
-		if err != nil {
-			logrus.Errorf("nsmConnection GRPC Client Socket Error: %v", err)
-			//return nil
-		} else {
-			logrus.Infof("newVL3ConnectComposite socket operation ok... create network-service client")
-			nsClient = networkservice.NewNetworkServiceClient(nsGrpcClient)
-			logrus.Infof("newVL3ConnectComposite network-service client ok")
-		}
-	*/
-	// Call the NS Client initiation
-	/* nsConfig := &common.NSConfiguration{
-		ClientNetworkService:   configuration.EndpointNetworkService,
-		ClientLabels: "",
-		Routes:            configuration.Routes,
-	} */
-	nsConfig := configuration
-	nsConfig.ClientLabels = ""
-	var nsmClient *client.NsmClient
-	nsmClient, err = client.NewNSMClient(context.TODO(), nsConfig)
-	if err != nil {
-		logrus.Errorf("Unable to create the NSM client %v", err)
-	}
-	/*
-		nsmConn, err := common.NewNSMConnection(context.TODO(), configuration)
-		if err != nil {
-			logrus.Errorf("nsmConnection Client Connection Error: %v", err)
-		} else {
-			nsClient = nsmConn.NsClient
-		}
-	*/
-
-	newVL3ConnectComposite := &vL3ConnectComposite{
-		nsConfig:           configuration,
-		remoteNsIpList:     remoteIpList,
-		vL3NetCidr:         vL3NetCidr,
-		myEndpointName:     "",
-		vl3NsePeers:        make(map[string]*vL3NsePeer),
-		nsRegGrpcClient:    nsRegGrpcClient,
-		nsDiscoveryClient:  nsDiscoveryClient,
-		nsmClient:          nsmClient,
-		backend:            backend,
-		myNseNameFunc:      getNseName,
-		defaultRouteIpCidr: defaultCdPrefix,
-		nseControlAddr:     nseControlAddr,
-		connDomain:         connDomain,
-	}
-
-	logrus.Infof("newVL3ConnectComposite returning")
-
-	return newVL3ConnectComposite
 }
