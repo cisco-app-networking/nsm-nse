@@ -2,6 +2,7 @@ package multi_ns_test
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -61,14 +62,16 @@ func TestSingleClientMultiNS(t *testing.T) {
 			[]string{"foo"},
 			map[string]string{"ns.networkservicemesh.io": "foo?app=vl3-nse-foo"},
 		},
-		// "Connect to two NSEs": {
-		// 	[]string{"foo", "bar"},
-		// 	map[string]string{"ns.networkservicemesh.io": "foo?app=vl3-nse-foo,bar?app=vl3-nse-bar"},
-		// },
+		"Connect to two NSEs": {
+			[]string{"foo", "bar"},
+			map[string]string{"ns.networkservicemesh.io": "foo?app=vl3-nse-foo,bar?app=vl3-nse-bar"},
+		},
 	} {
 		t.Logf("Running test case: %s", testName)
 		var deployments []appsv1.Deployment
-
+		var ip_addr string
+		flag.StringVar(&ip_addr, "REMOTE_IP", "127.0.0.1", "Set ENV to REMOTE_IP")
+		flag.Parse()
 		//Install network service
 		for _, name := range c.networkServices {
 			fmt.Printf("Installing Network Service %s\n", name)
@@ -133,7 +136,6 @@ func checkAvailability(deployment *appsv1.Deployment, clientset *kubernetes.Clie
 	}
 
 	for _, pod := range pods.Items {
-		fmt.Println(pod.Status.Phase)
 		if pod.Status.Phase != corev1.PodRunning {
 			return false
 		}

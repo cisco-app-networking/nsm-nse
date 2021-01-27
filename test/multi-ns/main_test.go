@@ -14,17 +14,15 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-const (
-	clusterName string = "test"
-	ip_addr     string = "127.0.0.1"
-)
-
 func TestMain(m *testing.M) {
+	var clusterName string
+	flag.StringVar(&clusterName, "clusterName", "test", "Name of kind cluster for this test")
+	flag.Parse()
 	//Remove existing cluster which has the same name
 	fmt.Println("Remove old cluster")
 	removeExistingKindCluster(clusterName)
 	//Create a kind cluster for testing
-	fmt.Println("Creating new kind cluster...")
+	fmt.Printf("Creating kind cluster '%s'\n", clusterName)
 	execKindCluster("create", clusterName)
 	//Prepare clientset for K8s API
 	clientset, _ = getClientSet()
@@ -41,7 +39,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	//Remove the cluster after tests are done
 	execKindCluster("delete", clusterName)
-
+	fmt.Printf("Deleted kind cluster '%s'\n", clusterName)
 	os.Exit(code)
 }
 
