@@ -2,12 +2,9 @@ package multi_ns_test
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -15,13 +12,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 )
 
 var (
 	clientset *kubernetes.Clientset
-	ip_addr   = "127.0.0.1"
 	clientDep = &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -56,148 +50,8 @@ var (
 			},
 		},
 	}
-
-	// dep1 = &appsv1.Deployment{
-	// 	TypeMeta: metav1.TypeMeta{
-	// 		APIVersion: "apps/v1",
-	// 	},
-	// 	ObjectMeta: metav1.ObjectMeta{
-	// 		Name:      "bridge-domain",
-	// 		Namespace: "default",
-	// 	},
-	// 	Spec: appsv1.DeploymentSpec{
-	// 		Selector: &metav1.LabelSelector{
-	// 			MatchLabels: map[string]string{
-	// 				"networkservicemesh.io/app":  "bridge-domain",
-	// 				"networkservicemesh.io/impl": "bridge",
-	// 			},
-	// 		},
-	// 		Template: corev1.PodTemplateSpec{
-	// 			ObjectMeta: metav1.ObjectMeta{
-	// 				Labels: map[string]string{
-	// 					"networkservicemesh.io/app":  "bridge-domain",
-	// 					"networkservicemesh.io/impl": "bridge",
-	// 				},
-	// 			},
-	// 			Spec: corev1.PodSpec{
-	// 				Containers: []corev1.Container{
-	// 					{
-	// 						Name:  "bridge-domain",
-	// 						Image: "networkservicemesh/bridge-domain-bridge:master",
-	// 						Env: []corev1.EnvVar{
-	// 							{
-	// 								Name:  "ENDPOINT_NETWORK_SERVICE",
-	// 								Value: "bridge-domain",
-	// 							},
-	// 							{
-	// 								Name:  "ENDPOINT_LABELS",
-	// 								Value: "app=bridge",
-	// 							},
-	// 							{
-	// 								Name:  "TRACER_ENABLED",
-	// 								Value: "true",
-	// 							},
-	// 							{
-	// 								Name:  "IP_ADDRESS",
-	// 								Value: "10.60.1.0/24",
-	// 							},
-	// 						},
-	// 						Resources: corev1.ResourceRequirements{
-	// 							Limits: map[corev1.ResourceName]resource.Quantity{
-	// 								"networkservicemesh.io/socket": resource.MustParse("1"),
-	// 							},
-	// 						},
-	// 					},
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// }
-
-	// dep2 = &appsv1.Deployment{
-	// 	TypeMeta: metav1.TypeMeta{
-	// 		APIVersion: "apps/v1",
-	// 	},
-	// 	ObjectMeta: metav1.ObjectMeta{
-	// 		Name:      "bridge-domain-ipv6",
-	// 		Namespace: "default",
-	// 	},
-	// 	Spec: appsv1.DeploymentSpec{
-	// 		Selector: &metav1.LabelSelector{
-	// 			MatchLabels: map[string]string{
-	// 				"networkservicemesh.io/app":  "bridge-domain-ipv6",
-	// 				"networkservicemesh.io/impl": "bridge-ipv6",
-	// 			},
-	// 		},
-	// 		Template: corev1.PodTemplateSpec{
-	// 			ObjectMeta: metav1.ObjectMeta{
-	// 				Labels: map[string]string{
-	// 					"networkservicemesh.io/app":  "bridge-domain-ipv6",
-	// 					"networkservicemesh.io/impl": "bridge-ipv6",
-	// 				},
-	// 			},
-	// 			Spec: corev1.PodSpec{
-	// 				Containers: []corev1.Container{
-	// 					{
-	// 						Name:  "bridge-domain",
-	// 						Image: "networkservicemesh/bridge-domain-bridge:master",
-	// 						Env: []corev1.EnvVar{
-	// 							{
-	// 								Name:  "ENDPOINT_NETWORK_SERVICE",
-	// 								Value: "bridge-domain-ipv6",
-	// 							},
-	// 							{
-	// 								Name:  "ENDPOINT_LABELS",
-	// 								Value: "app=bridge-ipv6",
-	// 							},
-	// 							{
-	// 								Name:  "TRACER_ENABLED",
-	// 								Value: "true",
-	// 							},
-	// 							{
-	// 								Name:  "IP_ADDRESS",
-	// 								Value: "1200::/120",
-	// 							},
-	// 						},
-	// 						Resources: corev1.ResourceRequirements{
-	// 							Limits: map[corev1.ResourceName]resource.Quantity{
-	// 								"networkservicemesh.io/socket": resource.MustParse("1"),
-	// 							},
-	// 						},
-	// 					},
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// }
 )
 
-func TestMain(m *testing.M) {
-	const clusterName string = "test"
-	//Remove existing cluster which has the same name
-	fmt.Println("Remove old cluster")
-	removeExistingKindCluster(clusterName)
-	//Create a kind cluster for testing
-	fmt.Println("Creating new kind cluster...")
-	execKindCluster("create", clusterName)
-	//Prepare clientset for K8s API
-	clientset, _ = getClientSet()
-
-	//Install NSM
-	fmt.Println("Installing NSM...")
-	cmd := exec.Command("../../scripts/vl3/nsm_install_interdomain.sh")
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	code := m.Run()
-	//Remove the cluster after tests are done
-	execKindCluster("delete", clusterName)
-
-	os.Exit(code)
-}
 func TestSingleClientMultiNS(t *testing.T) {
 	for testName, c := range map[string]struct {
 		networkServices []string
@@ -207,16 +61,15 @@ func TestSingleClientMultiNS(t *testing.T) {
 			[]string{"foo"},
 			map[string]string{"ns.networkservicemesh.io": "foo?app=vl3-nse-foo"},
 		},
-		"Connect to two NSEs": {
-			[]string{"foo", "bar"},
-			map[string]string{"ns.networkservicemesh.io": "foo?app=vl3-nse-foo,bar?app=vl3-nse-bar"},
-		},
+		// "Connect to two NSEs": {
+		// 	[]string{"foo", "bar"},
+		// 	map[string]string{"ns.networkservicemesh.io": "foo?app=vl3-nse-foo,bar?app=vl3-nse-bar"},
+		// },
 	} {
 		t.Logf("Running test case: %s", testName)
 		var deployments []appsv1.Deployment
 
 		//Install network service
-		deploymentsClient := clientset.AppsV1().Deployments(corev1.NamespaceDefault)
 		for _, name := range c.networkServices {
 			fmt.Printf("Installing Network Service %s\n", name)
 			os.Setenv("REMOTE_IP", ip_addr)
@@ -234,6 +87,7 @@ func TestSingleClientMultiNS(t *testing.T) {
 		//Create client pod with annotation
 		clientDep.ObjectMeta.Annotations = c.annotations
 		fmt.Println("Create client deployment")
+		deploymentsClient := clientset.AppsV1().Deployments(corev1.NamespaceDefault)
 		result, err := deploymentsClient.Create(context.TODO(), clientDep, metav1.CreateOptions{})
 		if err != nil {
 			fmt.Println(err.Error())
@@ -263,61 +117,12 @@ func TestSingleClientMultiNS(t *testing.T) {
 	}
 }
 
-func execKindCluster(action, clusterName string) {
-	nameFlag := "--name=" + clusterName
-	cmd := exec.Command("kind", action, "cluster", nameFlag)
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-}
-
-func removeExistingKindCluster(clusterName string) {
-	//Get all kind clusters
-	out, err := exec.Command("kind", "get", "clusters").Output()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	//Check if input cluster already exists
-	//If found, remove it
-	s := strings.Fields(string(out))
-	for _, name := range s {
-		if name == clusterName {
-			execKindCluster("delete", clusterName)
-		}
-	}
-}
-
 func removeDeployment(namespace, deploymentName string, clientset *kubernetes.Clientset) {
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
 	if err := deploymentsClient.Delete(context.TODO(), deploymentName, metav1.DeleteOptions{}); err != nil {
 		fmt.Println(err.Error())
 	}
 	fmt.Printf("Deleted deployment %s\n", deploymentName)
-}
-
-func getClientSet() (*kubernetes.Clientset, error) {
-	//Get kubeconfig
-	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
-	flag.Parse()
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
-	}
-	return clientset, nil
 }
 
 func checkAvailability(deployment *appsv1.Deployment, clientset *kubernetes.Clientset) bool {
