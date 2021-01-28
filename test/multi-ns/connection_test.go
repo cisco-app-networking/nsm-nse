@@ -2,7 +2,6 @@ package multi_ns_test
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,7 +15,6 @@ import (
 )
 
 var (
-	clientset *kubernetes.Clientset
 	clientDep = &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "apps/v1",
@@ -69,22 +67,22 @@ func TestSingleClientMultiNS(t *testing.T) {
 	} {
 		t.Logf("Running test case: %s", testName)
 		var deployments []appsv1.Deployment
-		var ip_addr string
-		flag.StringVar(&ip_addr, "REMOTE_IP", "127.0.0.1", "Set ENV to REMOTE_IP")
-		flag.Parse()
 		//Install network service
 		for _, name := range c.networkServices {
 			fmt.Printf("Installing Network Service %s\n", name)
-			os.Setenv("REMOTE_IP", ip_addr)
+			os.Setenv("REMOTE_IP", *ipAddr)
 			os.Setenv("SERVICENAME", name)
-			cmd := exec.Command("../../scripts/vl3/vl3_interdomain.sh")
+			cmd := exec.Command(*nsePath)
 			err := cmd.Run()
 			if err != nil {
 				fmt.Println(err.Error())
 				return
 			}
 		}
-		endpoints := listDeployments("wcm-system", clientset)
+		endpoints, err := listDeployments("wcm-system", clientset)
+		if err != nil {
+			fmt.Println("Failed to list deployments in 'wcm-system' namespace:", err)
+		}
 		deployments = append(deployments, endpoints...)
 
 		//Create client pod with annotation
@@ -115,24 +113,27 @@ func TestSingleClientMultiNS(t *testing.T) {
 
 		//Cleanup deployments
 		for _, d := range deployments {
-			removeDeployment(d.ObjectMeta.Namespace, d.ObjectMeta.Name, clientset)
+			if err := removeDeployment(d.ObjectMeta.Namespace, d.ObjectMeta.Name, clientset); err != nil {
+				fmt.Println(err.Error())
+			}
 		}
 	}
 }
 
-func removeDeployment(namespace, deploymentName string, clientset *kubernetes.Clientset) {
+func removeDeployment(namespace, deploymentName string, clientset *kubernetes.Clientset) error {
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
 	if err := deploymentsClient.Delete(context.TODO(), deploymentName, metav1.DeleteOptions{}); err != nil {
-		fmt.Println(err.Error())
+		return err
 	}
 	fmt.Printf("Deleted deployment %s\n", deploymentName)
+	return nil
 }
 
 func checkAvailability(deployment *appsv1.Deployment, clientset *kubernetes.Clientset) bool {
 	namespace := deployment.ObjectMeta.Namespace
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Println(err.Error())
+		return false
 	}
 
 	for _, pod := range pods.Items {
@@ -143,13 +144,13 @@ func checkAvailability(deployment *appsv1.Deployment, clientset *kubernetes.Clie
 	return true
 }
 
-func listDeployments(namespace string, clientset *kubernetes.Clientset) []appsv1.Deployment {
+func listDeployments(namespace string, clientset *kubernetes.Clientset) ([]appsv1.Deployment, error) {
 	deploymentsClient := clientset.AppsV1().Deployments(namespace)
 	list, err := deploymentsClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
-	return list.Items
+	return list.Items, nil
 }
 
 func int32Ptr(i int32) *int32 { return &i }
