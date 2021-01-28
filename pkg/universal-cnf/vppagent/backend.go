@@ -43,7 +43,7 @@ func (b *UniversalCNFVPPAgentBackend) NewDPConfig() *vpp.ConfigData {
 	return &vpp.ConfigData{}
 }
 
-// NewUniversalCNFBackend initializes the VPP CNF backendls
+// NewUniversalCNFBackend initializes the VPP CNF backend
 
 func (b *UniversalCNFVPPAgentBackend) NewUniversalCNFBackend() error {
 	b.EndpointIfID = make(map[string]int)
