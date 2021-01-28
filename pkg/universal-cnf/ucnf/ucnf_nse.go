@@ -36,17 +36,7 @@ func NewUcnfNse(configPath string, verify bool, backend config.UniversalCNFBacke
 		}
 	}()
 
-	// The "STRICT_DECODING" env var is only set in the pass-through-nse deployment
-	strictDecoding, ok := os.LookupEnv("STRICT_DECODING")
-
-	yamlDecoder := yaml.NewDecoder(f)
-
-	if ok && strictDecoding == "true" {
-		yamlDecoder.SetStrict(true)
-	}
-
-	err = nseconfig.NewConfig(yamlDecoder, cnfConfig)
-
+	err = nseconfig.NewConfig(yaml.NewDecoder(f), cnfConfig)
 	if err != nil {
 		logrus.Warningf("NSE config errors: %v", err)
 	}
