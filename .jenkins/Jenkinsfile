@@ -32,6 +32,7 @@ node('wcm') {
         }
         stage ('NSM-NSE Integration Tests') {
             suffix="-${env.JOB_NAME}-${currentBuild.number}".toLowerCase().replaceAll("[^a-z0-9]","_")
+            sh "docker pull busybox:1.31"
             sh "echo ${suffix}\n" +
                "export PATH=$PATH:/usr/local/go/bin\n" +
                "export NSMNSE_INTEGRATION_TEST_IMG=integration-img${suffix}\n" +
