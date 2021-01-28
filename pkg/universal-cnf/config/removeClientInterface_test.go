@@ -166,21 +166,24 @@ var (
 
 func TestRemoveClientInterface(t *testing.T) {
 	for testName, c := range map[string]struct {
-		interfaces    []*interfaces.Interface
-		conn          *connection.Connection
-		routes        []*l3.Route
-		expectedError error
+		interfaces           []*interfaces.Interface
+		conn                 *connection.Connection
+		routes               []*l3.Route
+		expectedRemoveRoutes []*l3.Route
+		expectedError        error
 	}{
 		"Remove from nil interface": {
 			nil,
 			conn1,
 			routes1,
+			nil,
 			fmt.Errorf("client interface with dstIpAddr %s not found", conn1.Context.IpContext.DstIpAddr),
 		},
 		"Remove from empty interface": {
 			[]*interfaces.Interface{},
 			conn1,
 			routes1,
+			nil,
 			fmt.Errorf("client interface with dstIpAddr %s not found", conn1.Context.IpContext.DstIpAddr),
 		},
 		"Remove from one interface": {
@@ -188,11 +191,13 @@ func TestRemoveClientInterface(t *testing.T) {
 			conn1,
 			routes1,
 			nil,
+			nil,
 		},
 		"Remove from multiple interfaces": {
 			interfaces3,
 			conn1,
 			routes1,
+			nil,
 			nil,
 		},
 		"Unmatched NextHopAddr": {
@@ -200,10 +205,12 @@ func TestRemoveClientInterface(t *testing.T) {
 			conn1,
 			routes2,
 			nil,
+			nil,
 		},
 		"Route prefix matches DstNetwork": {
 			interfaces1,
 			conn3,
+			routes1,
 			routes1,
 			nil,
 		},
@@ -211,12 +218,14 @@ func TestRemoveClientInterface(t *testing.T) {
 			interfaces1,
 			conn2,
 			routes1,
+			nil,
 			fmt.Errorf("client interface with dstIpAddr %s not found", conn1.Context.IpContext.DstIpAddr),
 		},
 		"Unfound dstIpAddr in interfaces": {
 			interfaces2,
 			conn1,
 			routes1,
+			nil,
 			fmt.Errorf("client interface with dstIpAddr %s not found", conn1.Context.IpContext.DstIpAddr),
 		},
 	} {
@@ -234,7 +243,10 @@ func TestRemoveClientInterface(t *testing.T) {
 		} else {
 			assert.Nil(t, err)
 			assert.NotNil(t, removeConfig)
+			//check removed interface
 			assert.Equal(t, 1, len(removeConfig.Interfaces))
+			//check removed route
+			assert.Equal(t, removeConfig.Routes, c.expectedRemoveRoutes)
 		}
 	}
 }
