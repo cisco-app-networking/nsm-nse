@@ -11,15 +11,11 @@ export VPP_AGENT="${VPP_AGENT:-ligato/vpp-agent:latest}"
 export TESTDATA_DIR="$SCRIPT_DIR/resources"
 export GOTESTSUM_FORMAT="${GOTESTSUM_FORMAT:-testname}"
 
-testname=${NSMNSE_E2E_TEST_NAME:-"nsmnse-integration-test"}
-imgname=${NSMNSE_E2E_TEST_IMG:-"nsmnse-integration-tests"}
+testname=${NSMNSE_INTEGRATION_TEST_NAME:-"nsmnse-integration-test"}
+imgname=${NSMNSE_INTEGRATION_TEST_IMG:-"nsmnse-integration-tests"}
 
 # TODO: make this configurable when upstream adds support
 sharevolumename="share-for-vpp-agent-e2e-tests"
-
-# Prints out current running container
-echo "-----------docker ps 1----------"
-docker ps -a
 
 # Compile testing suite
 go test -c -o ./test/integration/integration.test \
@@ -65,10 +61,6 @@ fi
 
 vppver=$(docker run --rm -i "$VPP_AGENT" dpkg-query -f '${Version}' -W vpp)
 
-# Prints out current running container
-echo "-----------docker ps 2----------"
-docker ps -a
-
 echo "=========================================================================="
 echo -e " NSM-NSE INTEGRATION TESTS - $(date) "
 echo "=========================================================================="
@@ -105,6 +97,3 @@ else
     exit $res
 fi
 
-# Prints out current running container
-echo "-----------docker ps 3----------"
-docker ps -a
