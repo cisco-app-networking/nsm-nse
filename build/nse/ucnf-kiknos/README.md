@@ -175,7 +175,7 @@ cd ${GOPATH}/src/github.com/networkservicemesh/networkservicemesh
 		--nsm_namespace nsm-system \
 		--spire_enabled false
 # Move back to the NSE repo
-cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
+cd ${GOPATH}/src/cisco-app-networking.github.io/nsm-nse
 
 ```
    
@@ -231,7 +231,7 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
         ```
         ```bash
         ./scripts/ucnf-kiknos/deploy_clients.sh --help
-        ~/go/src/github.com/cisco-app-networking ~/go/src/github.com/cisco-app-networking/nsm-nse
+        ~/go/src/cisco-app-networking.github.io/nsm-nse ~/go/src/cisco-app-networking.github.io/nsm-nse
         deploy_clients.sh - Deploy NSM Clients. All properties can also be provided through env variables
         
         NOTE: The defaults will change to the env values for the ones set.
@@ -255,7 +255,7 @@ cd ${GOPATH}/src/github.com/cisco-app-networking/nsm-nse
         Help:
         ```bash
         ./scripts/ucnf-kiknos/deploy_clients.sh --help
-        ~/go/src/github.com/cisco-app-networking ~/go/src/github.com/cisco-app-networking/nsm-nse
+        ~/go/src/cisco-app-networking.github.io/nsm-nse ~/go/src/cisco-app-networking.github.io/nsm-nse
         deploy_clients.sh - Deploy NSM Clients. All properties can also be provided through env variables
         
         NOTE: The defaults will change to the env values for the ones set.
@@ -340,7 +340,7 @@ This will attempt to perform `curl` commands from the workers in the VPN Gateway
 
 Output:
 ```bash
-CLUSTER1=kiknos-demo-1 CLUSTER2=kiknos-demo-2 /home/mihai/go/src/github.com/cisco-app-networking/nsm-nse/scripts/ucnf-kiknos/test_vpn_conn.sh
+CLUSTER1=kiknos-demo-1 CLUSTER2=kiknos-demo-2 /home/mihai/go/src/cisco-app-networking.github.io/nsm-nse/scripts/ucnf-kiknos/test_vpn_conn.sh
 Detected pod with nsm interface ip: 172.31.22.5
 Detected pod with nsm interface ip: 172.31.22.1
 Hello version: v1, instance: helloworld-ucnf-client-7bd94648d-d2gbh 

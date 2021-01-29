@@ -28,10 +28,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 
-	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/ucnf"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/vppagent"
+	"cisco-app-networking.github.io/nsm-nse/pkg/metrics"
+	"cisco-app-networking.github.io/nsm-nse/pkg/nseconfig"
+	"cisco-app-networking.github.io/nsm-nse/pkg/universal-cnf/ucnf"
+	"cisco-app-networking.github.io/nsm-nse/pkg/universal-cnf/vppagent"
 )
 
 const (
