@@ -1,19 +1,19 @@
 ARG BASEIMG=ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4
 FROM ${BASEIMG}
 
-ARG  vl3_repo=https://cisco-app-networking.github.io/nsm-nse.git
+ARG  vl3_repo=https://github.com/cisco-app-networking/nsm-nse.git
 # set this to branch or $CIRCLE_SHA1
 ARG  vl3_branch=master
-ARG  nsm_repo=https://cisco-app-networking.github.io/nsm-nse/networkservicemesh.git
+ARG  nsm_repo=https://github.com/cisco-app-networking/networkservicemesh.git
 ARG  nsm_branch=vl3_latest
 
-RUN  git clone $vl3_repo /go/src/cisco-app-networking.github.io/nsm-nse && \
-     cd /go/src/cisco-app-networking.github.io/nsm-nse && \
+RUN  git clone $vl3_repo /go/src/github.com/cisco-app-networking/nsm-nse && \
+     cd /go/src/github.com/cisco-app-networking/nsm-nse && \
      git fetch origin $vl3_branch:point_to_test && \
      git checkout point_to_test
 
-RUN  git clone $nsm_repo /go/src/cisco-app-networking.github.io/nsm-nse/networkservicemesh && \
-     cd /go/src/cisco-app-networking.github.io/nsm-nse/networkservicemesh && \
+RUN  git clone $nsm_repo /go/src/github.com/cisco-app-networking/networkservicemesh && \
+     cd /go/src/github.com/cisco-app-networking/networkservicemesh && \
      git checkout $nsm_branch
 
 # copy in KinD kubeconfigs
