@@ -29,12 +29,12 @@ This is an NSE that creates a L3 routing domain between NSC workloads. Each NSE 
 1. This currently only works with a custom version of the NSM installation.
 
     ```sh
-    mkdir -p $GOPATH/src/cisco-app-networking.github.io/nsm-nse
-    git clone https://cisco-app-networking.github.io/nsm-nse/networkservicemesh
+    mkdir -p $GOPATH/src/github.com/cisco-app-networking
+    git clone https://github.com/cisco-app-networking/networkservicemesh
     cd networkservicemesh
     git checkout vl3_latest
     cd ..
-    git clone https://cisco-app-networking.github.io/nsm-nse
+    git clone https://github.com/cisco-app-networking/nsm-nse
     ```
    
 2. The `demo_*.sh` scripts in this repo work with `demo-magic` which has a dependency on `pv` (ie. `brew install pv`)
@@ -76,7 +76,7 @@ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql -
 1. Use script to install inter-domain NSM & helloworld.
 
     ```sh
-    cd $GOPATH/src/cisco-app-networking.github.io/nsm-nse
+    cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
     scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --hello --nowait
     ```
 
@@ -102,7 +102,7 @@ scripts/vl3/demo_vl3_single.sh --kconf_clus1=<path to your kubeconfig> --mysql -
 1. Use script to install inter-domain NSM & mysql DB replication.
 
    ```sh
-   cd $GOPATH/src/cisco-app-networking.github.io/nsm-nse
+   cd $GOPATH/src/github.com/cisco-app-networking/nsm-nse
    scripts/vl3/demo_vl3.sh --kconf_clus1=${KCONFAWS} --kconf_clus2=${KCONFGKE} --mysql --nowait
    ```
 
@@ -299,7 +299,7 @@ to run the vL3 demos.
 
    ```sh
    cd ..
-   git clone https://cisco-app-networking.github.io/nsm-nse/networkservicemesh
+   git clone https://github.com/cisco-app-networking/networkservicemesh
    cd networkservicemesh
    git checkout vl3_latest
    ```

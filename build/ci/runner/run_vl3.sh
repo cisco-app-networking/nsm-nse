@@ -33,7 +33,7 @@ for kconf in ${kubeconfs}; do
         KCONF2=${KUBECONFDIR}/${kconf}
         echo "Cluster 2 is ${KUBECONFDIR}/${kconf}"
     fi
-    pushd /go/src/cisco-app-networking.github.io/nsm-nse
+    pushd /go/src/github.com/cisco-app-networking/nsm-nse
     KCONF=${KUBECONFDIR}/${kconf} scripts/vl3/nsm_install_interdomain.sh
     popd
 done
@@ -49,7 +49,7 @@ for kconf in ${KCONF1} ${KCONF2}; do
     kubectl get pods --kubeconfig ${kconf} -n nsm-system -o wide
 done
 
-pushd /go/src/cisco-app-networking.github.io/nsm-nse
+pushd /go/src/github.com/cisco-app-networking/nsm-nse
 clus1_IP=$(kubectl get node --kubeconfig ${KCONF1} --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
 
 clus2_IP=$(kubectl get node --kubeconfig ${KCONF2} --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')

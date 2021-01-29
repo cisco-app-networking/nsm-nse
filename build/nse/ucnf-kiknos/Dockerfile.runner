@@ -5,8 +5,8 @@ ARG  nsm_repo=https://github.com/networkservicemesh/networkservicemesh.git
 RUN  git clone $nsm_repo /go/src/github.com/networkservicemesh/networkservicemesh
 
 # Add nsm-nse code contents
-RUN mkdir -p /go/src/cisco-app-networking.github.io/nsm-nse
-COPY . /go/src/cisco-app-networking.github.io/nsm-nse
+RUN mkdir -p /go/src/github.com/cisco-app-networking/nsm-nse
+COPY . /go/src/github.com/cisco-app-networking/nsm-nse
 
 #COPY kubeconfigs/config /go/src/kubeconfigs/config
 

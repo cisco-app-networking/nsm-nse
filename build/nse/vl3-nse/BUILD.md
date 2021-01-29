@@ -3,8 +3,8 @@
 1. To build the vL3 NSE, clone this repo and checkout this branch:
 
    ```bash
-   $ mkdir -p $GOPATH/src/cisco-app-networking.github.io/nsm-nse
-   $ git clone https://cisco-app-networking.github.io/nsm-nse
+   $ mkdir -p $GOPATH/src/github.com/cisco-app-networking
+   $ git clone https://github.com/cisco-app-networking/nsm-nse
    ```
 
 1. Build the vL3 NSE:
