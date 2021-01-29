@@ -25,12 +25,17 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/configurator"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
+	vpp_l2 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l2"
 	"google.golang.org/grpc"
 )
 
 const (
 	defaultVPPAgentEndpoint = "localhost:9113"
 )
+
+// how to not use global vars?
+var endpointIf string
+var clientIfs []string
 
 // ResetVppAgent resets the VPP instance settings to nil
 func ResetVppAgent() error {
@@ -106,12 +111,49 @@ func SendVppConfigToVppAgent(vppconfig *vpp.ConfigData, update bool) error {
 			_, err = client.Delete(ctx, &configurator.DeleteRequest{
 				Delete: dataChange,
 			})
+		} else {
+			// Perform memif interfaces chaining
+			if vppconfig.Interfaces[0].GetMemif().Master {
+				clientIfs = append(clientIfs, vppconfig.Interfaces[0].Name)
+			} else {
+				endpointIf = vppconfig.Interfaces[0].Name
+			}
+			logrus.Infof("DEBUGGING -- clientIfs:%+v, endpoinIf:%+v", clientIfs, endpointIf)
+			if endpointIf != "" && len(clientIfs) != 0 {
+				logrus.Infof("DEBUGGING -- Now performing chaining of the two interfaces...")
+				for _, clientIf := range(clientIfs) {
+					dataChange = &configurator.Config{
+						VppConfig: &vpp.ConfigData{
+							XconnectPairs: []*vpp_l2.XConnectPair{
+								{
+									ReceiveInterface: clientIf,
+									TransmitInterface: endpointIf,
+								},
+								{
+									ReceiveInterface: endpointIf,
+									TransmitInterface: clientIf,
+								},
+							},
+						},
+					}
+
+					if _, err = client.Update(ctx, &configurator.UpdateRequest{
+						Update: dataChange,
+					}); err != nil {
+						logrus.Error(err)
+						_, err = client.Delete(ctx, &configurator.DeleteRequest{
+							Delete: dataChange,
+						}); if err != nil {
+							logrus.Error(err)
+						}
+					}
+				}
+			}
 		}
 	} else {
 		_, err = client.Delete(ctx, &configurator.DeleteRequest{
 			Delete: dataChange,
 		})
 	}
-
 	return err
 }

@@ -51,8 +51,18 @@ func NewUcnfNse(configPath string, verify bool, backend config.UniversalCNFBacke
 	}
 
 	configuration := common.FromEnv()
+	var pe *config.ProcessEndpoints
 
-	pe := config.NewProcessEndpoints(backend, cnfConfig.Endpoints, configuration, ceAddons, ctx)
+	logrus.Infof("DEBUGGING -- The configuration is: %+v", configuration)
+
+	// Check if the endpoint is pass-through or vl3
+	passThrough, ok := os.LookupEnv("PASS_THROUGH")
+	if ok && passThrough == "true" {
+		logrus.Info("DEBUGGING -- this is a PASS_THROUGH")
+		pe = config.NewProcessPassThroughEndpoints(backend, cnfConfig.Endpoints, configuration, ceAddons, ctx)
+	} else {
+		pe = config.NewProcessEndpoints(backend, cnfConfig.Endpoints, configuration, ceAddons, ctx)
+	}
 
 	ucnfnse := &UcnfNse{
 		processEndpoints: pe,

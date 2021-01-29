@@ -175,6 +175,8 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 		logrus.Error(err)
 		return nil, err
 	}*/
+	logger.Infof("DEBUGGING -- NS request: %+v", request)
+	logger.Infof("DEBUGGING -- conn: %+v,  conn.labels:%+v", conn, conn.GetLabels())
 
 	if vl3SrcEndpointName, ok := conn.GetLabels()[LABEL_NSESOURCE]; ok {
 		// request is from another vl3 NSE
@@ -206,7 +208,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 				}()
 			} else {
 				logger.Infof("vL3ConnectComposite found network service; processing endpoints")
-				go vxc.processNsEndpoints(context.TODO(), response, "")
+				go vxc.processNsEndpoints(context.TODO(), response, "", conn)
 			}
 			vxc.nsmClient.Configuration.ClientNetworkService = req.NetworkServiceName
 			logger.Infof("vL3ConnectComposite check remotes for endpoints")
@@ -221,7 +223,7 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 					}()
 				} else {
 					logger.Infof("vL3ConnectComposite found network service; processing endpoints from remote %s", remoteIp)
-					go vxc.processNsEndpoints(context.TODO(), response, remoteIp)
+					go vxc.processNsEndpoints(context.TODO(), response, remoteIp, conn)
 				}
 			}
 		}
@@ -286,44 +288,51 @@ func (vxc *vL3ConnectComposite) Name() string {
 	return "vL3 NSE"
 }
 
-func (vxc *vL3ConnectComposite) processNsEndpoints(ctx context.Context, response *registry.FindNetworkServiceResponse, remoteIp string) error {
+func (vxc *vL3ConnectComposite) processNsEndpoints(ctx context.Context, response *registry.FindNetworkServiceResponse,
+	remoteIp string, conn *connection.Connection) error {
 	/* TODO: For NSs with multiple endpoint types how do we know their type?
 	   - do we need to match the name portion?  labels?
 	*/
 	// just create a new logger for this go thread
 	logger := logrus.New()
-	for _, vl3endpoint := range response.GetNetworkServiceEndpoints() {
-		if vl3endpoint.GetName() != vxc.GetMyNseName() {
-			logger.Infof("Found vL3 service %s peer %s", vl3endpoint.NetworkServiceName,
-				vl3endpoint.GetName())
-			peer := vxc.addPeer(vl3endpoint.GetName(), vl3endpoint.NetworkServiceManagerName, remoteIp)
-			peer.Lock()
-			//peer.excludedPrefixes = removeDuplicates(append(peer.excludedPrefixes, incoming.Context.IpContext.ExcludedPrefixes...))
-			err := vxc.ConnectPeerEndpoint(ctx, peer, logger)
-			if err != nil {
-				logger.WithFields(logrus.Fields{
-					"peerEndpoint": vl3endpoint.GetName(),
-				}).Errorf("Failed to connect to vL3 Peer")
-			} else {
-				if peer.connHdl != nil {
+	for _, nsEndpoint := range response.GetNetworkServiceEndpoints() {
+		// only vL3 NSEs have a label of "nsepod.name"
+		_, ok := nsEndpoint.GetLabels()[POD_NAME]
+
+		// treat all other vL3 NSEs besides myself as peers
+		if ok {
+			if nsEndpoint.GetName() != vxc.GetMyNseName() {
+				logger.Infof("Found vL3 service %s peer %s", nsEndpoint.NetworkServiceName,
+					nsEndpoint.GetName())
+				peer := vxc.addPeer(nsEndpoint.GetName(), nsEndpoint.NetworkServiceManagerName, remoteIp)
+				peer.Lock()
+				//peer.excludedPrefixes = removeDuplicates(append(peer.excludedPrefixes, incoming.Context.IpContext.ExcludedPrefixes...))
+				err := vxc.ConnectPeerEndpoint(ctx, peer, logger)
+				if err != nil {
 					logger.WithFields(logrus.Fields{
-						"peerEndpoint":         vl3endpoint.GetName(),
-						"srcIP":                peer.connHdl.Context.IpContext.SrcIpAddr,
-						"ConnExcludedPrefixes": peer.connHdl.Context.IpContext.ExcludedPrefixes,
-						"peerExcludedPrefixes": peer.excludedPrefixes,
-						"peer.DstRoutes":       peer.connHdl.Context.IpContext.DstRoutes,
-					}).Infof("Connected to vL3 Peer")
+						"peerEndpoint": nsEndpoint.GetName(),
+					}).Errorf("Failed to connect to vL3 Peer")
 				} else {
-					logger.WithFields(logrus.Fields{
-						"peerEndpoint":         vl3endpoint.GetName(),
-						"peerExcludedPrefixes": peer.excludedPrefixes,
-					}).Infof("Connected to vL3 Peer but connhdl == nil")
+					if peer.connHdl != nil {
+						logger.WithFields(logrus.Fields{
+							"peerEndpoint":         nsEndpoint.GetName(),
+							"srcIP":                peer.connHdl.Context.IpContext.SrcIpAddr,
+							"ConnExcludedPrefixes": peer.connHdl.Context.IpContext.ExcludedPrefixes,
+							"peerExcludedPrefixes": peer.excludedPrefixes,
+							"peer.DstRoutes":       peer.connHdl.Context.IpContext.DstRoutes,
+						}).Infof("Connected to vL3 Peer")
+					} else {
+						logger.WithFields(logrus.Fields{
+							"peerEndpoint":         nsEndpoint.GetName(),
+							"peerExcludedPrefixes": peer.excludedPrefixes,
+						}).Infof("Connected to vL3 Peer but connhdl == nil")
+					}
 				}
+				peer.Unlock()
+			} else {
+				logger.Infof("Found my vL3 service %s instance endpoint name: %s", nsEndpoint.NetworkServiceName,
+					nsEndpoint.GetName())
 			}
-			peer.Unlock()
-		} else {
-			logger.Infof("Found my vL3 service %s instance endpoint name: %s", vl3endpoint.NetworkServiceName,
-				vl3endpoint.GetName())
 		}
 	}
 	return nil

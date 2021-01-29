@@ -36,6 +36,7 @@ import (
 // UniversalCNFVPPAgentBackend is the VPP CNF backend struct
 type UniversalCNFVPPAgentBackend struct {
 	EndpointIfID map[string]int
+	EndpointIfName []string
 }
 
 // NewDPConfig returns a plain DPConfig struct
@@ -132,9 +133,7 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 	if len(dstIP) > net.IPv4len {
 		ipAddresses = append(ipAddresses, dstIP)
 	}
-
 	endpointIfName := b.buildVppIfName(ifName, serviceName, conn)
-
 	rxModes := []*interfaces.Interface_RxMode{
 		&interfaces.Interface_RxMode{
 			Mode:        interfaces.Interface_RxMode_INTERRUPT,
@@ -247,5 +246,12 @@ func (b *UniversalCNFVPPAgentBackend) ProcessDPConfig(dpconfig interface{}, upda
 		logrus.Errorf("Updating the VPP config failed with: %v", err)
 	}
 
+	for _, i := range vppconfig.Interfaces {
+		logrus.Infof("DEBUGGING -- the current interface name is: %s", i.Name)
+		b.EndpointIfName = append(b.EndpointIfName, i.Name)
+	}
+
+
 	return err
 }
+

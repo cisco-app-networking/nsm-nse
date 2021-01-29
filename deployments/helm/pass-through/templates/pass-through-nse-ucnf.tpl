@@ -19,7 +19,7 @@ spec:
       serviceAccount: {{ .Values.nsm.serviceName }}-service-account
       containers:
         - name: ucnf-nse
-          image: {{ .Values.registry }}/{{ .Values.org }}/universal-cnf-vppagent:{{ .Values.tag }}
+          image: {{ .Values.registry }}/{{ .Values.org }}/pass-through-nse:{{ .Values.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           ports:
           - name: monitoring-vpp
@@ -30,7 +30,7 @@ spec:
             - name: ENDPOINT_NETWORK_SERVICE
               value: {{ .Values.nsm.serviceName | quote }}
             - name: ENDPOINT_LABELS
-              value: "app=uconf-nse-{{ .Values.nsm.serviceName }}"
+              value: "app=pass-through-nse-{{ .Values.nsm.serviceName }}"
             - name: TRACER_ENABLED
               value: "true"
             - name: JAEGER_SERVICE_HOST
@@ -50,6 +50,8 @@ spec:
             - name: METRICS_PORT
               value: {{ .Values.metricsPort | quote }}
             - name: STRICT_DECODING
+              value: "true"
+            - name: PASS_THROUGH
               value: "true"
           securityContext:
             capabilities:
@@ -79,14 +81,10 @@ data:
     - name: "ucnf-nse-{{ .Values.nsm.serviceName }}"
       labels:
         app: {{ .Values.nsm.serviceName | quote }}
-      nseControl:
-        name: {{ .Values.nsm.serviceName | quote }}
-        address: "{{ .Values.nseControl.nsr.addr }}"
-        connectivityDomain: "{{ .Values.nsm.serviceName }}-connectivity-domain"
-      vl3:
+      passThrough:
         ipam:
-          defaultPrefixPool: {{ .Values.nseControl.ipam.defaultPrefixPool | quote }}
-          prefixLength: {{ .Values.nseControl.ipam.prefixLength }}
+          defaultPrefixPool: {{ .Values.ipam.defaultPrefixPool | quote }}
+          prefixLength: {{ .Values.ipam.prefixLength }}
           routes: []
         ifName: "endpoint0"
 ---

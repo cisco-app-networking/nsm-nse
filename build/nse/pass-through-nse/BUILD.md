@@ -1,4 +1,4 @@
-# Building the virtual L3 NSE
+# Building the pass-through NSE
 
 1. To build the pass-through NSE, clone this repo and checkout this branch:
 

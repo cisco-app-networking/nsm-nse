@@ -95,6 +95,97 @@ func buildIpPrefixFromLocal(defaultPrefixPool string) string {
 	return prefixPool
 }
 
+// NewProcessPassThroughEndpoints returns a new ProcessEndpoints
+func NewProcessPassThroughEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.Endpoint,
+	nsconfig *common.NSConfiguration, ceAddons CompositeEndpointAddons, ctx context.Context) *ProcessEndpoints {
+	result := &ProcessEndpoints{}
+	logrus.Info("DEBUGGING -- NewProcessPassThroughEndpoints()")
+
+	for _, e := range endpoints {
+		logrus.Infof("DEBUGGING -- NewProcessPassThroughEndpoints(): The endpoint is: %+v", e)
+
+		configuration := &common.NSConfiguration{
+			NsmServerSocket:        nsconfig.NsmServerSocket,
+			NsmClientSocket:        nsconfig.NsmClientSocket,
+			Workspace:              nsconfig.Workspace,
+			EndpointNetworkService: e.Name,
+			ClientNetworkService:   nsconfig.ClientNetworkService,
+			EndpointLabels:         labelStringFromMap(e.Labels),
+			ClientLabels:           nsconfig.ClientLabels,
+			MechanismType:          memif.MECHANISM,
+			IPAddress:              "",
+			Routes:                 nil,
+		}
+		logrus.Infof("DEBUGGING -- configuration: %+v", configuration)
+		if e.PassThrough.IPAM.ServerAddress != "" {
+			var err error
+			ipamService, err := NewIpamService(ctx, e.PassThrough.IPAM.ServerAddress)
+			if err != nil {
+				logrus.Warningf("Unable to connect to IPAM Service %v", err)
+			} else {
+				configuration.IPAddress, err = ipamService.AllocateSubnet(e)
+				if err != nil {
+					logrus.Warningf("Unable to allocate subnet from IPAM Service %v", err)
+					configuration.IPAddress = ""
+				} else {
+					logrus.Infof("Obtained subnet from IPAM Service: %s", configuration.IPAddress)
+				}
+			}
+		}
+
+		if configuration.IPAddress == "" {
+			// central ipam server address is not set so attempt a local calculation of IPAM subnet
+			configuration.IPAddress = buildIpPrefixFromLocal(e.PassThrough.IPAM.DefaultPrefixPool)
+			logrus.Infof("Using locally calculated subnet for IPAM: %s", configuration.IPAddress)
+		}
+		// Build the list of composites
+		compositeEndpoints := []networkservice.NetworkServiceServer{
+			endpoint.NewMonitorEndpoint(configuration),
+			endpoint.NewConnectionEndpoint(configuration),
+		}
+		logrus.Infof("DEBUGGING -- compositeEndpoints : %T", compositeEndpoints)
+		logrus.Infof("DEBUGGING -- configuration : %+v, e: %+v", configuration, e)
+
+		if configuration.IPAddress != "" {
+			compositeEndpoints = append(compositeEndpoints, endpoint.NewIpamEndpoint(&common.NSConfiguration{
+				NsmServerSocket:        nsconfig.NsmServerSocket,
+				NsmClientSocket:        nsconfig.NsmClientSocket,
+				Workspace:              nsconfig.Workspace,
+				EndpointNetworkService: nsconfig.EndpointNetworkService,
+				ClientNetworkService:   nsconfig.ClientNetworkService,
+				EndpointLabels:         nsconfig.EndpointLabels,
+				ClientLabels:           nsconfig.ClientLabels,
+				MechanismType:          nsconfig.MechanismType,
+				IPAddress:              configuration.IPAddress,
+				Routes:                 nil,
+			}))
+		}
+
+		// Invoke any additional composite endpoint constructors via the add-on interface
+		addCompositeEndpoints := ceAddons.AddCompositeEndpoints(configuration, e)
+		if addCompositeEndpoints != nil {
+			compositeEndpoints = append(compositeEndpoints, *addCompositeEndpoints...)
+		}
+		if len(e.PassThrough.IPAM.Routes) > 0 {
+			routeAddr := makeRouteMutator(e.PassThrough.IPAM.Routes)
+			compositeEndpoints = append(compositeEndpoints, endpoint.NewCustomFuncEndpoint("route", routeAddr))
+		}
+
+		compositeEndpoints = append(compositeEndpoints, NewUniversalCNFEndpoint(backend, e))
+
+		composite := endpoint.NewCompositeEndpoint(compositeEndpoints...)
+
+		result.Endpoints = append(result.Endpoints, &SingleEndpoint{
+			NSConfiguration: configuration,
+			NSComposite:     composite,
+			Endpoint:        e,
+		})
+		logrus.Infof("DEBUGGING -- compositeEndpoints : %+v", compositeEndpoints)
+		logrus.Infof("DEBUGGING -- result: %+v", result.Endpoints)
+	}
+	return result
+}
+
 // NewProcessEndpoints returns a new ProcessInitCommands struct
 func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.Endpoint, nsconfig *common.NSConfiguration, ceAddons CompositeEndpointAddons, ctx context.Context) *ProcessEndpoints {
 	result := &ProcessEndpoints{}
@@ -115,11 +206,12 @@ func NewProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.End
 			IPAddress:              "",
 			Routes:                 nil,
 		}
+		logrus.Infof("DEBUGGING -- NewProcessEndpoints(), configuration: %+v", configuration)
 		if e.VL3.IPAM.ServerAddress != "" {
 			var err error
 			ipamService, err := NewIpamService(ctx, e.VL3.IPAM.ServerAddress)
 			if err != nil {
-				logrus.Warningf("Unable to connect to IPAM Service %v",err)
+				logrus.Warningf("Unable to connect to IPAM Service %v", err)
 			} else {
 				configuration.IPAddress, err = ipamService.AllocateSubnet(e)
 				if err != nil {

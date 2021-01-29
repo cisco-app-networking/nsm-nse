@@ -21,6 +21,8 @@ type Endpoint struct {
 	NseControl *NseControl `yaml:"nseControl"`
 
 	VL3 VL3 `yaml:"vl3"`
+
+	PassThrough PassThrough `yaml:"passThrough"`
 }
 
 type NseControl struct {
@@ -35,6 +37,11 @@ type VL3 struct {
 	Ifname      string   `yaml:"ifName"`
 	NameServers []string `yaml:"nameServers"`
 	DNSZones    []string `yaml:"dnsZones"`
+}
+
+type PassThrough struct {
+	IPAM 	IPAM	`yaml:"ipam"`
+	Ifname	string	`yaml:"ifName"`
 }
 
 type IPAM struct {
