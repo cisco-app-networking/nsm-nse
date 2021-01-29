@@ -56,8 +56,8 @@ function print_header() {
 
 sdir=$(dirname ${0})
 
-NSMDIR=${NSMDIR:-${GOPATH}/src/cisco-app-networking.github.io/nsm-nse/networkservicemesh}
-VL3DIR=${VL3DIR:-${GOPATH}/src/cisco-app-networking.github.io/nsm-nse}
+NSMDIR=${NSMDIR:-${GOPATH}/src/github.com/cisco-app-networking/networkservicemesh}
+VL3DIR=${VL3DIR:-${GOPATH}/src/github.com/cisco-app-networking/nsm-nse}
 
 if [[ "${INSTALL_OP}" != "delete" ]]; then
   echo "------------- Create nsm-system namespace ----------"
