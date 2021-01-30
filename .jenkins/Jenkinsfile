@@ -37,6 +37,11 @@ node('wcm') {
                "export PATH=$PATH:/usr/local/go/bin\n" +
                "export NSMNSE_INTEGRATION_TEST_IMG=integration-img${suffix}\n" +
                "export NSMNSE_INTEGRATION_TEST_NAME=integration-name${suffix}\n" +
+               "export GOSUMDB=off\n" +
+               "export GO111MODULE=on\n" +
+               "export GOPRIVATE=github.cisco.com\n" +
+               "export GONOPROXY=gopkg.in,go.uber.org\n" +
+               "export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go\n" +
                "./test/integration/run.sh\n"
         }
     }
