@@ -2,107 +2,106 @@
   * The Jenkinsfile runs entire build in a golang container and mounts the /var/run/docker.sock file to allow access
   * to the host docker within the container.
   */
-node('wcm') {
-    /*docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') { */
-    docker.image('ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
-        environment{
-            CGO_ENABLED = 0
-            GO111MODULE = on
-            GOPATH      = "/go"
-            KIND1       = "${BUILD_TAG}-${EXECUTOR_NUMBER}-1"
-            KIND2       = "${BUILD_TAG}-${EXECUTOR_NUMBER}-2"
+pipeline {
+    options {
+        timestamps()
+        ansiColor("xterm")
+    }
+    agent {
+        docker {
+            image 'ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4'
+            args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
+            label "wcm"
         }
-        /*
-        stage ('Install Docker Client') {
-            sh "apt-get update"
-            sh '''
-               apt-get install -y \
-               apt-transport-https \
-               ca-certificates \
-               curl \
-               gnupg-agent \
-               software-properties-common
-            '''
-            sh "curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -"
-            sh '''
-               add-apt-repository \
-               "deb [arch=amd64] https://download.docker.com/linux/debian \
-               $(lsb_release -cs) \
-               stable"
-            '''
-            sh "apt-get update && apt-get install -y docker-ce-cli"
-        }
-        */
-        stage ('Checkout SCM') {
-            checkout scm
-        }
+    }
+    environment{
+        TAG         = sh(script: "git describe --always --tags --dirty", returnStdout: true).trim()
+        CGO_ENABLED = 0
+        GO111MODULE = "on"
+        GOPATH      = "/go"
+        KIND1       = "${BUILD_TAG}-${EXECUTOR_NUMBER}-1"
+        KIND2       = "${BUILD_TAG}-${EXECUTOR_NUMBER}-2"
+    }
+    parameters {
+        choice(name: 'JOBTYPE', choices: ['commit', 'nightly', 'weekly', 'demo', 'all'], description: 'Test type')
+    }
+    stages {
         stage ('NSM-NSE Integration Tests') {
-            suffix="-${env.JOB_NAME}-${currentBuild.number}".toLowerCase().replaceAll("[^a-z0-9]","_")
-            sh "docker pull busybox:1.31"
-            sh '''
-               echo ${suffix}
-               echo "CGO = ${CGO_ENABLED}"
-               export PATH=$PATH:/usr/local/go/bin
-               export NSMNSE_INTEGRATION_TEST_IMG=integration-img${suffix}
-               export NSMNSE_INTEGRATION_TEST_NAME=integration-name${suffix}
-               export GOSUMDB=off
-               export GO111MODULE=on
-               export GOPRIVATE=github.cisco.com
-               export GONOPROXY=gopkg.in,go.uber.org
-               export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
-               export CGO_ENABLED=0
-               ./test/integration/run.sh
-            '''
+            steps {
+                /* suffix="-${env.JOB_NAME}-${currentBuild.number}".toLowerCase().replaceAll("[^a-z0-9]","_") */
+                sh "docker pull busybox:1.31"
+                sh '''
+                
+                echo "TAG = ${TAG}"
+                echo "CGO = ${CGO_ENABLED}"
+                export PATH=$PATH:/usr/local/go/bin
+                export NSMNSE_INTEGRATION_TEST_IMG=integration-img${TAG}
+                export NSMNSE_INTEGRATION_TEST_NAME=integration-name${TAG}
+                export GOSUMDB=off
+                export GO111MODULE=on
+                export GOPRIVATE=github.cisco.com
+                export GONOPROXY=gopkg.in,go.uber.org
+                export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
+                export CGO_ENABLED=0
+                ./test/integration/run.sh
+                '''
+            }
         }
         stage ("Grab Repos") {
-            script { currentBuild.description = "${env.JOBTYPE}, on node ${NODE_NAME}" }
-            dir('networkservicemesh') {
-                git branch: 'vl3_latest', credentialsId: 'app-net-jenkins', \
+            steps {
+                script { currentBuild.description = "${env.JOBTYPE}, on node ${NODE_NAME}" }
+                dir('networkservicemesh') {
+                    git branch: 'vl3_latest', credentialsId: 'app-net-jenkins', \
                     url: 'https://wwwin-github.cisco.com/cisco-app-networking/networkservicemesh'
+                }
             }
         }
         stage ("build vL3") {
-            sh '''
-               pwd
-               ls
-               git status
-               export GOSUMDB=off
-               export GO111MODULE=on
-               export GOPRIVATE=github.cisco.com
-               export GONOPROXY=gopkg.in,go.uber.org
-               export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
-               ORG=ciscoappnetworking TAG=wwwin-test make docker-vl3
-            '''
+            steps {
+                sh '''
+                   pwd
+                   ls
+                   git status
+                   export GOSUMDB=off
+                   export GO111MODULE=on
+                   export GOPRIVATE=github.cisco.com
+                   export GONOPROXY=gopkg.in,go.uber.org
+                   export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
+                   ORG=ciscoappnetworking TAG=wwwin-test make docker-vl3
+                '''
+            }
         }
         stage ("vL3 e2e test") {
-             sh '''
-             kind create cluster --name ${KIND1}
-             kind create cluster --name ${KIND2}
-             mkdir kubeconfigs
-             kind get kubeconfig --name=${KIND1} > kubeconfigs/kind1.kubeconfig
-             kind get kubeconfig --name=${KIND2} > kubeconfigs/kind2.kubeconfig
-             for cluster in ${KIND1} ${KIND2}; do
-                kind load docker-image ciscoappnetworking/vl3_ucnf-nse:wwwin-test --name $cluster 
-             done
-             '''
-             sh '''
-                curdir=$(pwd)
-                KUBECONFDIR=${curdir}/kubeconfigs \
-                NSE_HUB=ciscoappnetworking \
-                NSE_TAG=wwwin-test \
-                NSE_REPO=${curdir} \
-                NSM_REPO=${curdir}/networkservicemesh \
-                ./build/ci/runner/run_vl3.sh
-             '''
-        }
-        post {
-             always {
+             steps {
                  sh '''
-                 kind delete cluster --name ${KIND1}
-                 kind delete cluster --name ${KIND2}
+                 kind create cluster --name ${KIND1}
+                 kind create cluster --name ${KIND2}
+                 mkdir kubeconfigs
+                 kind get kubeconfig --name=${KIND1} > kubeconfigs/kind1.kubeconfig
+                 kind get kubeconfig --name=${KIND2} > kubeconfigs/kind2.kubeconfig
+                 for cluster in ${env.KIND1} ${KIND2}; do
+                    kind load docker-image ciscoappnetworking/vl3_ucnf-nse:wwwin-test --name $cluster 
+                 done
+                 '''
+                 sh '''
+                    curdir=$(pwd)
+                    KUBECONFDIR=${curdir}/kubeconfigs \
+                    NSE_HUB=ciscoappnetworking \
+                    NSE_TAG=wwwin-test \
+                    NSE_REPO=${curdir} \
+                    NSM_REPO=${curdir}/networkservicemesh \
+                    ./build/ci/runner/run_vl3.sh
                  '''
              }
         }
+    }
+    post {
+         always {
+             sh '''
+             kind delete cluster --name ${KIND1}
+             kind delete cluster --name ${KIND2}
+             '''
+         }
     }
 }
 
