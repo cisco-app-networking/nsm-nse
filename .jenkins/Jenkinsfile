@@ -74,6 +74,8 @@ node('wcm') {
         }
         stage ("vL3 e2e test") {
              sh '''
+             kind create cluster --name kind1
+             kind create cluster --name kind2
              mkdir kubeconfigs
              kind get kubeconfig --name=kind1 > kubeconfigs/kind1.kubeconfig
              kind get kubeconfig --name=kind2 > kubeconfigs/kind2.kubeconfig
