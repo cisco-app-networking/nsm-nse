@@ -38,6 +38,7 @@ func TestMain(m *testing.M) {
 	err := removeExistingKindCluster(*clusterName)
 	if err != nil {
 		fmt.Printf("Failed to remove old cluster '%s' with err: %v", *clusterName, err.Error())
+		os.Exit(1)
 	}
 	//Create a kind cluster for testing
 	fmt.Printf("Creating kind cluster '%s'...\n", *clusterName)
