@@ -3,12 +3,13 @@
   * to the host docker within the container.
   */
 node('wcm') {
-    docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
+    /*docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') { */
+    docker.image('ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
         environment{
             CGO_ENABLED = 0
             GO111MODULE = on
         }
-        
+        /*
         stage ('Install Docker Client') {
             sh "apt-get update"
             sh '''
@@ -28,7 +29,7 @@ node('wcm') {
             '''
             sh "apt-get update && apt-get install -y docker-ce-cli"
         }
-        
+        */
         stage ('Checkout SCM') {
             checkout scm
         }
@@ -46,16 +47,15 @@ node('wcm') {
                export GOPRIVATE=github.cisco.com
                export GONOPROXY=gopkg.in,go.uber.org
                export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
+               export CGO_ENABLED=0
                ./test/integration/run.sh
             '''
         }
         stage ("Grab Repos") {
-            steps {
-                script { currentBuild.description = "${env.JOBTYPE}, on node ${NODE_NAME}" }
-                dir('networkservicemesh') {
-                    git branch: 'vl3_latest', credentialsId: 'app-net-jenkins', \
-                        url: 'https://wwwin-github.cisco.com/cisco-app-networking/networkservicemesh'
-                }
+            script { currentBuild.description = "${env.JOBTYPE}, on node ${NODE_NAME}" }
+            dir('networkservicemesh') {
+                git branch: 'vl3_latest', credentialsId: 'app-net-jenkins', \
+                    url: 'https://wwwin-github.cisco.com/cisco-app-networking/networkservicemesh'
             }
         }
         stage ("build vL3") {
@@ -69,7 +69,7 @@ node('wcm') {
             '''
         }
         stage ("vL3 e2e test") {
-            agent {
+            /* agent {
                 docker {
                     reuseNode true
                     image 'ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4'
@@ -77,7 +77,7 @@ node('wcm') {
                         -v /var/run/docker.sock:/var/run/docker.sock \
                         -v ${WORKSPACE}/networkservicemesh:${env.GOPATH}/src/github.com/cisco-app-networking/networkservicemesh"
                 }
-            }
+            } */
             stages {
                 stage {
                     steps {
