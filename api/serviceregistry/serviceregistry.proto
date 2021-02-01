@@ -9,10 +9,11 @@ service Registry{
   rpc RegisterWorkload (ServiceWorkload) returns (Empty) {} // Request register of a new service
   rpc GetServices (Empty) returns (stream WorkloadEvent) {} // Get serviceWorkloads
   rpc RemoveWorkload (ServiceWorkload) returns (Empty) {} // Remove service from list
+  rpc RemoveAllWorkloads (ConnectivityDomain) returns (Empty) {} // Remove all services from a connectivity domain
 }
 
 service RegistryState {
-  rpc GetRegisteredWorkloads (Empty) returns (RegisteredWorkloads) {}
+  rpc GetRegisteredWorkloads (ConnectivityDomain) returns (RegisteredWorkloads) {}
 }
 
 message Empty {}
@@ -39,6 +40,10 @@ message ServiceWorkload {
 message Workload {
   WorkloadIdentifier identifier = 1;
   repeated string IPAddress = 2;
+}
+
+message ConnectivityDomain {
+  string name = 1;
 }
 
 message WorkloadIdentifier {
