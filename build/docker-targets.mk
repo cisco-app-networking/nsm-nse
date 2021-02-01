@@ -15,6 +15,7 @@
 
 ORG ?= cisco-app-networking
 TAG ?= latest
+DOCKER_SAVEDIR=build/images
 
 # Setup proxies for docker build
 ifeq ($(HTTP_PROXY),)
@@ -45,8 +46,8 @@ docker-$1-$2-build:
 .PHONY: docker-%-save
 docker-$1-$2-save: docker-$1-$2-build
 	@echo "Saving $1-$2"
-	@mkdir -p ${NSM_PATH}/build/images/
-	@docker save -o ${NSM_PATH}/build/images/$1-$2.tar ${ORG}/$1-$2
+	@mkdir -p ${DOCKER_SAVEDIR}
+	@docker save -o ${DOCKER_SAVEDIR}/$1-$2.tar ${ORG}/$1-$2
 
 .PHONY: docker-%-push
 docker-$1-$2-push: docker-$1-$2-build

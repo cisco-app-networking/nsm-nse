@@ -69,37 +69,22 @@ node('wcm') {
                export GOPRIVATE=github.cisco.com
                export GONOPROXY=gopkg.in,go.uber.org
                export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
-               ORG=ciscoappnetworking TAG=wwwin-test NSM_PATH=./networkservicemesh make docker-vL3
+               ORG=ciscoappnetworking TAG=wwwin-test make docker-vl3
             '''
         }
         stage ("vL3 e2e test") {
-            /* agent {
-                docker {
-                    reuseNode true
-                    image 'ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4'
-                    args "-d --network=host -u 0:0 -e HOME=${env.HOME} \
-                        -v /var/run/docker.sock:/var/run/docker.sock \
-                        -v ${WORKSPACE}/networkservicemesh:${env.GOPATH}/src/github.com/cisco-app-networking/networkservicemesh"
-                }
-            } */
-            stages {
-                stage {
-                    steps {
-                        sh '''
-                        mkdir kubeconfigs
-                        kind get kubeconfig --name=kind1 > kubeconfigs/kind1.kubeconfig
-                        kind get kubeconfig --name=kind2 > kubeconfigs/kind2.kubeconfig
-                        for cluster in kind1 kind2; do
-                           kind load docker-image ciscoappnetworking/vl3_ucnf-nse:wwwin-test --name $cluster 
-                        done
-                        '''
-                        sh "KUBECONFDIR=kubeconfigs \
-                           NSE_HUB=ciscoappnetworking \
-                           NSE_TAG=wwwin-test \
-                           ./build/ci/runner/run_vl3.sh"
-                    }
-                }
-            }
+             sh '''
+             mkdir kubeconfigs
+             kind get kubeconfig --name=kind1 > kubeconfigs/kind1.kubeconfig
+             kind get kubeconfig --name=kind2 > kubeconfigs/kind2.kubeconfig
+             for cluster in kind1 kind2; do
+                kind load docker-image ciscoappnetworking/vl3_ucnf-nse:wwwin-test --name $cluster 
+             done
+             '''
+             sh "KUBECONFDIR=kubeconfigs \
+                NSE_HUB=ciscoappnetworking \
+                NSE_TAG=wwwin-test \
+                ./build/ci/runner/run_vl3.sh"
         }
     }
 }

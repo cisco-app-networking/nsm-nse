@@ -49,5 +49,5 @@ list: $(addsuffix -list,$(NSE_NAMES))
 	@printf "\n Get the full description of the example by calling:\n\n \t make <example-name>-describe \n\n"
 
 # NSM fallthrough target
-%:
-	@cd ${NSM_PATH} && make $*
+#%:
+#	@cd ${NSM_PATH} && make $*
