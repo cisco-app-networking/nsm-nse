@@ -49,6 +49,15 @@ node('wcm') {
                ./test/integration/run.sh
             '''
         }
+        stage ("Grab Repos") {
+            steps {
+                script { currentBuild.description = "${env.JOBTYPE}, on node ${NODE_NAME}" }
+                dir('networkservicemesh') {
+                    git branch: 'vl3_latest', credentialsId: 'app-net-jenkins', \
+                        url: 'https://wwwin-github.cisco.com/cisco-app-networking/networkservicemesh'
+                }
+            }
+        }
         stage ("build vL3") {
             sh '''
                export GOSUMDB=off
@@ -58,15 +67,6 @@ node('wcm') {
                export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
                ORG=ciscoappnetworking TAG=wwwin-test make docker-vL3
             '''
-        }
-        stage ("Grab Repos") {
-            steps {
-                script { currentBuild.description = "${env.JOBTYPE}, on node ${NODE_NAME}" }
-                dir('networkservicemesh') {
-                    git branch: 'vl3_latest', credentialsId: 'app-net-jenkins', \
-                        url: 'https://wwwin-github.cisco.com/cisco-app-networking/networkservicemesh'
-                }
-            }
         }
         stage ("vL3 e2e test") {
             agent {
