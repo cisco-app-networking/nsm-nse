@@ -21,7 +21,7 @@ SHELL:=/bin/bash
 .PHONY: default
 default: all
 
-NSM_PATH?=${TOP}/../../networkservicemesh/networkservicemesh
+NSM_PATH?=${TOP}/../networkservicemesh
 CLUSTER_RULES_PREFIX?=kind
 PREFIX?=k8s
 CONTAINER_BUILD_PREFIX?=docker

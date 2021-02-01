@@ -8,6 +8,7 @@ node('wcm') {
         environment{
             CGO_ENABLED = 0
             GO111MODULE = on
+            GOPATH      = "/go"
         }
         /*
         stage ('Install Docker Client') {
@@ -60,12 +61,15 @@ node('wcm') {
         }
         stage ("build vL3") {
             sh '''
+               pwd
+               ls
+               git status
                export GOSUMDB=off
                export GO111MODULE=on
                export GOPRIVATE=github.cisco.com
                export GONOPROXY=gopkg.in,go.uber.org
                export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
-               ORG=ciscoappnetworking TAG=wwwin-test make docker-vL3
+               ORG=ciscoappnetworking TAG=wwwin-test NSM_PATH=./networkservicemesh make docker-vL3
             '''
         }
         stage ("vL3 e2e test") {
