@@ -83,10 +83,15 @@ node('wcm') {
                 kind load docker-image ciscoappnetworking/vl3_ucnf-nse:wwwin-test --name $cluster 
              done
              '''
-             sh "KUBECONFDIR=kubeconfigs \
+             sh '''
+                curdir=$(pwd)
+                KUBECONFDIR=${curdir}/kubeconfigs \
                 NSE_HUB=ciscoappnetworking \
                 NSE_TAG=wwwin-test \
-                ./build/ci/runner/run_vl3.sh"
+                NSE_REPO=${curdir} \
+                NSM_REPO=${curdir}/networkservicemesh \
+                ./build/ci/runner/run_vl3.sh
+             '''
         }
     }
 }
