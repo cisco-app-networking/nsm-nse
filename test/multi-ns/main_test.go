@@ -18,7 +18,7 @@ var (
 	//flags used
 	kubeconfig  *string
 	clusterName = flag.String("clusterName", "test", "Name of kind cluster for this test")
-	ipAddr      = flag.String("REMOTE_IP", "127.0.0.1", "Set ENV to REMOTE_IP")
+	ipAddr      = flag.String("remoteIp", "127.0.0.1", "Set ENV to REMOTE_IP")
 	nsmPath     = flag.String("nsmPath", "../../scripts/vl3/nsm_install_interdomain.sh", "Path of script to install NSM")
 	nsePath     = flag.String("nsePath", "../../scripts/vl3/vl3_interdomain.sh", "Path of script to install NSE")
 
@@ -34,66 +34,82 @@ func TestMain(m *testing.M) {
 	}
 	flag.Parse()
 	//Remove existing cluster which has the same name
-	fmt.Println("Remove old cluster")
-	removeExistingKindCluster(*clusterName)
+	fmt.Println("Removing old cluster...")
+	err := removeExistingKindCluster(*clusterName)
+	if err != nil {
+		fmt.Printf("Failed to remove old cluster '%s' with err: %v", *clusterName, err.Error())
+	}
 	//Create a kind cluster for testing
-	fmt.Printf("Creating kind cluster '%s'\n", *clusterName)
-	execKindCluster("create", *clusterName)
+	fmt.Printf("Creating kind cluster '%s'...\n", *clusterName)
+	err = execKindCluster("create", *clusterName)
+	if err != nil {
+		os.Exit(1)
+	}
 	//Prepare clientset for K8s API
-	clientset, _ = getClientSet()
-
+	clientset, err = getClientSet()
+	if err != nil {
+		fmt.Printf("Failed to get Clientset with err: %v", err.Error())
+		os.Exit(1)
+	}
 	//Install NSM
 	fmt.Println("Installing NSM...")
 	cmd := exec.Command(*nsmPath)
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		fmt.Printf("Failed to execute command: %v withe error: %v \n", *nsmPath, err.Error())
+		os.Exit(1)
 	}
 
+	//Run tests in this package
 	code := m.Run()
+
 	//Remove the cluster after tests are done
-	execKindCluster("delete", *clusterName)
-	fmt.Printf("Deleted kind cluster '%s'\n", *clusterName)
+	err = execKindCluster("delete", *clusterName)
+	if err != nil {
+		os.Exit(1)
+	}
 	os.Exit(code)
 }
 
-func removeExistingKindCluster(clusterName string) {
+func removeExistingKindCluster(clusterName string) error {
 	//Get all kind clusters
 	out, err := exec.Command("kind", "get", "clusters").Output()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		fmt.Println("Failed to get existing kind clusters")
+		return err
 	}
 	//Check if input cluster already exists
 	//If found, remove it
 	s := strings.Fields(string(out))
 	for _, name := range s {
 		if name == clusterName {
-			execKindCluster("delete", clusterName)
+			if err := execKindCluster("delete", clusterName); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
-func execKindCluster(action, clusterName string) {
+func execKindCluster(action, clusterName string) error {
 	nameFlag := "--name=" + clusterName
 	cmd := exec.Command("kind", action, "cluster", nameFlag)
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		fmt.Printf("Failed to %s Cluster '%s' with err: %v", action, clusterName, err.Error())
 	}
+	return err
 }
 
 func getClientSet() (*kubernetes.Clientset, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("Failed to build config from '%v' with err: %v", *kubeconfig, err.Error())
 		return nil, err
 	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("Failed to create a new clientset from '%v' with err: %v", *kubeconfig, err.Error())
 		return nil, err
 	}
 	return clientset, nil

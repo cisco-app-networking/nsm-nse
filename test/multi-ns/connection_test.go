@@ -69,19 +69,20 @@ func TestSingleClientMultiNS(t *testing.T) {
 		var deployments []appsv1.Deployment
 		//Install network service
 		for _, name := range c.networkServices {
-			fmt.Printf("Installing Network Service %s\n", name)
+			fmt.Printf("Installing Network Service %s...\n", name)
 			os.Setenv("REMOTE_IP", *ipAddr)
 			os.Setenv("SERVICENAME", name)
 			cmd := exec.Command(*nsePath)
 			err := cmd.Run()
 			if err != nil {
-				fmt.Println(err.Error())
+				t.Errorf("Failed to execute command: %v with error: %v", *nsePath, err.Error())
 				return
 			}
 		}
 		endpoints, err := listDeployments("wcm-system", clientset)
 		if err != nil {
-			fmt.Println("Failed to list deployments in 'wcm-system' namespace:", err)
+			t.Errorf("Failed to list Deployments in namespace '%v' with error: %v", "wcm-system", err.Error())
+			return
 		}
 		deployments = append(deployments, endpoints...)
 
@@ -91,7 +92,7 @@ func TestSingleClientMultiNS(t *testing.T) {
 		deploymentsClient := clientset.AppsV1().Deployments(corev1.NamespaceDefault)
 		result, err := deploymentsClient.Create(context.TODO(), clientDep, metav1.CreateOptions{})
 		if err != nil {
-			fmt.Println(err.Error())
+			t.Errorf("Failed to create Deployment '%v' with error: %v", clientDep.ObjectMeta.Name, err.Error())
 			return
 		}
 		deployments = append(deployments, *result)
@@ -114,7 +115,9 @@ func TestSingleClientMultiNS(t *testing.T) {
 		//Cleanup deployments
 		for _, d := range deployments {
 			if err := removeDeployment(d.ObjectMeta.Namespace, d.ObjectMeta.Name, clientset); err != nil {
-				fmt.Println(err.Error())
+				t.Errorf("Failed to remove Deployment '%v' in Namespace '%v' with err: %v",
+					d.ObjectMeta.Name, d.ObjectMeta.Namespace, err.Error())
+				return
 			}
 		}
 	}
