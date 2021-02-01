@@ -3,11 +3,12 @@
   * to the host docker within the container.
   */
 node('wcm') {
-    docker.image('golang:1.15-buster').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
+    docker.image('ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4').inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
         environment{
             CGO_ENABLED = 0
             GO111MODULE = on
         }
+        /*
         stage ('Install Docker Client') {
             sh "apt-get update"
             sh '''
@@ -27,22 +28,62 @@ node('wcm') {
             '''
             sh "apt-get update && apt-get install -y docker-ce-cli"
         }
+        */
         stage ('Checkout SCM') {
             checkout scm
         }
         stage ('NSM-NSE Integration Tests') {
             suffix="-${env.JOB_NAME}-${currentBuild.number}".toLowerCase().replaceAll("[^a-z0-9]","_")
-            sh "docker pull busybox:1.31"
-            sh "echo ${suffix}\n" +
-               "export PATH=$PATH:/usr/local/go/bin\n" +
-               "export NSMNSE_INTEGRATION_TEST_IMG=integration-img${suffix}\n" +
-               "export NSMNSE_INTEGRATION_TEST_NAME=integration-name${suffix}\n" +
-               "export GOSUMDB=off\n" +
-               "export GO111MODULE=on\n" +
-               "export GOPRIVATE=github.cisco.com\n" +
-               "export GONOPROXY=gopkg.in,go.uber.org\n" +
-               "export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go\n" +
-               "./test/integration/run.sh\n"
+            /* sh "docker pull busybox:1.31" */
+            sh '''
+               echo ${suffix}
+               echo "CGO = ${CGO_ENABLED}"
+               export PATH=$PATH:/usr/local/go/bin
+               export NSMNSE_INTEGRATION_TEST_IMG=integration-img${suffix}
+               export NSMNSE_INTEGRATION_TEST_NAME=integration-name${suffix}
+               export GOSUMDB=off
+               export GO111MODULE=on
+               export GOPRIVATE=github.cisco.com
+               export GONOPROXY=gopkg.in,go.uber.org
+               export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
+               export CGO_ENABLED=0
+               ./test/integration/run.sh
+            '''
+        }
+        stage ("build vL3") {
+            sh '''
+               export GOSUMDB=off
+               export GO111MODULE=on
+               export GOPRIVATE=github.cisco.com
+               export GONOPROXY=gopkg.in,go.uber.org
+               export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
+               ORG=ciscoappnetworking TAG=wwwin-test make docker-vL3
+            '''
+        }
+        stage ("Grab Repos") {
+            steps {
+                script { currentBuild.description = "${env.JOBTYPE}, on node ${NODE_NAME}" }
+                dir('networkservicemesh') {
+                    git branch: 'vl3_latest', credentialsId: 'app-net-jenkins', \
+                        url: 'https://wwwin-github.cisco.com/cisco-app-networking/networkservicemesh'
+                }
+            }
+        }
+        stage ("vL3 e2e test") {
+            steps {
+                sh '''
+                mkdir kubeconfigs
+                kind get kubeconfig --name=kind1 > kubeconfigs/kind1.kubeconfig
+                kind get kubeconfig --name=kind2 > kubeconfigs/kind2.kubeconfig
+                for cluster in kind1 kind2; do
+                  kind load docker-image ciscoappnetworking/vl3_ucnf-nse:wwwin-test --name $cluster 
+                done
+                '''
+                sh "KUBECONFDIR=kubeconfigs \
+                    NSE_HUB=ciscoappnetworking \
+                    NSE_TAG=wwwin-test \
+                    ./build/ci/runner/run_vl3.sh"
+            }
         }
     }
 }
