@@ -9,6 +9,8 @@ node('wcm') {
             CGO_ENABLED = 0
             GO111MODULE = on
             GOPATH      = "/go"
+            KIND1       = "${BUILD_TAG}-${EXECUTOR_NUMBER}-1"
+            KIND2       = "${BUILD_TAG}-${EXECUTOR_NUMBER}-2"
         }
         /*
         stage ('Install Docker Client') {
@@ -74,12 +76,12 @@ node('wcm') {
         }
         stage ("vL3 e2e test") {
              sh '''
-             kind create cluster --name kind1
-             kind create cluster --name kind2
+             kind create cluster --name ${KIND1}
+             kind create cluster --name ${KIND2}
              mkdir kubeconfigs
-             kind get kubeconfig --name=kind1 > kubeconfigs/kind1.kubeconfig
-             kind get kubeconfig --name=kind2 > kubeconfigs/kind2.kubeconfig
-             for cluster in kind1 kind2; do
+             kind get kubeconfig --name=${KIND1} > kubeconfigs/kind1.kubeconfig
+             kind get kubeconfig --name=${KIND2} > kubeconfigs/kind2.kubeconfig
+             for cluster in ${KIND1} ${KIND2}; do
                 kind load docker-image ciscoappnetworking/vl3_ucnf-nse:wwwin-test --name $cluster 
              done
              '''
@@ -92,6 +94,14 @@ node('wcm') {
                 NSM_REPO=${curdir}/networkservicemesh \
                 ./build/ci/runner/run_vl3.sh
              '''
+        }
+        post {
+             always {
+                 sh '''
+                 kind delete cluster --name ${KIND1}
+                 kind delete cluster --name ${KIND2}
+                 '''
+             }
         }
     }
 }
