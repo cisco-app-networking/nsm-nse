@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/cisco-app-networking/nsm-nse/pkg/metrics"
+	"github.com/cisco-app-networking/nsm-nse/pkg/service-registry"
 	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 )
 
@@ -227,16 +228,16 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 		}
 	}
 
-	err := ValidateInLabels(conn.Labels)
+	err := service_registry.ValidateInLabels(conn.Labels)
 	if err != nil {
 		logger.Errorf("vL3 workload params not in labels: %v", err)
 	} else {
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr, ctx)
+		serviceRegistry, registryClient, err := service_registry.NewServiceRegistry(vxc.nseControlAddr, ctx)
 		if err != nil {
 			logger.Error(err)
 		} else {
 			err = serviceRegistry.RegisterWorkload(ctx, conn.Labels, vxc.connDomain,
-				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"), config.GetEndpointName())
+				service_registry.ProcessWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"), config.GetEndpointName())
 			if err != nil {
 				logger.Error(err)
 			}
@@ -255,19 +256,19 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 func (vxc *vL3ConnectComposite) Close(ctx context.Context, conn *connection.Connection) (*empty.Empty, error) {
 	// remove from connections
 	logrus.Infof("vL3 DeleteConnection: %v", conn)
-	err := ValidateInLabels(conn.Labels)
+	err := service_registry.ValidateInLabels(conn.Labels)
 	if err != nil {
 		logrus.Errorf("vL3 workload params not in labels: %v", err)
 	} else {
 		logrus.WithFields(logrus.Fields{
-			"SrcIP": processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"),
+			"SrcIP": service_registry.ProcessWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"),
 		}).Infof("vL3 Removing workload instance")
-		serviceRegistry, registryClient, err := NewServiceRegistry(vxc.nseControlAddr, ctx)
+		serviceRegistry, registryClient, err := service_registry.NewServiceRegistry(vxc.nseControlAddr, ctx)
 		if err != nil {
 			logrus.Error(err)
 		} else {
 			err = serviceRegistry.RemoveWorkload(ctx, conn.Labels, vxc.connDomain,
-				processWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"), config.GetEndpointName())
+				service_registry.ProcessWorkloadIps(conn.Context.IpContext.SrcIpAddr, ";"), config.GetEndpointName())
 			if err != nil {
 				logrus.Error(err)
 			}

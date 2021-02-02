@@ -1,4 +1,4 @@
-package main
+package service_registry
 
 import (
 	"context"
@@ -68,6 +68,7 @@ func NewServiceRegistry(addr string, ctx context.Context) (ServiceRegistry, Serv
 type ServiceRegistry interface {
 	RegisterWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string, endpointName string) error
 	RemoveWorkload(ctx context.Context, workloadLabels map[string]string, connDom string, ipAddr []string, endpointName string) error
+	RemoveAllWorkloads(ctx context.Context, connectivityDomain string) error
 }
 
 type ServiceRegistryClient interface {
@@ -161,6 +162,11 @@ func (s *serviceRegistry) RemoveWorkload(ctx context.Context, workloadLabels map
 	return nil
 }
 
+func (s *serviceRegistry) RemoveAllWorkloads(ctx context.Context, connectivityDomain string) error {
+	_, err := s.registryClient.RemoveAllWorkloads(ctx, &serviceregistry.ConnectivityDomain{Name: connectivityDomain})
+	return err
+}
+
 func (s *serviceRegistry) Stop() {
 	s.connection.Close()
 }
@@ -179,7 +185,7 @@ func processPortsFromLabel(portLabel, separator string) ([]int32, error) {
 	return servicePorts, nil
 }
 
-func processWorkloadIps(workloadIps, separator string) []string {
+func ProcessWorkloadIps(workloadIps, separator string) []string {
 	ips := strings.Split(workloadIps, separator)
 	serviceIps := []string{}
 	serviceIps = append(serviceIps, ips...)
