@@ -19,6 +19,8 @@ pipeline {
         CGO_ENABLED = 0
         GO111MODULE = "on"
         GOPATH      = "/go"
+        HOME        = "${WORKSPACE}"
+        GOCACHE     = "/go/.cache"
         KIND1       = "nse-${BUILD_NUMBER}-${EXECUTOR_NUMBER}-1"
         KIND2       = "nse-${BUILD_NUMBER}-${EXECUTOR_NUMBER}-2"
     }
