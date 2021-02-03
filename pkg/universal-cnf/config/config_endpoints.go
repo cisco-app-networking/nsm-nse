@@ -146,20 +146,6 @@ func NewProcessPassThroughEndpoints(backend UniversalCNFBackend, endpoints []*ns
 		logrus.Infof("DEBUGGING -- compositeEndpoints : %T", compositeEndpoints)
 		logrus.Infof("DEBUGGING -- configuration : %+v, e: %+v", configuration, e)
 
-		if configuration.IPAddress != "" {
-			compositeEndpoints = append(compositeEndpoints, endpoint.NewIpamEndpoint(&common.NSConfiguration{
-				NsmServerSocket:        nsconfig.NsmServerSocket,
-				NsmClientSocket:        nsconfig.NsmClientSocket,
-				Workspace:              nsconfig.Workspace,
-				EndpointNetworkService: nsconfig.EndpointNetworkService,
-				ClientNetworkService:   nsconfig.ClientNetworkService,
-				EndpointLabels:         nsconfig.EndpointLabels,
-				ClientLabels:           nsconfig.ClientLabels,
-				MechanismType:          nsconfig.MechanismType,
-				IPAddress:              configuration.IPAddress,
-				Routes:                 nil,
-			}))
-		}
 
 		// Invoke any additional composite endpoint constructors via the add-on interface
 		addCompositeEndpoints := ceAddons.AddCompositeEndpoints(configuration, e)

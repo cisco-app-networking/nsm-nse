@@ -15,7 +15,7 @@ insecure: true
 
 ipam:
   prefixLength: 22
-  defaultPrefixPool: 192.169.0.0/16
+  defaultPrefixPool: 192.168.0.0/16
 
 nsm:
   serviceName: pass-through-nse

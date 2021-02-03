@@ -77,12 +77,10 @@ func (e passThroughCompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSC
 	}
 
 	compositeEndpoints := []networkservice.NetworkServiceServer{
-		newPassThroughConnectComposite(nsConfig, nsConfig.IPAddress,
-			&vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList,
+		newPassThroughComposite(nsConfig, nsConfig.IPAddress, &vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList,
 			func() string {
 				return ucnfEndpoint.NseName
-			}, ucnfEndpoint.PassThrough.IPAM.DefaultPrefixPool, ucnfEndpoint.PassThrough.IPAM.ServerAddress,
-			ucnfEndpoint.Labels),
+			}, ucnfEndpoint.PassThrough.IPAM.DefaultPrefixPool, ucnfEndpoint.Labels, ucnfEndpoint.PassThrough.Ifname),
 	}
 
 	return &compositeEndpoints

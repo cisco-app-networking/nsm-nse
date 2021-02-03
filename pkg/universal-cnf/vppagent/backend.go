@@ -36,7 +36,6 @@ import (
 // UniversalCNFVPPAgentBackend is the VPP CNF backend struct
 type UniversalCNFVPPAgentBackend struct {
 	EndpointIfID map[string]int
-	EndpointIfName []string
 }
 
 // NewDPConfig returns a plain DPConfig struct
@@ -50,6 +49,40 @@ func (b *UniversalCNFVPPAgentBackend) NewUniversalCNFBackend() error {
 
 	if err := ResetVppAgent(); err != nil {
 		logrus.Fatalf("Error resetting vpp: %v", err)
+	}
+
+	return nil
+}
+
+// ProcessMemif runs the client/endpoint code for the VPP CNF to create L2 vpp interface
+func (b *UniversalCNFVPPAgentBackend) ProcessMemif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error {
+	vppconfig, ok := dpConfig.(*vpp.ConfigData) // type assertion
+	if !ok {
+		return fmt.Errorf("unable to convert dpconfig to vppconfig	")
+	}
+
+	socketFilename := path.Join(getBaseDir(), memif.ToMechanism(conn.GetMechanism()).GetSocketFilename())
+
+	vppconfig.Interfaces = append(vppconfig.Interfaces,
+		&interfaces.Interface{
+			Name:	ifName,
+			Type:	interfaces.Interface_MEMIF,
+			Enabled: true,
+			Link: &interfaces.Interface_Memif{
+				Memif: &interfaces.MemifLink{
+					Master: memifMaster, // the memif that communicates with client pod is master
+										 // the memif that communicates with the chain NSE pod is slave
+					SocketFilename: socketFilename,
+					RingSize: 512, 		 // The number of entries of RX/TX rings
+				},
+			},
+		})
+
+	// Need to create the memif socket file to communicate with the client pod
+	if memifMaster {
+		if err := os.MkdirAll(path.Dir(socketFilename), os.ModePerm); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -100,7 +133,8 @@ func (b *UniversalCNFVPPAgentBackend) ProcessClient(
 	return nil
 }
 
-func (b *UniversalCNFVPPAgentBackend) buildVppIfName(defaultIfName, serviceName string, conn *connection.Connection) string {
+func (b *UniversalCNFVPPAgentBackend) buildVppIfName(defaultIfName, serviceName string,
+	conn *connection.Connection) string {
 	// NSC peer connection
 	if name, ok := conn.Labels[connection.PodNameKey]; ok {
 		logrus.Infof("Setting ifName with podName: %s", name)
@@ -244,11 +278,6 @@ func (b *UniversalCNFVPPAgentBackend) ProcessDPConfig(dpconfig interface{}, upda
 
 	if err != nil {
 		logrus.Errorf("Updating the VPP config failed with: %v", err)
-	}
-
-	for _, i := range vppconfig.Interfaces {
-		logrus.Infof("DEBUGGING -- the current interface name is: %s", i.Name)
-		b.EndpointIfName = append(b.EndpointIfName, i.Name)
 	}
 
 

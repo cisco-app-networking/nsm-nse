@@ -28,6 +28,7 @@ import (
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
 	"net"
+	"os"
 )
 
 // UniversalCNFEndpoint is a Universal CNF Endpoint composite implementation
@@ -36,6 +37,7 @@ type UniversalCNFEndpoint struct {
 	endpoint *nseconfig.Endpoint
 	backend  UniversalCNFBackend
 	dpConfig *vpp.ConfigData
+	endpointIfName *string
 }
 
 // Request implements the request handler
@@ -47,9 +49,23 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 		uce.dpConfig = uce.backend.NewDPConfig()
 	}
 
-	if err := uce.backend.ProcessEndpoint(uce.dpConfig, uce.endpoint.Name, uce.endpoint.VL3.Ifname, conn); err != nil {
-		logrus.Errorf("Failed to process: %+v", uce.endpoint)
-		return nil, err
+	passThrough, ok := os.LookupEnv("PASS_THROUGH")
+	if ok && passThrough == "true" {
+		ifName := uce.endpoint.PassThrough.Ifname
+		if ifName, ok = conn.Labels[connection.PodNameKey]; ok {
+			logrus.Infof("Setting ifName with podName: %s", ifName)
+		}
+		// this memif is a master since it connects with the client pod
+		memifMaster := true
+		if err := uce.backend.ProcessMemif(uce.dpConfig, ifName, conn, memifMaster); err != nil {
+			logrus.Errorf("Failed to process: %+v", uce.endpoint)
+			return nil, err
+		}
+	} else {
+		if err := uce.backend.ProcessEndpoint(uce.dpConfig, uce.endpoint.Name, uce.endpoint.VL3.Ifname, conn); err != nil {
+			logrus.Errorf("Failed to process: %+v", uce.endpoint)
+			return nil, err
+		}
 	}
 
 	if err := uce.backend.ProcessDPConfig(uce.dpConfig, true); err != nil {

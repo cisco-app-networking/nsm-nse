@@ -33,6 +33,7 @@ import (
 const (
 	PEER_NAME = "ucnf/peerName"
 	PodName = "nsepod.name"
+	PassThroughMemifName = "PASSTHROUGH_ENDPOINT_MEMIFNAME"
 
 	nsePodNameEnv  = "NSE_POD_NAME"
 	nsePodName     = "example"
@@ -134,6 +135,7 @@ type UniversalCNFBackend interface {
 	NewUniversalCNFBackend() error
 	ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error
 	ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error
+	ProcessMemif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error
 	ProcessDPConfig(dpconfig interface{}, update bool) error
 }
 
