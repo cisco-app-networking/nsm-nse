@@ -1,3 +1,5 @@
+@Library(['srePipeline']) _
+
 /**
   * The Jenkinsfile runs entire build in a golang container and mounts the /var/run/docker.sock file to allow access
   * to the host docker within the container.
@@ -30,23 +32,23 @@ pipeline {
     stages {
         stage ('NSM-NSE Integration Tests') {
             steps {
-                /* suffix="-${env.JOB_NAME}-${currentBuild.number}".toLowerCase().replaceAll("[^a-z0-9]","_") */
                 sh "docker pull busybox:1.31"
-                sh '''
-                
-                echo "TAG = ${TAG}"
-                echo "CGO = ${CGO_ENABLED}"
-                export PATH=$PATH:/usr/local/go/bin
-                export NSMNSE_INTEGRATION_TEST_IMG=integration-img${TAG}
-                export NSMNSE_INTEGRATION_TEST_NAME=integration-name${TAG}
-                export GOSUMDB=off
-                export GO111MODULE=on
-                export GOPRIVATE=github.cisco.com
-                export GONOPROXY=gopkg.in,go.uber.org
-                export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
-                export CGO_ENABLED=0
-                ./test/integration/run.sh
-                '''
+                withCredentials([usernamePassword(credentialsId: 'artifactory-resolver-flowerbed--gen-upw', passwordVariable: 'ARTIFACTORY_PASSWORD', usernameVariable: 'ARTIFACTORY_USER')]) {
+                   sh """
+                       echo "TAG = ${TAG}"
+                       export PATH=$PATH:/usr/local/go/bin
+                       export NSMNSE_INTEGRATION_TEST_IMG=integration-img${TAG}
+                       export NSMNSE_INTEGRATION_TEST_NAME=integration-name${TAG}
+                       export GOSUMDB=off
+                       export GO111MODULE=on
+                       export GOPRIVATE=github.cisco.com
+                       export GONOPROXY=gopkg.in,go.uber.org
+                       export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
+                       export CGO_ENABLED=0
+                       ./test/integration/run.sh
+
+                   """
+                }
             }
         }
         stage ("Grab Repos") {
@@ -60,17 +62,16 @@ pipeline {
         }
         stage ("build vL3") {
             steps {
-                sh '''
-                   pwd
-                   ls
-                   git status
+                withCredentials([usernamePassword(credentialsId: 'artifactory-resolver-flowerbed--gen-upw', passwordVariable: 'ARTIFACTORY_PASSWORD', usernameVariable: 'ARTIFACTORY_USER')]) {
+                   sh """
                    export GOSUMDB=off
                    export GO111MODULE=on
                    export GOPRIVATE=github.cisco.com
                    export GONOPROXY=gopkg.in,go.uber.org
                    export GOPROXY=https://${ARTIFACTORY_USER}:${ARTIFACTORY_PASSWORD}@engci-maven-master.cisco.com/artifactory/api/go/nyota-go
                    ORG=ciscoappnetworking TAG=${TAG} make docker-vl3
-                '''
+                   """
+                }
             }
         }
         stage ("vL3 e2e test") {
