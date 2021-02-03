@@ -26,6 +26,7 @@ import (
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
+	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
 	"net"
 	"os"
@@ -56,8 +57,7 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 			logrus.Infof("Setting ifName with podName: %s", ifName)
 		}
 		// this memif is a master since it connects with the client pod
-		memifMaster := true
-		if err := uce.backend.ProcessMemif(uce.dpConfig, ifName, conn, memifMaster); err != nil {
+		if err := uce.backend.ProcessMemif(uce.dpConfig, ifName, conn, true); err != nil {
 			logrus.Errorf("Failed to process: %+v", uce.endpoint)
 			return nil, err
 		}
@@ -72,6 +72,8 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
 		return nil, err
 	}
+
+	logrus.Infof("DEBUGGING -- the vppagent.L2MemifNames: %+v", PassThroughMemifs)
 
 	if endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Request(ctx, request)
@@ -146,11 +148,57 @@ func (uce *UniversalCNFEndpoint) removeClientInterface(connection *connection.Co
 	return removeConfig, nil
 }
 
+
+func (uce *UniversalCNFEndpoint) removeL2xConnInterface(conn *connection.Connection) (*vpp.ConfigData, error) {
+	logrus.Infof("Removing L2 cross connected interfaces...")
+	logrus.Infof("DEBUGGING -- removeL2xConnInterface: %+v, %+v", conn, uce.dpConfig.Interfaces)
+
+	var clientIfName string
+	var clientIfToRm, endpointIfToRm *vpp_interfaces.Interface
+	var rmInx = -1
+
+	clientIfName = conn.GetLabels()[connection.PodNameKey]
+
+	for i, vppIf := range(uce.dpConfig.Interfaces) {
+		if clientIfName == vppIf.GetName(){
+			endpointIfToRm = PassThroughMemifs.Names[clientIfName]
+			clientIfToRm = uce.dpConfig.Interfaces[i]
+			rmInx = i
+		}
+	}
+
+	if rmInx == -1 || clientIfToRm == nil || endpointIfToRm == nil {
+		return nil, fmt.Errorf("Failed to find the L2 cross connected interface pair")
+	}
+
+	logrus.Infof("DEBUGGING -- clientIf: %s, endpointIf: %s, the interface to be removed is: %+v", clientIfName, endpointIfToRm,
+		clientIfToRm)
+
+	// Remove the interface from the actual config.
+	uce.dpConfig.Interfaces = append(uce.dpConfig.Interfaces[:rmInx], uce.dpConfig.Interfaces[rmInx+1:]...)
+
+	// Create a new configuration used in the vpp to perform the removal.
+	removeConfig := uce.backend.NewDPConfig()
+	removeConfig.Interfaces = append(removeConfig.Interfaces, clientIfToRm, endpointIfToRm)
+
+	logrus.Infof("DEBUGGING -- the removeConfig.Interfaces is:%+v", removeConfig.Interfaces)
+
+	return removeConfig, nil
+}
+
 // Close implements the close handler
 func (uce *UniversalCNFEndpoint) Close(ctx context.Context, connection *connection.Connection) (*empty.Empty, error) {
 	logrus.Infof("Universal CNF DeleteConnection: %v", connection)
 
-	removeConfig, err := uce.removeClientInterface(connection)
+	var removeConfig *vpp.ConfigData
+	var err error
+
+	passThrough, ok := os.LookupEnv("PASS_THROUGH")
+	if ok && passThrough == "true" {
+		removeConfig, err = uce.removeL2xConnInterface(connection)
+	} else {
+		removeConfig, err = uce.removeClientInterface(connection)
+	}
 	if err != nil && endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Close(ctx, connection)
 	}

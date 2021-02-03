@@ -7,6 +7,7 @@ import (
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
 	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -28,22 +29,11 @@ import (
 const (
 	NSREGISTRY_ADDR = "nsmgr.nsm-system"
 	NSREGISTRY_PORT = "5000"
-	NSCLIENT_PORT   = "5001"
 )
 
 type chainNSEState int
 
-const (
-	POD_NAME     = "podName"
-)
 
-const (
-	CHAIN_STATE_NOTCONN chainNSEState = iota
-	CHAIN_STATE_CONN
-	CHAIN_STATE_CONNERR
-	CHAIN_STATE_CONN_INPROG
-	//CHAIN_STATE_CONN_RX
-)
 
 type chainNSE struct {
 	sync.RWMutex
@@ -66,25 +56,13 @@ type passThroughComposite struct {
 	nsRegGrpcClient    			   *grpc.ClientConn
 	nsDiscoveryClient  			   registry.NetworkServiceDiscoveryClient
 	nsmClient          			   *client.NsmClient
-	backend            			config.UniversalCNFBackend
+	backend            			   config.UniversalCNFBackend
 	myNseNameFunc      			   fnGetNseName
 	chain					  		*chainNSE // assume each passthrough NSE has only 1 chain NSE
 	defaultIfName					string
+	endpointIfID 					map[string]int
 }
 
-
-func removeDuplicates(elements []string) []string {
-	encountered := map[string]bool{}
-	result := []string{}
-
-	for v := range elements {
-		if !encountered[elements[v]] {
-			encountered[elements[v]] = true
-			result = append(result, elements[v])
-		}
-	}
-	return result
-}
 
 
 func (ptxc *passThroughComposite) Request(ctx context.Context,
@@ -227,35 +205,44 @@ func (ptxc *passThroughComposite) processNsEndpoints(ctx context.Context, reques
 		for eLabelKey, eLabelVal := range nsEndpoint.Labels {
 			if eLabelKey == desKey && eLabelVal == desVal {
 				logger.Infof("The chain NSE is found: %s, now trying to connect...", nsEndpoint.GetName())
-
-				chainNSE := ptxc.addChain(nsEndpoint.GetName(), nsEndpoint.GetNetworkServiceManagerName(), remoteIP)
-
-				chainNSE.Lock()
 				routes := []string{ptxc.passThroughNetCidr}
-
-				connErr := ptxc.ConnectChainEndpoint(ctx, chainNSE, routes, logger)
+				conn, connErr := ptxc.createChainConnection(ctx, nsEndpoint, routes, logger, remoteIP)
 				if connErr != nil {
 					logger.Error("Error perform chain connect request: %s", connErr)
 					return connErr
 				} else {
-					if chainNSE.connHdl != nil {
-						logger.WithFields(logrus.Fields{
-							"chainEndpoint":	nsEndpoint.GetName(),
-							"srcIP":			chainNSE.connHdl.Context.IpContext.SrcIpAddr,
-							"chain.DstRoutes":	chainNSE.connHdl.Context.IpContext.DstRoutes,
-							"IpContext":		chainNSE.connHdl.Context.IpContext,
-						}).Infof("Connected to passThrough chain")
-
-						// Pass the IpContext to the client connection
-						request.Connection.Context.IpContext = chainNSE.connHdl.Context.IpContext
-					} else {
-						logger.WithFields(logrus.Fields{
-							"chainEndpoint":	nsEndpoint.GetName(),
-						}).Infof("Connected to passThrough chain but connection handler is nil")
-					}
+					// Pass the IpContext to the client connection
+					request.Connection.Context.IpContext = conn.Context.IpContext
 				}
 
-				chainNSE.Unlock()
+				//chainNSE := ptxc.addChain(nsEndpoint.GetName(), nsEndpoint.GetNetworkServiceManagerName(), remoteIP)
+				//
+				//chainNSE.Lock()
+				//routes := []string{ptxc.passThroughNetCidr}
+				//
+				//connErr := ptxc.ConnectChainEndpoint(ctx, chainNSE, routes, logger)
+				//if connErr != nil {
+				//	logger.Error("Error perform chain connect request: %s", connErr)
+				//	return connErr
+				//} else {
+				//	if chainNSE.connHdl != nil {
+				//		logger.WithFields(logrus.Fields{
+				//			"chainEndpoint":	nsEndpoint.GetName(),
+				//			"srcIP":			chainNSE.connHdl.Context.IpContext.SrcIpAddr,
+				//			"chain.DstRoutes":	chainNSE.connHdl.Context.IpContext.DstRoutes,
+				//			"IpContext":		chainNSE.connHdl.Context.IpContext,
+				//		}).Infof("Connected to passThrough chain")
+				//
+				//		// Pass the IpContext to the client connection
+				//		request.Connection.Context.IpContext = chainNSE.connHdl.Context.IpContext
+				//	} else {
+				//		logger.WithFields(logrus.Fields{
+				//			"chainEndpoint":	nsEndpoint.GetName(),
+				//		}).Infof("Connected to passThrough chain but connection handler is nil")
+				//	}
+				//}
+				//
+				//chainNSE.Unlock()
 
 				return nil
 			}
@@ -264,96 +251,88 @@ func (ptxc *passThroughComposite) processNsEndpoints(ctx context.Context, reques
 	return errors.New("Unable to find the next NSE in the chain")
 }
 
-func (ptxc *passThroughComposite) ConnectChainEndpoint(ctx context.Context, chain *chainNSE, routes []string,
-	logger logrus.FieldLogger) (error) {
-	/* expect to be called with chain.Lock() */
+//func (ptxc *passThroughComposite) ConnectChainEndpoint(ctx context.Context, chain *chainNSE, routes []string,
+//	logger logrus.FieldLogger) (error) {
+//	/* expect to be called with chain.Lock() */
+//	logger.WithFields(logrus.Fields{
+//		"endpointName":              chain.endpointName,
+//		"networkServiceManagerName": chain.networkServiceManagerName,
+//		"state":                     chain.state,
+//	}).Info("passThrough ConnectChainEndpoint")
+//
+//	state := chain.state
+//
+//	switch state {
+//	case CHAIN_STATE_NOTCONN:
+//		logger.WithFields(logrus.Fields{
+//			"endpointName":			chain.endpointName,
+//			"networkServiceManagerName": chain.networkServiceManagerName,
+//		}).Info("requesting chain connection")
+//		return ptxc.createChainConnection(ctx, chain, routes, logger)
+//	case CHAIN_STATE_CONN:
+//		logger.WithFields(logrus.Fields{
+//			"endpointName":	chain.endpointName,
+//			"networkServiceManagerName": chain.networkServiceManagerName,
+//		}).Info("chain connection already established")
+//	case CHAIN_STATE_CONN_INPROG:
+//		logger.WithFields(logrus.Fields{
+//			"endpointName":	chain.endpointName,
+//			"networkServiceManagerName": chain.networkServiceManagerName,
+//		}).Info("chain connection in progress")
+//	default:
+//		logger.WithFields(logrus.Fields{
+//			"endpointName":              chain.endpointName,
+//			"networkServiceManagerName": chain.networkServiceManagerName,
+//		}).Info("chain connection state unknown")
+//
+//	}
+//	return nil
+//}
+
+func(ptxc *passThroughComposite) createChainConnection(ctx context.Context, nsEndpoint *registry.NetworkServiceEndpoint,
+	routes []string, logger logrus.FieldLogger, remoteIP string) (*connection.Connection, error) {
+
 	logger.WithFields(logrus.Fields{
-		"endpointName":              chain.endpointName,
-		"networkServiceManagerName": chain.networkServiceManagerName,
-		"state":                     chain.state,
-	}).Info("passThrough ConnectChainEndpoint")
-
-	state := chain.state
-
-	switch state {
-	case CHAIN_STATE_NOTCONN:
-		logger.WithFields(logrus.Fields{
-			"endpointName":			chain.endpointName,
-			"networkServiceManagerName": chain.networkServiceManagerName,
-		}).Info("requesting chain connection")
-		return ptxc.createChainConnection(ctx, chain, routes, logger)
-	case CHAIN_STATE_CONN:
-		logger.WithFields(logrus.Fields{
-			"endpointName":	chain.endpointName,
-			"networkServiceManagerName": chain.networkServiceManagerName,
-		}).Info("chain connection already established")
-	case CHAIN_STATE_CONN_INPROG:
-		logger.WithFields(logrus.Fields{
-			"endpointName":	chain.endpointName,
-			"networkServiceManagerName": chain.networkServiceManagerName,
-		}).Info("chain connection in progress")
-	default:
-		logger.WithFields(logrus.Fields{
-			"endpointName":              chain.endpointName,
-			"networkServiceManagerName": chain.networkServiceManagerName,
-		}).Info("chain connection state unknown")
-
-	}
-	return nil
-}
-
-func(ptxc *passThroughComposite) createChainConnection(ctx context.Context, chain *chainNSE, routes []string,
-	logger logrus.FieldLogger) (error) {
-	/* expect to be called with chain.Lock() */
-	if chain.state == CHAIN_STATE_CONN || chain.state == CHAIN_STATE_CONN_INPROG {
-		logger.WithFields(logrus.Fields{
-			"chain.Endpoint": chain.endpointName,
-		}).Infof("Already connected to chain endpoint")
-	}
-	chain.state = CHAIN_STATE_CONN_INPROG
-	logger.WithFields(logrus.Fields{
-		"chain.Endpoint": chain.endpointName,
+		"Chain Endpoint": nsEndpoint.GetName(),
 	}).Infof("Performing conenct to chain endpoint")
 
 	dpConfig := &vpp.ConfigData{}
-	chain.connHdl, chain.connErr = ptxc.performChainConnectionRequest(ctx, chain, routes, dpConfig, logger)
+	conn, connErr := ptxc.performChainConnectionRequest(ctx, nsEndpoint, routes, dpConfig, logger, remoteIP)
 
-	if chain.connErr != nil {
+	if connErr != nil {
 		logger.WithFields(logrus.Fields{
-			"chain.Endpoint:": chain.endpointName,
-		}).Errorf("NSE chain connection failed - %v", chain.connErr)
-		chain.state = CHAIN_STATE_CONNERR
-		return chain.connErr
+			"Chain Endpoint": nsEndpoint.GetName(),
+		}).Errorf("NSE chain connection failed - %v", connErr)
+		return nil, connErr
 	}
 
-	if chain.connErr = ptxc.backend.ProcessDPConfig(dpConfig, true); chain.connErr != nil {
-		logger.Errorf("endpoint %s Error processing dpconfig: %+v -- %v", chain.endpointName, dpConfig, chain.connErr)
-		chain.state = CHAIN_STATE_CONNERR
-		return chain.connErr
+	if connErr = ptxc.backend.ProcessDPConfig(dpConfig, true); connErr != nil {
+		logger.Errorf("endpoint %s Error processing dpconfig: %+v -- %v", nsEndpoint.GetName(), dpConfig, connErr)
+		return nil, connErr
 	}
 
-	chain.state = CHAIN_STATE_CONN
 	logger.WithFields(logrus.Fields{
-		"chain.Endpoint": chain.endpointName,
-	}).Info("Done with connect to chain")
+		"Chain Endpoint": nsEndpoint.GetName(),
+	}).Info("Done with connect to chain endpoint")
 
-	return nil
+	return conn, nil
 
 }
 
 // performChainConnectionRequest
-func (ptxc *passThroughComposite) performChainConnectionRequest(ctx context.Context, chain *chainNSE,
-	routes []string, dpconfig interface{}, logger logrus.FieldLogger) (*connection.Connection, error){
+func (ptxc *passThroughComposite) performChainConnectionRequest(ctx context.Context, nsEndpoint *registry.NetworkServiceEndpoint,
+	routes []string, dpconfig interface{}, logger logrus.FieldLogger, remoteIP string) (*connection.Connection, error){
 	/* expect to be called with chain.Lock() */
 	go func() {
 		metrics.PerormedConnRequests.Inc()
 	}()
 
-	//ifName := ptxc.defaultIfName
+	ifName := ptxc.buildVppIfName(ptxc.defaultIfName, nsEndpoint.GetName())
 
-	ifName := chain.endpointName
-	// the memif.sock is created here
-	conn, err := ptxc.nsmClient.ConnectToEndpoint(ctx, chain.remoteIP, chain.endpointName, chain.networkServiceManagerName,
+	logger.Infof("DEBUGGING -- The ifName is:%s", ifName)
+
+
+	conn, err := ptxc.nsmClient.ConnectToEndpoint(ctx, remoteIP, nsEndpoint.GetName(), nsEndpoint.GetNetworkServiceManagerName(),
 		ifName, memif.MECHANISM, "VPP interface " + ifName, routes)
 	if err != nil {
 		logger.Errorf("Error creating %s: %v", ifName, err)
@@ -428,6 +407,7 @@ func newPassThroughComposite(configuration *common.NSConfiguration, passThroughN
 		myEndpointLabels:			labels,
 		chain:						nil,
 		defaultIfName:				ifName,
+		endpointIfID: 				make(map[string]int),
 	}
 
 	logrus.Infof("DEBUGGING -- newPassThroughComposite returning: %+v", newPassThroughComposite)
@@ -437,19 +417,19 @@ func newPassThroughComposite(configuration *common.NSConfiguration, passThroughN
 
 // addChain() adds the chain NSE to the passThroughComposite
 // this assumes each passthrough NSE has only one chain NSE
-func (ptxc *passThroughComposite) addChain(endpointName, networkServiceManagerName, remoteIp string) *chainNSE {
-	ptxc.Lock()
-	defer ptxc.Unlock()
-	if ptxc.chain == nil {
-		ptxc.chain = &chainNSE{
-			endpointName: endpointName,
-			networkServiceManagerName: networkServiceManagerName,
-			state: CHAIN_STATE_NOTCONN,
-			remoteIP: remoteIp,
-		}
-	}
-	return ptxc.chain
-}
+//func (ptxc *passThroughComposite) addChain(endpointName, networkServiceManagerName, remoteIp string) *chainNSE {
+//	ptxc.Lock()
+//	defer ptxc.Unlock()
+//	if ptxc.chain == nil {
+//		ptxc.chain = &chainNSE{
+//			endpointName: endpointName,
+//			networkServiceManagerName: networkServiceManagerName,
+//			state: CHAIN_STATE_NOTCONN,
+//			remoteIP: remoteIp,
+//		}
+//	}
+//	return ptxc.chain
+//}
 
 // SetMyNseName() is a helper function that sets the passThrough composite endpoint name
 func (ptxc *passThroughComposite) SetMyNseName(request *networkservice.NetworkServiceRequest){
@@ -472,4 +452,14 @@ func (ptxc *passThroughComposite) GetMyNseName() string {
 	ptxc.Lock()
 	ptxc.Unlock()
 	return ptxc.myEndpointName
+}
+
+func (ptxc *passThroughComposite) buildVppIfName(defaultIfName, serviceName string) string {
+	if _, ok := ptxc.endpointIfID[serviceName]; !ok {
+		ptxc.endpointIfID[serviceName] = 0
+	} else {
+		ptxc.endpointIfID[serviceName]++
+	}
+
+	return defaultIfName + "/" + strconv.Itoa(ptxc.endpointIfID[serviceName])
 }

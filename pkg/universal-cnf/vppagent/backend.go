@@ -54,7 +54,7 @@ func (b *UniversalCNFVPPAgentBackend) NewUniversalCNFBackend() error {
 	return nil
 }
 
-// ProcessMemif runs the client/endpoint code for the VPP CNF to create L2 vpp interface
+// ProcessMemif runs the client/endpoint code for the VPP CNF to create vpp interface for L2 MEMIF
 func (b *UniversalCNFVPPAgentBackend) ProcessMemif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error {
 	vppconfig, ok := dpConfig.(*vpp.ConfigData) // type assertion
 	if !ok {
@@ -70,15 +70,15 @@ func (b *UniversalCNFVPPAgentBackend) ProcessMemif(dpConfig interface{}, ifName 
 			Enabled: true,
 			Link: &interfaces.Interface_Memif{
 				Memif: &interfaces.MemifLink{
-					Master: memifMaster, // the memif that communicates with client pod is master
-										 // the memif that communicates with the chain NSE pod is slave
+					Master: memifMaster, // the MEMIF that communicates with client pod is master
+										 // the MEMIF that communicates with the chain NSE pod is slave
 					SocketFilename: socketFilename,
 					RingSize: 512, 		 // The number of entries of RX/TX rings
 				},
 			},
 		})
 
-	// Need to create the memif socket file to communicate with the client pod
+	// If this is a master in MEMIF, need to create the socket file
 	if memifMaster {
 		if err := os.MkdirAll(path.Dir(socketFilename), os.ModePerm); err != nil {
 			return err

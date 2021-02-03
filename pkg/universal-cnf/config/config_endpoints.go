@@ -166,8 +166,6 @@ func NewProcessPassThroughEndpoints(backend UniversalCNFBackend, endpoints []*ns
 			NSComposite:     composite,
 			Endpoint:        e,
 		})
-		logrus.Infof("DEBUGGING -- compositeEndpoints : %+v", compositeEndpoints)
-		logrus.Infof("DEBUGGING -- result: %+v", result.Endpoints)
 	}
 	return result
 }

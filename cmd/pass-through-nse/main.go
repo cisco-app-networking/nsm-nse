@@ -19,6 +19,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
+	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	"os"
 	"strings"
 
@@ -96,7 +98,7 @@ func InitializeMetrics() {
 	metrics.ServeMetrics(addr, metricsPath)
 }
 
-// exported the symbol named "CompositeEndpointPlugin"
+// Entry point of passThrough NSE
 func main() {
 	// Capture signals to cleanup before exiting
 	logrus.Info("starting pass-through endpoint")
@@ -109,6 +111,11 @@ func main() {
 	mainFlags.Process()
 
 	InitializeMetrics()
+
+	// initialize PassThroughMemifs here to store the names of l2XConnected memifs
+	config.PassThroughMemifs =  config.L2MemifNames {
+		Names: make(map[string]*vpp_interfaces.Interface),
+	}
 
 	// Capture signals to cleanup before exiting
 	prometheus.NewBuildInfoCollector()

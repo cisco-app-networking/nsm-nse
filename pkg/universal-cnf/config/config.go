@@ -17,23 +17,32 @@ package config
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"os/exec"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
 	"github.com/networkservicemesh/networkservicemesh/sdk/client"
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
+	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"sync"
 )
+
+// Is it possible to not use a global var?
+var PassThroughMemifs L2MemifNames
+
+// L2MemifNames holds the names of  L2 cross connected MEMIFs paris
+type L2MemifNames struct {
+	sync.RWMutex
+	Names map[string]*vpp_interfaces.Interface
+}
 
 const (
 	PEER_NAME = "ucnf/peerName"
 	PodName = "nsepod.name"
-	PassThroughMemifName = "PASSTHROUGH_ENDPOINT_MEMIFNAME"
 
 	nsePodNameEnv  = "NSE_POD_NAME"
 	nsePodName     = "example"

@@ -17,6 +17,7 @@ package vppagent
 
 import (
 	"context"
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
 	"github.com/opentracing/opentracing-go"
@@ -25,6 +26,7 @@ import (
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	vpp_l2 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l2"
 	"google.golang.org/grpc"
+	"os"
 	"time"
 )
 
@@ -33,8 +35,8 @@ const (
 )
 
 var (
-	endpoinfIfName string
-	clientIfName string
+	endpointIf *vpp.Interface // endpointIf is the MEMIF that connects with the chain endpoint pod
+	clientIfName string // clientIfName is the MEMIF that connects with the client pod
 )
 
 // ResetVppAgent resets the VPP instance settings to nil
@@ -112,87 +114,60 @@ func SendVppConfigToVppAgent(vppconfig *vpp.ConfigData, update bool) error {
 				Delete: dataChange,
 			})
 		} else {
-			// Perform memif interfaces chaining
-			if vppconfig.Interfaces[0].GetMemif().Master {
-				clientIfName = vppconfig.Interfaces[0].Name
-			} else {
-				endpoinfIfName = vppconfig.Interfaces[0].Name
-			}
-			if endpoinfIfName != "" && clientIfName != "" {
-				logrus.Infof("DEBUGGING -- clientIf:%+v, endpoinIf:%+v", clientIfName, endpoinfIfName)
-				dataChange = &configurator.Config{
-					VppConfig: &vpp.ConfigData{
-						XconnectPairs: []*vpp_l2.XConnectPair{
-							{
-								ReceiveInterface:  clientIfName,
-								TransmitInterface: endpoinfIfName,
-							},
-							{
-								ReceiveInterface:  endpoinfIfName,
-								TransmitInterface: clientIfName,
+			// if this is a passthrough nse, use l2xconnect to connect clientIfName and endpointIf
+			passThrough, ok := os.LookupEnv("PASS_THROUGH")
+			if ok && passThrough == "true" {
+				if vppconfig.Interfaces[0].GetMemif().Master {
+					clientIfName = vppconfig.Interfaces[len(vppconfig.Interfaces) - 1].Name
+				} else {
+					endpointIf = vppconfig.Interfaces[len(vppconfig.Interfaces) - 1]
+				}
+				if endpointIf != nil && clientIfName != "" {
+					config.PassThroughMemifs.Lock()
+					config.PassThroughMemifs.Names[clientIfName] = endpointIf
+					config.PassThroughMemifs.Unlock()
+
+					logrus.Infof("DEBUGGING -- clientIf:%+v, endpoinIf:%+v", clientIfName, endpointIf)
+					dataChange = &configurator.Config{
+						VppConfig: &vpp.ConfigData{
+							XconnectPairs: []*vpp_l2.XConnectPair{
+								{
+									ReceiveInterface:  clientIfName,
+									TransmitInterface: endpointIf.GetName(),
+								},
+								{
+									ReceiveInterface:  endpointIf.GetName(),
+									TransmitInterface: clientIfName,
+								},
 							},
 						},
-					},
-				}
-
-				if _, err = client.Update(ctx, &configurator.UpdateRequest{
-					Update: dataChange,
-				}); err != nil {
-					logrus.Error(err)
-					_, err = client.Delete(ctx, &configurator.DeleteRequest{
-						Delete: dataChange,
-					});
-					if err != nil {
-						logrus.Error(err)
 					}
-					return err
+
+					endpointIf = nil
+					clientIfName = ""
+
+					if _, err = client.Update(ctx, &configurator.UpdateRequest{
+						Update: dataChange,
+					}); err != nil {
+						logrus.Error(err)
+						_, err = client.Delete(ctx, &configurator.DeleteRequest{
+							Delete: dataChange,
+						});
+						if err != nil {
+							logrus.Error(err)
+						}
+						return err
+					}
 				}
 			}
+		}
+	} else {
+		_, err = client.Delete(ctx, &configurator.DeleteRequest{
+			Delete: dataChange,
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
-
-			//endpointMemifName := os.Getenv(config.PassThroughMemifName)
-			//var clientMemifName string
-			//if len(vppconfig.Interfaces) > 0{
-			//	clientMemifName = vppconfig.Interfaces[len(vppconfig.Interfaces) - 1].GetName()
-			//}
-			//
-			//if endpointMemifName != "" && endpointMemifName != clientMemifName {
-			//	logrus.Infof("DEBUGGING -- Now performing chaining of the two interfaces: %s, %s", endpointMemifName,
-			//		clientMemifName)
-			//
-			//	dataChange = &configurator.Config{
-			//		VppConfig: &vpp.ConfigData{
-			//			XconnectPairs: []*vpp_l2.XConnectPair{
-			//				{
-			//					ReceiveInterface: endpointMemifName,
-			//					TransmitInterface: clientMemifName,
-			//				},
-			//				{
-			//					ReceiveInterface: endpointMemifName,
-			//					TransmitInterface: clientMemifName,
-			//				},
-			//			},
-			//		},
-			//	}
-			//
-			//	if _, err = client.Update(ctx, &configurator.UpdateRequest{
-			//		Update: dataChange,
-			//	}); err != nil {
-			//		logrus.Error(err)
-			//		_, err = client.Delete(ctx, &configurator.DeleteRequest{
-			//			Delete: dataChange,
-			//		}); if err != nil {
-			//			logrus.Error(err)
-			//		}
-			//	}
-			//}
-		//}
-	//} else {
-	//	_, err = client.Delete(ctx, &configurator.DeleteRequest{
-	//		Delete: dataChange,
-	//	})
-	//}
-	//return err
