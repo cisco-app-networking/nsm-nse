@@ -2,7 +2,7 @@
 apiVersion: networkservicemesh.io/v1alpha1
 kind: NetworkService
 metadata:
-  name: ucnf-nse-{{ .Values.nsm.serviceName }}
+  name: vl3-service
 spec:
   payload: IP
   matches:
@@ -12,7 +12,7 @@ spec:
       route:
         - destination:
           destinationSelector:
-            app: pass-through-icmp
+            app: vl3-nse-vl3-service {{/* vl3-nse label */}}
     - match:
       route:
         - destination:

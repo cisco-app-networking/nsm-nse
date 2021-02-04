@@ -78,7 +78,8 @@ metadata:
 data:
   config.yaml: |
     endpoints:
-    - name: "ucnf-nse-{{ .Values.nsm.serviceName }}"
+{{/*    - name: "ucnf-nse-{{ .Values.nsm.serviceName }}"*/}}
+    - name: "vl3-service"
       labels:
         app: {{ .Values.nsm.serviceName | quote }}
       passThrough:

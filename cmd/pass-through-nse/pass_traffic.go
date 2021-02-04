@@ -158,10 +158,11 @@ func (ptxc *passThroughComposite) processNsEndpoints(ctx context.Context, reques
 
 	// Find the matches entries under the NetworkService definition
 	// matches: []*Match, Match: struct{SourceSelector, Routes}
+	logrus.Infof("DEBUGGING -- the networkservice is: %+v", response.GetNetworkService())
 	matches := response.GetNetworkService().GetMatches()
 
 	var curKey, curVal, desKey, desVal string
-
+	logrus.Infof("DEBUGGING -- The matches are: %+v", matches)
 	// First find out the current pod label that matches the DestinationSelector under matches.routes
 	// Assuming multiple labels in a pod is allowed
 	for _, match := range matches {
