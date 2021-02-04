@@ -11,7 +11,7 @@ import (
 	vpp_interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	vpp_l2 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l2"
 
-	. "github.com/cisco-app-networking/nsm-nse/test/integration"
+	. "cisco-app-networking.github.io/nsm-nse/test/integration"
 )
 
 // TestInterfaceAfPacket connects VPP with a microservice via AF-PACKET + VETH interfaces

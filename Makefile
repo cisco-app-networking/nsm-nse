@@ -21,7 +21,7 @@ SHELL:=/bin/bash
 .PHONY: default
 default: all
 
-NSM_PATH?=${TOP}/../../networkservicemesh/networkservicemesh
+NSM_PATH?=${TOP}/../networkservicemesh
 CLUSTER_RULES_PREFIX?=kind
 PREFIX?=k8s
 CONTAINER_BUILD_PREFIX?=docker
@@ -49,5 +49,5 @@ list: $(addsuffix -list,$(NSE_NAMES))
 	@printf "\n Get the full description of the example by calling:\n\n \t make <example-name>-describe \n\n"
 
 # NSM fallthrough target
-%:
-	@cd ${NSM_PATH} && make $*
+#%:
+#	@cd ${NSM_PATH} && make $*

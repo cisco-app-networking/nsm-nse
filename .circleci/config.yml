@@ -2,7 +2,7 @@ version: 2.1
 
 # Docker environment.
 defaults: &defaults
-  working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
+  working_directory: /go/src/cisco-app-networking.github.io/nsm-nse
   docker:
     - image: ciscoappnetworking/kubectl_kind:kubectl.v1.17.5-kind.v0.7.0-helm.v3.3.4
   environment:
@@ -12,7 +12,7 @@ defaults: &defaults
 defaults-machine: &defaults-machine
   machine: # executor type
       image: ubuntu-1604:201903-01
-  working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse
+  working_directory: ~/go/src/cisco-app-networking.github.io/nsm-nse
   environment:
     GOPATH: ~/go
     ORG: ciscoappnetworking
@@ -52,7 +52,7 @@ e2e-kind-test: &e2e-kind-test
   steps:
     - setup_remote_docker
     - checkout:
-        path: /go/src/github.com/cisco-app-networking/nsm-nse
+        path: /go/src/cisco-app-networking.github.io/nsm-nse
     - attach_workspace:
         at: /go/src/_save
     - run:
@@ -62,7 +62,7 @@ e2e-kind-test: &e2e-kind-test
           kind create cluster --name kind2
     - run:
         name: Get KinD cluster info
-        working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/build/ci/runner
+        working_directory: /go/src/cisco-app-networking.github.io/nsm-nse/build/ci/runner
         command: |
           mkdir kubeconfigs
           kind get kubeconfig --name=kind1 > kubeconfigs/kind1.kubeconfig
@@ -75,7 +75,7 @@ e2e-kind-test: &e2e-kind-test
           done
     - run:
         name: Build vl3 runner container
-        working_directory: /go/src/github.com/cisco-app-networking/nsm-nse/build/ci/runner
+        working_directory: /go/src/cisco-app-networking.github.io/nsm-nse/build/ci/runner
         command: |
           docker build --build-arg vl3_repo=https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git --build-arg vl3_branch=${CIRCLE_SHA1:-master} --build-arg nsm_branch=v0.2.3-vl3 -t vl3-runner:latest -f Dockerfile.runner .
     - run:
@@ -95,7 +95,7 @@ e2e-kind-test: &e2e-kind-test
         name: Dump vl3 dataplane state
         when: always
         command: |
-          docker exec -t vl3-run bash -c "/go/src/github.com/cisco-app-networking/nsm-nse/scripts/vl3/check_vl3_dataplane.sh --kconf_clus1=/etc/kubeconfigs/kind1.kubeconfig --kconf_clus2=/etc/kubeconfigs/kind2.kubeconfig &> /logs/vl3_dataplane_dump.txt"
+          docker exec -t vl3-run bash -c "/go/src/cisco-app-networking.github.io/nsm-nse/scripts/vl3/check_vl3_dataplane.sh --kconf_clus1=/etc/kubeconfigs/kind1.kubeconfig --kconf_clus2=/etc/kubeconfigs/kind2.kubeconfig &> /logs/vl3_dataplane_dump.txt"
     - run:
         name: Store logs results
         when: always
@@ -108,19 +108,19 @@ e2e-kind-test: &e2e-kind-test
 e2e-kind-kiknos-test: &e2e-kind-kiknos-test
   steps:
     - checkout:
-        path: ~/go/src/github.com/cisco-app-networking/nsm-nse
+        path: ~/go/src/cisco-app-networking.github.io/nsm-nse
     - attach_workspace:
         at: ~/go/src/_save
     #- run:
     #    name: Run Kiknos-test
-    #    working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse
+    #    working_directory: ~/go/src/cisco-app-networking.github.io/nsm-nse
     #    command: |
     #      make deploy-kiknos-clients CLUSTER=kiknos-demo-1
     #      make deploy-kiknos-start-vpn BUILD_IMAGE=true DEPLOY_ISTIO=false CLUSTER=kiknos-demo-2 CLUSTER_REF=kiknos-demo-1
 
     - run:
         name: Build runner container
-        working_directory: ~/go/src/github.com/cisco-app-networking/nsm-nse
+        working_directory: ~/go/src/cisco-app-networking.github.io/nsm-nse
         command: |
           docker build -t kiknos-runner:latest -f build/nse/ucnf-kiknos/Dockerfile.runner .
 
@@ -132,12 +132,12 @@ e2e-kind-kiknos-test: &e2e-kind-kiknos-test
     - run:
         name: deploy kiknos in cluster 1
         command: |
-          docker exec -t kiknos-run bash -c "cd /go/src/github.com/cisco-app-networking/nsm-nse; make deploy-kiknos-clients PROVISION_MODE=kind-load CLUSTER=kiknos-demo-1"
+          docker exec -t kiknos-run bash -c "cd /go/src/cisco-app-networking.github.io/nsm-nse; make deploy-kiknos-clients PROVISION_MODE=kind-load CLUSTER=kiknos-demo-1"
 
     - run:
         name: deploy & test kiknos
         command: |
-          docker exec -t kiknos-run bash -c "cd /go/src/github.com/cisco-app-networking/nsm-nse; make deploy-kiknos-start-vpn PROVISION_MODE=kind-load BUILD_IMAGE=true DEPLOY_ISTIO=false CLUSTER=kiknos-demo-2 CLUSTER_REF=kiknos-demo-1"
+          docker exec -t kiknos-run bash -c "cd /go/src/cisco-app-networking.github.io/nsm-nse; make deploy-kiknos-start-vpn PROVISION_MODE=kind-load BUILD_IMAGE=true DEPLOY_ISTIO=false CLUSTER=kiknos-demo-2 CLUSTER_REF=kiknos-demo-1"
 
     - run:
         name: Dump KinD Cluster state
@@ -167,17 +167,17 @@ jobs:
       - setup_remote_docker
       - run:
           name: Build vL3 docker image
-          working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
+          working_directory: /go/src/cisco-app-networking.github.io/nsm-nse
           command: |
             ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-vl3
       - run:
           name: Build ucnf-kiknos docker image
-          working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
+          working_directory: /go/src/cisco-app-networking.github.io/nsm-nse
           command: |
             ORG=${ORG} TAG=${CIRCLE_SHA1} make docker-ucnf-kiknos-vppagent-build
       - run:
           name: Save docker images
-          working_directory: /go/src/github.com/cisco-app-networking/nsm-nse
+          working_directory: /go/src/cisco-app-networking.github.io/nsm-nse
           command: |
             images_to_save+=("${ORG}/vl3_ucnf-nse:${CIRCLE_SHA1}" "${ORG}/ucnf-kiknos-vppagent:${CIRCLE_SHA1}")
             mkdir -p _save

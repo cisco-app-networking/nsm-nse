@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	. "github.com/cisco-app-networking/nsm-nse/test/integration"
+	. "cisco-app-networking.github.io/nsm-nse/test/integration"
 )
 
 func TestAgentInSync(t *testing.T) {

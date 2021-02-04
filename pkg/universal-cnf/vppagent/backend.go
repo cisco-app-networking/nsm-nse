@@ -23,7 +23,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
+	"cisco-app-networking.github.io/nsm-nse/pkg/universal-cnf/config"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
 	"github.com/sirupsen/logrus"
