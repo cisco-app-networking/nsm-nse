@@ -99,34 +99,34 @@ pipeline {
                  '''
              }
         }
-        stage ('Container Publish') {
-          when {
-            allOf {
-              anyOf {
-                branch 'master'
-                branch 'devop*'
-              }
-            }
-          }
-          steps {
-            script {
-              //sreUtils.figlet('BLACKDUCK SOURCE SCAN')
-              metrics {
-                params: [
-                 deploy: [                                         // List of containers to publish
-                   [name: "appn/vl3_ucnf-nse"],
-                 ],
-                 tagversion: ${env.BRANCH_NAME}
-                 pushContainer: 1,
-                 ciscoContainer:1,
-                 ecr:1,
-                 dockerhubCisco:1,
-                ]
-                sreBuildDocker( params )
-              }
-            }
-          }
-        }
+//         stage ('Container Publish') {
+//           when {
+//             allOf {
+//               anyOf {
+//                 branch 'master'
+//                 branch 'devop*'
+//               }
+//             }
+//           }
+//           steps {
+//             script {
+//               //sreUtils.figlet('BLACKDUCK SOURCE SCAN')
+//               metrics {
+//                 params: [
+//                  deploy: [                                         // List of containers to publish
+//                    [name: "appn/vl3_ucnf-nse"],
+//                  ],
+//                  tagversion: ${env.BRANCH_NAME}
+//                  pushContainer: 1,
+//                  ciscoContainer:1,
+//                  ecr:1,
+//                  dockerhubCisco:1,
+//                 ]
+//                 sreBuildDocker( params )
+//               }
+//             }
+//           }
+//         }
 
     }
     post {
