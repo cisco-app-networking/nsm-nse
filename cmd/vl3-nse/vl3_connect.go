@@ -295,10 +295,8 @@ func (vxc *vL3ConnectComposite) processNsEndpoints(ctx context.Context, response
 	logger := logrus.New()
 	for _, nsEndpoint := range response.GetNetworkServiceEndpoints() {
 		// only vL3 NSEs have a label of "nsepod.name"
-		_, ok := nsEndpoint.GetLabels()[POD_NAME]
-
 		// treat all other vL3 NSEs besides myself as peers
-		if ok {
+		if _, ok := nsEndpoint.GetLabels()[config.PodName]; ok {
 			if nsEndpoint.GetName() != vxc.GetMyNseName() {
 				logger.Infof("Found vL3 service %s peer %s", nsEndpoint.NetworkServiceName,
 					nsEndpoint.GetName())
