@@ -8,13 +8,13 @@ spec:
   matches:
     - match:
       sourceSelector:
-        app: {{ .Values.nsm.serviceName }}
+        app: pass-through-nse-{{ .Values.nsm.serviceName }}
       route:
         - destination:
           destinationSelector:
-            app: vl3-nse-vl3-service {{/* vl3-nse label */}}
+            app: vl3-nse-vl3-service
     - match:
       route:
         - destination:
           destinationSelector:
-            app: {{ .Values.nsm.serviceName }} {{/* this needs to match the config.yaml.labels.app in the endpoint yaml*/}}
+            app: pass-through-nse-{{ .Values.nsm.serviceName }}

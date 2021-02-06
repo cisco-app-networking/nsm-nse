@@ -38,7 +38,6 @@ type UniversalCNFEndpoint struct {
 	endpoint *nseconfig.Endpoint
 	backend  UniversalCNFBackend
 	dpConfig *vpp.ConfigData
-	endpointIfName *string
 }
 
 // Request implements the request handler
@@ -52,12 +51,9 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 
 	passThrough, ok := os.LookupEnv("PASS_THROUGH")
 	if ok && passThrough == "true" {
-		ifName := uce.endpoint.PassThrough.Ifname
-		if ifName, ok = conn.Labels[connection.PodNameKey]; ok {
-			logrus.Infof("Setting ifName with podName: %s", ifName)
-		}
+		ifName := uce.backend.BuildVppIfName(uce.endpoint.PassThrough.Ifname, uce.endpoint.Name, conn)
 		// this memif is a master since it connects with the client pod
-		if err := uce.backend.ProcessMemif(uce.dpConfig, ifName, conn, true); err != nil {
+		if err := uce.backend.CreateL2Memif(uce.dpConfig, ifName, conn, true); err != nil {
 			logrus.Errorf("Failed to process: %+v", uce.endpoint)
 			return nil, err
 		}
@@ -72,8 +68,6 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
 		return nil, err
 	}
-
-	logrus.Infof("DEBUGGING -- the vppagent.L2MemifNames: %+v", PassThroughMemifs)
 
 	if endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Request(ctx, request)
@@ -150,20 +144,21 @@ func (uce *UniversalCNFEndpoint) removeClientInterface(connection *connection.Co
 
 
 func (uce *UniversalCNFEndpoint) removeL2xConnInterface(conn *connection.Connection) (*vpp.ConfigData, error) {
-	logrus.Infof("Removing L2 cross connected interfaces...")
-	logrus.Infof("DEBUGGING -- removeL2xConnInterface: %+v, %+v", conn, uce.dpConfig.Interfaces)
-
-	var clientIfName string
+	var slaveIfName string
 	var clientIfToRm, endpointIfToRm *vpp_interfaces.Interface
 	var rmInx = -1
 
-	clientIfName = conn.GetLabels()[connection.PodNameKey]
+	slaveIfName = conn.GetLabels()[connection.PodNameKey]
 
 	for i, vppIf := range(uce.dpConfig.Interfaces) {
-		if clientIfName == vppIf.GetName(){
-			endpointIfToRm = PassThroughMemifs.Names[clientIfName]
+		if slaveIfName == vppIf.GetName(){
+			endpointIfToRm = PassThroughMemifs.VppIfs[slaveIfName]
 			clientIfToRm = uce.dpConfig.Interfaces[i]
 			rmInx = i
+
+			PassThroughMemifs.Lock()
+			delete(PassThroughMemifs.VppIfs, slaveIfName)// delete the corresponding entry in the map
+			PassThroughMemifs.Unlock()
 		}
 	}
 
@@ -171,17 +166,12 @@ func (uce *UniversalCNFEndpoint) removeL2xConnInterface(conn *connection.Connect
 		return nil, fmt.Errorf("Failed to find the L2 cross connected interface pair")
 	}
 
-	logrus.Infof("DEBUGGING -- clientIf: %s, endpointIf: %s, the interface to be removed is: %+v", clientIfName, endpointIfToRm,
-		clientIfToRm)
-
 	// Remove the interface from the actual config.
 	uce.dpConfig.Interfaces = append(uce.dpConfig.Interfaces[:rmInx], uce.dpConfig.Interfaces[rmInx+1:]...)
 
 	// Create a new configuration used in the vpp to perform the removal.
 	removeConfig := uce.backend.NewDPConfig()
 	removeConfig.Interfaces = append(removeConfig.Interfaces, clientIfToRm, endpointIfToRm)
-
-	logrus.Infof("DEBUGGING -- the removeConfig.Interfaces is:%+v", removeConfig.Interfaces)
 
 	return removeConfig, nil
 }
@@ -200,6 +190,7 @@ func (uce *UniversalCNFEndpoint) Close(ctx context.Context, connection *connecti
 		removeConfig, err = uce.removeClientInterface(connection)
 	}
 	if err != nil && endpoint.Next(ctx) != nil {
+		logrus.Info(err)
 		return endpoint.Next(ctx).Close(ctx, connection)
 	}
 

@@ -17,6 +17,11 @@ package config
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"sync"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
@@ -25,19 +30,16 @@ import (
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"os"
-	"os/exec"
-	"sync"
 )
 
 // Is it possible to not use a global var?
-var PassThroughMemifs L2MemifNames
+var PassThroughMemifs L2XconnMemifs
 
-// L2MemifNames holds the names of  L2 cross connected MEMIFs paris
-type L2MemifNames struct {
+
+// L2MemifNames holds the [name:interface] of L2 cross connected MEMIFs paris
+type L2XconnMemifs struct {
 	sync.RWMutex
-	Names map[string]*vpp_interfaces.Interface
+	VppIfs map[string]*vpp_interfaces.Interface
 }
 
 const (
@@ -144,8 +146,9 @@ type UniversalCNFBackend interface {
 	NewUniversalCNFBackend() error
 	ProcessClient(dpconfig interface{}, ifName string, conn *connection.Connection) error
 	ProcessEndpoint(dpconfig interface{}, serviceName, ifName string, conn *connection.Connection) error
-	ProcessMemif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error
 	ProcessDPConfig(dpconfig interface{}, update bool) error
+	CreateL2Memif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error
+	BuildVppIfName(defaultIfName, serviceName string, conn *connection.Connection) string
 }
 
 // UniversalCNFConfig hold the CNF configuration

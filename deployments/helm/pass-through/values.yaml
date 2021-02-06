@@ -3,31 +3,21 @@
 # Declare variables to be passed into your templates.
 
 registry: docker.io
-#org: ciscoappnetworking
-org: darrenlau1227
-#tag: master
-tag: test
+org: ciscoappnetworking
+tag: master
 pullPolicy: IfNotPresent
 vppMetricsPort: 9191
 metricsPort: 2112
 insecure: true
 
 
-ipam:
-  prefixLength: 22
-  defaultPrefixPool: 192.168.0.0/16
-
 nsm:
-  serviceName: pass-through-nse
+  serviceName: vl3-service
 
 global:
 
 replicaCount: 1
 
-image:
-  repository: tiswanso
-  tag: master
-  pullPolicy: Always
 
 nameOverride: ""
 fullnameOverride: ""

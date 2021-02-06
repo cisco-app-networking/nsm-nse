@@ -40,7 +40,6 @@ type VL3 struct {
 }
 
 type PassThrough struct {
-	IPAM 	IPAM	`yaml:"ipam"`
 	Ifname	string	`yaml:"ifName"`
 }
 

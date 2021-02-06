@@ -20,6 +20,12 @@ import (
 
 	"github.com/networkservicemesh/networkservicemesh/sdk/common"
 	"github.com/sirupsen/logrus"
+	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
+)
+
+var (
+	memifToChainEndpoint *vpp.Interface // memifToChainEndpoint is the MEMIF that connects with the chain endpoint pod
+	memifToClient string // memifToClient is the MEMIF that connects with the client pod
 )
 
 func getBaseDir() string {

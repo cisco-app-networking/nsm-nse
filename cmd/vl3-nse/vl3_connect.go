@@ -175,8 +175,6 @@ func (vxc *vL3ConnectComposite) Request(ctx context.Context,
 		logrus.Error(err)
 		return nil, err
 	}*/
-	logger.Infof("DEBUGGING -- NS request: %+v", request)
-	logger.Infof("DEBUGGING -- conn: %+v,  conn.labels:%+v", conn, conn.GetLabels())
 
 	if vl3SrcEndpointName, ok := conn.GetLabels()[LABEL_NSESOURCE]; ok {
 		// request is from another vl3 NSE

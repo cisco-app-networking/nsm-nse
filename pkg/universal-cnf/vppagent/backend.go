@@ -29,6 +29,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	interfaces "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
+	vpp_l2 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l2"
 	vpp_l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
 	vpp_nat "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/nat"
 )
@@ -54,8 +55,8 @@ func (b *UniversalCNFVPPAgentBackend) NewUniversalCNFBackend() error {
 	return nil
 }
 
-// ProcessMemif runs the client/endpoint code for the VPP CNF to create vpp interface for L2 MEMIF
-func (b *UniversalCNFVPPAgentBackend) ProcessMemif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error {
+// CreateL2Memif runs the client/endpoint code for the VPP CNF to create vpp interface for layer 2 MEMIF
+func (b *UniversalCNFVPPAgentBackend) CreateL2Memif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error {
 	vppconfig, ok := dpConfig.(*vpp.ConfigData) // type assertion
 	if !ok {
 		return fmt.Errorf("unable to convert dpconfig to vppconfig	")
@@ -78,7 +79,7 @@ func (b *UniversalCNFVPPAgentBackend) ProcessMemif(dpConfig interface{}, ifName 
 			},
 		})
 
-	// If this is a master in MEMIF, need to create the socket file
+	// If this is a memif master, need to create the socket file here
 	if memifMaster {
 		if err := os.MkdirAll(path.Dir(socketFilename), os.ModePerm); err != nil {
 			return err
@@ -133,8 +134,7 @@ func (b *UniversalCNFVPPAgentBackend) ProcessClient(
 	return nil
 }
 
-func (b *UniversalCNFVPPAgentBackend) buildVppIfName(defaultIfName, serviceName string,
-	conn *connection.Connection) string {
+func (b *UniversalCNFVPPAgentBackend) BuildVppIfName(defaultIfName, serviceName string, conn *connection.Connection) string {
 	// NSC peer connection
 	if name, ok := conn.Labels[connection.PodNameKey]; ok {
 		logrus.Infof("Setting ifName with podName: %s", name)
@@ -167,7 +167,7 @@ func (b *UniversalCNFVPPAgentBackend) ProcessEndpoint(
 	if len(dstIP) > net.IPv4len {
 		ipAddresses = append(ipAddresses, dstIP)
 	}
-	endpointIfName := b.buildVppIfName(ifName, serviceName, conn)
+	endpointIfName := b.BuildVppIfName(ifName, serviceName, conn)
 	rxModes := []*interfaces.Interface_RxMode{
 		&interfaces.Interface_RxMode{
 			Mode:        interfaces.Interface_RxMode_INTERRUPT,
@@ -278,9 +278,55 @@ func (b *UniversalCNFVPPAgentBackend) ProcessDPConfig(dpconfig interface{}, upda
 
 	if err != nil {
 		logrus.Errorf("Updating the VPP config failed with: %v", err)
+		return err
 	}
 
+	logrus.Infof("About to perform crossconnect..., vppconfig.Interfaces:%+v", vppconfig.Interfaces)
+
+	//  If this is a passthrough endpoint and the incoming request is not to delete an existing interface
+	//  construct a l2xconnect pair to connect memifToChainEndpoint and memifToClient
+	passThrough, ok := os.LookupEnv("PASS_THROUGH")
+	if update && ok && passThrough == "true" {
+		err = constructL2XConnConfig(vppconfig)
+	}
 
 	return err
 }
 
+// constructL2XConnConfig constructs a vppconfig for a pair of memifs that need to be cross-connected , and send the config to vppagent
+func constructL2XConnConfig(vppconfig *vpp.ConfigData) error {
+	// if the interface that just got created is a master, then it is the memif that connects with the client pod
+	if vppconfig.Interfaces[len(vppconfig.Interfaces) - 1].GetMemif().Master {
+		memifToClient = vppconfig.Interfaces[len(vppconfig.Interfaces) - 1].Name
+	} else {
+		memifToChainEndpoint = vppconfig.Interfaces[len(vppconfig.Interfaces) - 1]
+	}
+
+	if memifToChainEndpoint != nil && memifToClient != "" {
+		config.PassThroughMemifs.Lock()
+		config.PassThroughMemifs.VppIfs[memifToClient] = memifToChainEndpoint
+		config.PassThroughMemifs.Unlock()
+
+		newVppconfig := &vpp.ConfigData{
+			XconnectPairs: []*vpp_l2.XConnectPair{
+				{
+					ReceiveInterface:  memifToClient,
+					TransmitInterface: memifToChainEndpoint.GetName(),
+				},
+				{
+					ReceiveInterface:  memifToChainEndpoint.GetName(),
+					TransmitInterface: memifToClient,
+				},
+			},
+		}
+
+		// reset them to empty to construct a new pair of cross-connected memifs
+		memifToChainEndpoint = nil
+		memifToClient = ""
+
+		err := SendVppConfigToVppAgent(newVppconfig, true)
+
+		return err
+	}
+	return nil
+}

@@ -44,7 +44,6 @@ const (
 
 const (
 	defaultConfigPath   = "/etc/universal-cnf/config.yaml"
-	defaultPluginModule = ""
 )
 
 // Flags holds the command line flags as supplied with the binary invocation
@@ -67,10 +66,6 @@ type passThroughCompositeEndpoint struct {
 
 func (e passThroughCompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfiguration,
 	ucnfEndpoint *nseconfig.Endpoint) *[]networkservice.NetworkServiceServer {
-	logrus.WithFields(logrus.Fields{
-		"prefixPool":         nsConfig.IPAddress,
-		"nsConfig.IPAddress": nsConfig.IPAddress,
-	}).Infof("Creating pass-through IPAM endpoint")
 
 	var nsRemoteIpList []string
 	nsRemoteIpListStr, ok := os.LookupEnv("NSM_REMOTE_NS_IP_LIST")
@@ -79,10 +74,10 @@ func (e passThroughCompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSC
 	}
 
 	compositeEndpoints := []networkservice.NetworkServiceServer{
-		newPassThroughComposite(nsConfig, nsConfig.IPAddress, &vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList,
+		newPassThroughComposite(nsConfig, &vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList,
 			func() string {
 				return ucnfEndpoint.NseName
-			}, ucnfEndpoint.PassThrough.IPAM.DefaultPrefixPool, ucnfEndpoint.Labels, ucnfEndpoint.PassThrough.Ifname),
+			}, ucnfEndpoint.Labels, ucnfEndpoint.PassThrough.Ifname),
 	}
 
 	return &compositeEndpoints
@@ -112,9 +107,9 @@ func main() {
 
 	InitializeMetrics()
 
-	// initialize PassThroughMemifs here to store the names of l2XConnected memifs
-	config.PassThroughMemifs =  config.L2MemifNames {
-		Names: make(map[string]*vpp_interfaces.Interface),
+	// Initialize PassThroughMemifs here to store the names of l2XConnected memifs
+	config.PassThroughMemifs =  config.L2XconnMemifs {
+		VppIfs: make(map[string]*vpp_interfaces.Interface),
 	}
 
 	// Capture signals to cleanup before exiting

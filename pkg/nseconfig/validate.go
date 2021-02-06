@@ -59,13 +59,8 @@ func (v VL3) validate() error {
 func (p PassThrough) validate() error {
 	var errs InvalidConfigErrors
 
-	if _, _, err := net.ParseCIDR(p.IPAM.DefaultPrefixPool); err != nil {
-		errs = append(errs, fmt.Errorf("prefix pool is not a valid subnet: %s", err))
-	}
-	for i, r := range p.IPAM.Routes {
-		if _, _, err := net.ParseCIDR(r); err != nil {
-			errs = append(errs, fmt.Errorf("route nr %d with value %s is not a valid subnet: %s", i, r, err))
-		}
+	if p.Ifname == "" {
+		errs = append(errs, fmt.Errorf("ifName is empty"))
 	}
 
 	if len(errs) > 0 {

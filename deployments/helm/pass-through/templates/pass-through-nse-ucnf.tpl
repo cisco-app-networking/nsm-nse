@@ -2,23 +2,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ucnf-nse-{{ .Values.nsm.serviceName }}
+  name: pass-through-nse-{{ .Values.nsm.serviceName }}
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      networkservicemesh.io/app: "ucnf-nse-{{ .Values.nsm.serviceName }}"
+      networkservicemesh.io/app: "pass-through-nse-{{ .Values.nsm.serviceName }}"
       networkservicemesh.io/impl: {{ .Values.nsm.serviceName | quote }}
   template:
     metadata:
       labels:
-        networkservicemesh.io/app: "ucnf-nse-{{ .Values.nsm.serviceName }}"
+        networkservicemesh.io/app: "pass-through-nse-{{ .Values.nsm.serviceName }}"
         networkservicemesh.io/impl: {{ .Values.nsm.serviceName | quote }}
     spec:
-      serviceAccount: {{ .Values.nsm.serviceName }}-service-account
       containers:
-        - name: ucnf-nse
+        - name: pass-through-nse
           image: {{ .Values.registry }}/{{ .Values.org }}/pass-through-nse:{{ .Values.tag }}
           imagePullPolicy: {{ .Values.pullPolicy }}
           ports:
@@ -68,44 +67,19 @@ spec:
       volumes:
         - name: universal-cnf-config-volume
           configMap:
-            name: ucnf-nse-{{ .Values.nsm.serviceName }}
+            name: pass-through-nse-{{ .Values.nsm.serviceName }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ucnf-nse-{{ .Values.nsm.serviceName }}
+  name: pass-through-nse-{{ .Values.nsm.serviceName }}
   namespace: {{ .Release.Namespace }}
 data:
   config.yaml: |
     endpoints:
-{{/*    - name: "ucnf-nse-{{ .Values.nsm.serviceName }}"*/}}
-    - name: "vl3-service"
+    - name: {{ .Values.nsm.serviceName | quote }}
       labels:
-        app: {{ .Values.nsm.serviceName | quote }}
+        app: "pass-through-nse-{{ .Values.nsm.serviceName }}"
+        test: "pass-through-nse-test"
       passThrough:
-        ipam:
-          defaultPrefixPool: {{ .Values.ipam.defaultPrefixPool | quote }}
-          prefixLength: {{ .Values.ipam.prefixLength }}
-          routes: []
         ifName: "endpoint0"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: "nse-pod-service-{{ .Values.nsm.serviceName }}-vpp"
-  namespace: {{ .Release.Namespace }}
-  labels:
-    wcm/monitoring: vpp
-spec:
-  type: ClusterIP
-  ports:
-    - name: monitoring
-      port: {{ .Values.vppMetricsPort }}
-      targetPort: monitoring-vpp
-      protocol: TCP
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ .Values.nsm.serviceName }}-service-account
-  namespace: {{ .Release.Namespace }}
