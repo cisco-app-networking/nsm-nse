@@ -284,17 +284,17 @@ func newPassThroughComposite(configuration *common.NSConfiguration, backend conf
 	}
 
 	newPassThroughComposite := &passThroughComposite{
-		nsConfig:           		configuration,
-		remoteNsIpList:     		remoteIpList,
-		myEndpointName:     		"",
-		nsRegGrpcClient:    		nsRegGrpcClient,
-		nsDiscoveryClient:  		nsDiscoveryClient,
-		nsmClient:          		nsmClient,
-		backend:            		backend,
-		myNseNameFunc:      		getNseName,
-		myEndpointLabels:			labels,
-		defaultIfName:				ifName,
-		endpointIfID: 				make(map[string]int),
+		nsConfig:             configuration,
+		remoteNsIpList:       remoteIpList,
+		myEndpointName:       "",
+		nsRegGrpcClient:      nsRegGrpcClient,
+		nsDiscoveryClient:    nsDiscoveryClient,
+		nsmClient:            nsmClient,
+		backend:              backend,
+		myNseNameFunc:        getNseName,
+		myEndpointLabels:     labels,
+		defaultIfName:        ifName,
+		endpointIfID:         make(map[string]int),
 	}
 
 	return newPassThroughComposite

@@ -2,7 +2,7 @@
 apiVersion: networkservicemesh.io/v1alpha1
 kind: NetworkService
 metadata:
-  name: vl3-service
+  name: {{ .Values.nsm.serviceName }}
 spec:
   payload: IP
   matches:
