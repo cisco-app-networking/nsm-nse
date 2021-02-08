@@ -223,9 +223,6 @@ func (ptxc *passThroughComposite) performChainConnectionRequest(ctx context.Cont
 
 	ifName := ptxc.buildVppIfName(ptxc.defaultIfName, nsEndpoint.GetName())
 
-	logger.Infof("DEBUGGING -- The ifName is:%s", ifName)
-
-
 	conn, err := ptxc.nsmClient.ConnectToEndpoint(ctx, remoteIP, nsEndpoint.GetName(), nsEndpoint.GetNetworkServiceManagerName(), ifName, memif.MECHANISM,
 														"VPP interface " + ifName, ptxc.nsmClient.Configuration.Routes)
 	if err != nil {

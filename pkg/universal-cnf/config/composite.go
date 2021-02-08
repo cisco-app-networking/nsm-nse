@@ -142,22 +142,31 @@ func (uce *UniversalCNFEndpoint) removeClientInterface(connection *connection.Co
 	return removeConfig, nil
 }
 
-
+// removeL2xConnInterface Removes the client interfaces from the dpConfig, finds the corresponding endpoint interfaces, and
+// returns a new *vpp.ConfigData which contains the removed interfaces
 func (uce *UniversalCNFEndpoint) removeL2xConnInterface(conn *connection.Connection) (*vpp.ConfigData, error) {
-	var slaveIfName string
+	/*
+		- uce.dpConfig.Interfaces only contain the interfaces that connect to the networkservice client
+		- PassThroughMemifs.VppIfs store the mapping of client interface name to the interface that connects to the chained endpoint
+	*/
+
+	var clientIfName string
 	var clientIfToRm, endpointIfToRm *vpp_interfaces.Interface
 	var rmInx = -1
 
-	slaveIfName = conn.GetLabels()[connection.PodNameKey]
+	// First get the name of the interface that connects to client
+	clientIfName = conn.GetLabels()[connection.PodNameKey]
 
+	// Then use the client interface name to find the corresponding interface that connects to the chained endpoint
 	for i, vppIf := range(uce.dpConfig.Interfaces) {
-		if slaveIfName == vppIf.GetName(){
-			endpointIfToRm = PassThroughMemifs.VppIfs[slaveIfName]
+		if clientIfName == vppIf.GetName(){
+			endpointIfToRm = PassThroughMemifs.VppIfs[clientIfName]
 			clientIfToRm = uce.dpConfig.Interfaces[i]
 			rmInx = i
 
+			// Delete the corresponding entry in the map when it's found
 			PassThroughMemifs.Lock()
-			delete(PassThroughMemifs.VppIfs, slaveIfName)// delete the corresponding entry in the map
+			delete(PassThroughMemifs.VppIfs, clientIfName)
 			PassThroughMemifs.Unlock()
 		}
 	}

@@ -156,7 +156,6 @@ func NewVl3ProcessEndpoints(backend UniversalCNFBackend, endpoints []*nseconfig.
 			IPAddress:              "",
 			Routes:                 nil,
 		}
-		logrus.Infof("DEBUGGING -- NewProcessEndpoints(), configuration: %+v", configuration)
 		if e.VL3.IPAM.ServerAddress != "" {
 			var err error
 			ipamService, err := NewIpamService(ctx, e.VL3.IPAM.ServerAddress)
