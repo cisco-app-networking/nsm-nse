@@ -18,7 +18,8 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"net"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connectioncontext"
@@ -27,7 +28,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
-	"net"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 )
 
 // UniversalCNFEndpoint is a Universal CNF Endpoint composite implementation
@@ -47,15 +50,21 @@ func (uce *UniversalCNFEndpoint) Request(ctx context.Context,
 		uce.dpConfig = uce.backend.NewDPConfig()
 	}
 
-	if err := uce.backend.ProcessEndpoint(uce.dpConfig, uce.endpoint.Name, uce.endpoint.VL3.Ifname, conn); err != nil {
-		logrus.Errorf("Failed to process: %+v", uce.endpoint)
+	// clone dpConfig to local variable
+	dpConfig := proto.Clone(uce.dpConfig).(*vpp.ConfigData)
+
+	if err := uce.backend.ProcessEndpoint(dpConfig, uce.endpoint.Name, uce.endpoint.VL3.Ifname, conn); err != nil {
+		logrus.Errorf("Failed to process endpoint: %+v", uce.endpoint)
 		return nil, err
 	}
 
-	if err := uce.backend.ProcessDPConfig(uce.dpConfig, true); err != nil {
-		logrus.Errorf("Error processing dpconfig: %+v", uce.dpConfig)
+	if err := uce.backend.ProcessDPConfig(dpConfig, true); err != nil {
+		logrus.Errorf("Error processing dpconfig: %+v", dpConfig)
 		return nil, err
 	}
+
+	// replace dpConfig on success
+	uce.dpConfig = dpConfig
 
 	if endpoint.Next(ctx) != nil {
 		return endpoint.Next(ctx).Request(ctx, request)
