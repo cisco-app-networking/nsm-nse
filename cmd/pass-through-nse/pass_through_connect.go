@@ -335,7 +335,7 @@ func newPassThroughComposite(
 	return newPassThroughComposite
 }
 
-// SetMyNseName() is a helper function that sets the passThrough composite endpoint name
+// setMyNseName is a helper function that sets the passThrough composite endpoint name
 func (ptxc *passThroughComposite) setMyNseName(request *networkservice.NetworkServiceRequest) {
 	ptxc.Lock()
 	defer ptxc.Unlock()
@@ -353,13 +353,6 @@ func (ptxc *passThroughComposite) setMyNseName(request *networkservice.NetworkSe
 			ptxc.myEndpointName = nseName
 		}
 	}
-}
-
-// GetMyNseName returns the name of the current endpoint
-func (ptxc *passThroughComposite) GetMyNseName() string {
-	ptxc.Lock()
-	defer ptxc.Unlock()
-	return ptxc.myEndpointName
 }
 
 // buildVppIfName constructs and returns the vpp interface name
