@@ -25,7 +25,7 @@ import (
 
 var (
 	memifToChainEndpoint *vpp.Interface // memifToChainEndpoint is the MEMIF that connects with the chain endpoint pod
-	memifToClient string // memifToClient is the MEMIF that connects with the client pod
+	memifToClient        string         // memifToClient is the MEMIF that connects with the client pod
 )
 
 func getBaseDir() string {

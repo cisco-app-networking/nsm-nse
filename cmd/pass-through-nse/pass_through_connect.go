@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
-	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
-	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 	"os"
 	"strconv"
 	"sync"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
+	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection/mechanisms/memif"
+	"github.com/networkservicemesh/networkservicemesh/sdk/endpoint"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
@@ -32,29 +33,29 @@ const (
 
 type passThroughComposite struct {
 	sync.RWMutex
-	myEndpointName   			   string
-	nsConfig           			   *common.NSConfiguration
-	remoteNsIpList                 []string
-	myEndpointLabels			   nseconfig.Labels
-	nsRegGrpcClient    			   *grpc.ClientConn
-	nsDiscoveryClient  			   registry.NetworkServiceDiscoveryClient
-	nsmClient          			   *client.NsmClient
-	backend            			   config.UniversalCNFBackend
-	myNseNameFunc      			   fnGetNseName
-	defaultIfName				   string
-	endpointIfID 				   map[string]int
+	myEndpointName    string
+	nsConfig          *common.NSConfiguration
+	remoteNsIpList    []string
+	myEndpointLabels  nseconfig.Labels
+	nsRegGrpcClient   *grpc.ClientConn
+	nsDiscoveryClient registry.NetworkServiceDiscoveryClient
+	nsmClient         *client.NsmClient
+	backend           config.UniversalCNFBackend
+	myNseNameFunc     fnGetNseName
+	defaultIfName     string
+	endpointIfID      map[string]int
 }
-
-
 
 func (ptxc *passThroughComposite) Request(ctx context.Context, request *networkservice.NetworkServiceRequest) (*connection.Connection, error) {
 
 	logger := logrus.New()
 	conn := request.GetConnection()
-	logger.WithFields(logrus.Fields{
-		"endpointName":              conn.GetNetworkServiceEndpointName(),
-		"networkServiceManagerName": conn.GetSourceNetworkServiceManagerName(),
-	}).Infof("passThroughComposite Request handler")
+	logger.WithFields(
+		logrus.Fields{
+			"endpointName":              conn.GetNetworkServiceEndpointName(),
+			"networkServiceManagerName": conn.GetSourceNetworkServiceManagerName(),
+		},
+	).Infof("passThroughComposite Request handler")
 
 	ptxc.setMyNseName(request)
 
@@ -76,7 +77,7 @@ func (ptxc *passThroughComposite) Request(ctx context.Context, request *networks
 		} else {
 			logger.Infof("passThroughComposite found network service for NS=%s", conn.GetNetworkService())
 
-			if chainConn,connErr := ptxc.processNsEndpoints(context.TODO(), response, "", logger); connErr != nil {
+			if chainConn, connErr := ptxc.processNsEndpoints(context.TODO(), response, "", logger); connErr != nil {
 				logrus.Error(connErr)
 			} else {
 				// Pass the IpContext received from the chained endpoint connection to the client request
@@ -107,8 +108,12 @@ func (ptxc *passThroughComposite) Close(ctx context.Context, conn *connection.Co
 }
 
 //processNsEndpoints finds the label of the chain endpoint and sends a NS request to connect with it
-func (ptxc *passThroughComposite) processNsEndpoints(ctx context.Context, response *registry.FindNetworkServiceResponse, remoteIP string,
-										logger *logrus.Logger) (*connection.Connection, error) {
+func (ptxc *passThroughComposite) processNsEndpoints(
+	ctx context.Context,
+	response *registry.FindNetworkServiceResponse,
+	remoteIP string,
+	logger *logrus.Logger,
+) (*connection.Connection, error) {
 	logger.Infof("Processing NS endpoints...")
 
 	chainLabelKey, chainLabelVal, err := ptxc.findChainEndpointLabel(response, logger)
@@ -128,7 +133,10 @@ func (ptxc *passThroughComposite) processNsEndpoints(ctx context.Context, respon
 }
 
 // findChainEndpointLabel finds the label for the chain endpoint
-func(ptxc *passThroughComposite) findChainEndpointLabel(response *registry.FindNetworkServiceResponse, logger *logrus.Logger) (string, string, error) {
+func (ptxc *passThroughComposite) findChainEndpointLabel(
+	response *registry.FindNetworkServiceResponse,
+	logger *logrus.Logger,
+) (string, string, error) {
 	var chainLabelKey, chainLabelVal string
 
 	// There must be >= 2 matches under the networkservice to perform NSE chaining:
@@ -140,41 +148,46 @@ func(ptxc *passThroughComposite) findChainEndpointLabel(response *registry.FindN
 
 	logger.Infof("The matches under current networkservice are: %v", matches)
 	// An endpoint has at least 1 label for it to be found by NSMgr
-	for myLabelKey, myLabelVal := range ptxc.myEndpointLabels{
+	for labelKey, labelVal := range ptxc.myEndpointLabels {
 		for _, match := range matches {
 			// First find the match that has the same label as the current endpoint
-			if val, ok := match.SourceSelector[myLabelKey]; ok && val == myLabelVal {
+			if val, ok := match.SourceSelector[labelKey]; ok && val == labelVal {
 				// There should be only one route and one destination since one client only connects to one endpoint under the same networkservice
-				if len(match.GetRoutes()) == 0{
-					return "", "", fmt.Errorf("Failed to find chain NSE label -- no route found under current match")
-				}
-				if (len(match.GetRoutes())) > 1 {
-					return "", "", fmt.Errorf("Failed to find chain NSE label -- more than 1 routes found under current match")
+				routesLen := len(match.GetRoutes())
+				if routesLen != 1 {
+					return "", "", fmt.Errorf("Failed to find chain NSE label -- found %d routes under current match", routesLen)
 				}
 
-				if len(match.GetRoutes()[0].GetDestinationSelector()) == 0 {
-					return "", "", fmt.Errorf("Failed to find chain NSE label -- no destination found under current route")
-				}
-				if len(match.GetRoutes()[0].GetDestinationSelector()) > 1 {
-					return "", "", fmt.Errorf("Failed to find chain NSE label -- more than 1 destinations found under current route")
+				destinationLen := len(match.GetRoutes()[0].GetDestinationSelector())
+				if destinationLen != 1 {
+					return "", "", fmt.Errorf(
+						"Failed to find chain NSE label -- found %d destination selectors under current match",
+						destinationLen,
+					)
 				}
 
 				// Get the destination label key and value
-				for chainLabelKey, chainLabelVal = range match.GetRoutes()[0].GetDestinationSelector() {}
-
+				for chainLabelKey, chainLabelVal = range match.GetRoutes()[0].GetDestinationSelector() {
+				}
 				break
 			}
 		}
 	}
-	if chainLabelKey =="" || chainLabelVal == "" {
+	if chainLabelKey == "" || chainLabelVal == "" {
 		return "", "", fmt.Errorf("Failed to find chain NSE label: the chain NSE label is empty")
 	}
 	return chainLabelKey, chainLabelVal, nil
 }
 
 // createChainConnection first finds the chain endpoint using the label, then creates connection with it
-func(ptxc *passThroughComposite) createChainConnection(ctx context.Context, response *registry.FindNetworkServiceResponse, logger *logrus.Logger,
-										remoteIP, chainLabelKey, chainLabelVal string) (*connection.Connection, error) {
+func (ptxc *passThroughComposite) createChainConnection(
+	ctx context.Context,
+	response *registry.FindNetworkServiceResponse,
+	logger *logrus.Logger,
+	remoteIP,
+	chainLabelKey,
+	chainLabelVal string,
+) (*connection.Connection, error) {
 
 	var chainEndpoint *registry.NetworkServiceEndpoint
 
@@ -213,8 +226,14 @@ func(ptxc *passThroughComposite) createChainConnection(ctx context.Context, resp
 }
 
 // performChainConnectionRequest sends the connection request to the chained endpoint and the request to create vpp interface for layer 2 MEMIF
-func (ptxc *passThroughComposite) performChainConnectionRequest(ctx context.Context, nsEndpoint *registry.NetworkServiceEndpoint,
-										dpconfig interface{}, logger *logrus.Logger, remoteIP string) (*connection.Connection, error){
+func (ptxc *passThroughComposite) performChainConnectionRequest(
+	ctx context.Context,
+	nsEndpoint *registry.NetworkServiceEndpoint,
+	dpconfig interface{},
+	logger *logrus.Logger,
+	remoteIP string,
+) (*connection.Connection, error) {
+
 	logger.Infof("Performing connect to the chain endpoint -- %s", nsEndpoint.GetName())
 
 	go func() {
@@ -223,12 +242,22 @@ func (ptxc *passThroughComposite) performChainConnectionRequest(ctx context.Cont
 
 	ifName := ptxc.buildVppIfName(ptxc.defaultIfName, nsEndpoint.GetName())
 
-	conn, err := ptxc.nsmClient.ConnectToEndpoint(ctx, remoteIP, nsEndpoint.GetName(), nsEndpoint.GetNetworkServiceManagerName(), ifName, memif.MECHANISM,
-														"VPP interface " + ifName, ptxc.nsmClient.Configuration.Routes)
+	conn, err := ptxc.nsmClient.ConnectToEndpoint(
+		ctx,
+		remoteIP,
+		nsEndpoint.GetName(),
+		nsEndpoint.GetNetworkServiceManagerName(),
+		ifName,
+		memif.MECHANISM,
+		"VPP interface "+ifName,
+		ptxc.nsmClient.Configuration.Routes,
+	)
+
 	if err != nil {
 		logger.Errorf("Error creating chain connection: %v", err)
 		return nil, err
 	}
+
 	logrus.Infof("The chain connection is successfully built -- %+v", conn)
 
 	// This is not a master interface because it is acting as a client to the chain endpoint
@@ -242,8 +271,14 @@ func (ptxc *passThroughComposite) performChainConnectionRequest(ctx context.Cont
 }
 
 // newPassThroughComposite creates a new passThrough composite
-func newPassThroughComposite(configuration *common.NSConfiguration, backend config.UniversalCNFBackend,
-		remoteIpList []string, getNseName fnGetNseName, labels nseconfig.Labels, ifName string) *passThroughComposite {
+func newPassThroughComposite(
+	configuration *common.NSConfiguration,
+	backend config.UniversalCNFBackend,
+	remoteIpList []string,
+	getNseName fnGetNseName,
+	labels nseconfig.Labels,
+	ifName string,
+) *passThroughComposite {
 
 	nsRegAddr, ok := os.LookupEnv("NSREGISTRY_ADDR")
 	if !ok {
@@ -284,30 +319,34 @@ func newPassThroughComposite(configuration *common.NSConfiguration, backend conf
 	}
 
 	newPassThroughComposite := &passThroughComposite{
-		nsConfig:             configuration,
-		remoteNsIpList:       remoteIpList,
-		myEndpointName:       "",
-		nsRegGrpcClient:      nsRegGrpcClient,
-		nsDiscoveryClient:    nsDiscoveryClient,
-		nsmClient:            nsmClient,
-		backend:              backend,
-		myNseNameFunc:        getNseName,
-		myEndpointLabels:     labels,
-		defaultIfName:        ifName,
-		endpointIfID:         make(map[string]int),
+		nsConfig:          configuration,
+		remoteNsIpList:    remoteIpList,
+		myEndpointName:    "",
+		nsRegGrpcClient:   nsRegGrpcClient,
+		nsDiscoveryClient: nsDiscoveryClient,
+		nsmClient:         nsmClient,
+		backend:           backend,
+		myNseNameFunc:     getNseName,
+		myEndpointLabels:  labels,
+		defaultIfName:     ifName,
+		endpointIfID:      make(map[string]int),
 	}
 
 	return newPassThroughComposite
 }
 
 // SetMyNseName() is a helper function that sets the passThrough composite endpoint name
-func (ptxc *passThroughComposite) setMyNseName(request *networkservice.NetworkServiceRequest){
+func (ptxc *passThroughComposite) setMyNseName(request *networkservice.NetworkServiceRequest) {
 	ptxc.Lock()
 	defer ptxc.Unlock()
 
 	if ptxc.myEndpointName == "" {
 		nseName := ptxc.myNseNameFunc()
-		logrus.Infof("Setting passThrough composite endpoint name from \"%s\" to \"%s\"", nseName, request.GetConnection().GetNetworkServiceEndpointName())
+		logrus.Infof(
+			"Setting passThrough composite endpoint name from \"%s\" to \"%s\"",
+			nseName,
+			request.GetConnection().GetNetworkServiceEndpointName(),
+		)
 		if request.GetConnection().GetNetworkServiceEndpointName() != "" {
 			ptxc.myEndpointName = request.GetConnection().GetNetworkServiceEndpointName()
 		} else {

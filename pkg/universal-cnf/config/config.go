@@ -35,7 +35,6 @@ import (
 // Is it possible to not use a global var?
 var PassThroughMemifs L2XconnMemifs
 
-
 // L2MemifNames holds the [name:interface] of L2 cross connected MEMIFs paris
 type L2XconnMemifs struct {
 	sync.RWMutex
@@ -44,7 +43,7 @@ type L2XconnMemifs struct {
 
 const (
 	PEER_NAME = "ucnf/peerName"
-	PodName = "nsepod.name"
+	PodName   = "nsepod.name"
 
 	nsePodNameEnv  = "NSE_POD_NAME"
 	nsePodName     = "example"

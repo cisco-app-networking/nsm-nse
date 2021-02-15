@@ -19,10 +19,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
-	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	"os"
 	"strings"
+
+	"github.com/cisco-app-networking/nsm-nse/pkg/universal-cnf/config"
+	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/networkservice"
 	"github.com/networkservicemesh/networkservicemesh/pkg/tools"
@@ -43,7 +44,7 @@ const (
 )
 
 const (
-	defaultConfigPath   = "/etc/universal-cnf/config.yaml"
+	defaultConfigPath = "/etc/universal-cnf/config.yaml"
 )
 
 // Flags holds the command line flags as supplied with the binary invocation
@@ -64,8 +65,10 @@ func (mf *Flags) Process() {
 type passThroughCompositeEndpoint struct {
 }
 
-func (e passThroughCompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSConfiguration,
-	ucnfEndpoint *nseconfig.Endpoint) *[]networkservice.NetworkServiceServer {
+func (e passThroughCompositeEndpoint) AddCompositeEndpoints(
+	nsConfig *common.NSConfiguration,
+	ucnfEndpoint *nseconfig.Endpoint,
+) *[]networkservice.NetworkServiceServer {
 
 	var nsRemoteIpList []string
 	nsRemoteIpListStr, ok := os.LookupEnv("NSM_REMOTE_NS_IP_LIST")
@@ -74,10 +77,16 @@ func (e passThroughCompositeEndpoint) AddCompositeEndpoints(nsConfig *common.NSC
 	}
 
 	compositeEndpoints := []networkservice.NetworkServiceServer{
-		newPassThroughComposite(nsConfig, &vppagent.UniversalCNFVPPAgentBackend{}, nsRemoteIpList,
+		newPassThroughComposite(
+			nsConfig,
+			&vppagent.UniversalCNFVPPAgentBackend{},
+			nsRemoteIpList,
 			func() string {
 				return ucnfEndpoint.NseName
-			}, ucnfEndpoint.Labels, ucnfEndpoint.PassThrough.Ifname),
+			},
+			ucnfEndpoint.Labels,
+			ucnfEndpoint.PassThrough.Ifname,
+		),
 	}
 
 	return &compositeEndpoints
@@ -108,7 +117,7 @@ func main() {
 	InitializeMetrics()
 
 	// Initialize PassThroughMemifs here to store the names of l2XConnected memifs
-	config.PassThroughMemifs =  config.L2XconnMemifs {
+	config.PassThroughMemifs = config.L2XconnMemifs{
 		VppIfs: make(map[string]*vpp_interfaces.Interface),
 	}
 

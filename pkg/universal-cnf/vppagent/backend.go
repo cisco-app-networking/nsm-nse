@@ -59,22 +59,23 @@ func (b *UniversalCNFVPPAgentBackend) NewUniversalCNFBackend() error {
 func (b *UniversalCNFVPPAgentBackend) CreateL2Memif(dpConfig interface{}, ifName string, conn *connection.Connection, memifMaster bool) error {
 	vppconfig, ok := dpConfig.(*vpp.ConfigData) // type assertion
 	if !ok {
-		return fmt.Errorf("unable to convert dpconfig to vppconfig	")
+		return fmt.Errorf("unable to convert dpconfig to vppconfig")
 	}
 
 	socketFilename := path.Join(getBaseDir(), memif.ToMechanism(conn.GetMechanism()).GetSocketFilename())
 
 	vppconfig.Interfaces = append(vppconfig.Interfaces,
 		&interfaces.Interface{
-			Name:	ifName,
-			Type:	interfaces.Interface_MEMIF,
+			Name:    ifName,
+			Type:    interfaces.Interface_MEMIF,
 			Enabled: true,
+			// The MEMIF that communicates with client pod is master
+			// The MEMIF that communicates with the chain NSE pod is slave
 			Link: &interfaces.Interface_Memif{
 				Memif: &interfaces.MemifLink{
-					Master: memifMaster, // the MEMIF that communicates with client pod is master
-										 // the MEMIF that communicates with the chain NSE pod is slave
+					Master:         memifMaster,
 					SocketFilename: socketFilename,
-					RingSize: 512, 		 // The number of entries of RX/TX rings
+					RingSize:       512,
 				},
 			},
 		})
@@ -296,10 +297,10 @@ func (b *UniversalCNFVPPAgentBackend) ProcessDPConfig(dpconfig interface{}, upda
 // constructL2XConnConfig constructs a vppconfig for a pair of memifs that need to be cross-connected , and send the config to vppagent
 func constructL2XConnConfig(vppconfig *vpp.ConfigData) error {
 	// if the interface that just got created is a master, then it is the memif that connects with the client pod
-	if vppconfig.Interfaces[len(vppconfig.Interfaces) - 1].GetMemif().Master {
-		memifToClient = vppconfig.Interfaces[len(vppconfig.Interfaces) - 1].Name
+	if vppconfig.Interfaces[len(vppconfig.Interfaces)-1].GetMemif().Master {
+		memifToClient = vppconfig.Interfaces[len(vppconfig.Interfaces)-1].Name
 	} else {
-		memifToChainEndpoint = vppconfig.Interfaces[len(vppconfig.Interfaces) - 1]
+		memifToChainEndpoint = vppconfig.Interfaces[len(vppconfig.Interfaces)-1]
 	}
 
 	if memifToChainEndpoint != nil && memifToClient != "" {

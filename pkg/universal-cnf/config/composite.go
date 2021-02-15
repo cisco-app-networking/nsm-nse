@@ -18,6 +18,9 @@ package config
 import (
 	"context"
 	"fmt"
+	"net"
+	"os"
+
 	"github.com/cisco-app-networking/nsm-nse/pkg/nseconfig"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/networkservicemesh/networkservicemesh/controlplane/api/connection"
@@ -28,8 +31,6 @@ import (
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp"
 	"go.ligato.io/vpp-agent/v3/proto/ligato/vpp/interfaces"
 	l3 "go.ligato.io/vpp-agent/v3/proto/ligato/vpp/l3"
-	"net"
-	"os"
 )
 
 // UniversalCNFEndpoint is a Universal CNF Endpoint composite implementation
@@ -158,8 +159,8 @@ func (uce *UniversalCNFEndpoint) removeL2xConnInterface(conn *connection.Connect
 	clientIfName = conn.GetLabels()[connection.PodNameKey]
 
 	// Then use the client interface name to find the corresponding interface that connects to the chained endpoint
-	for i, vppIf := range(uce.dpConfig.Interfaces) {
-		if clientIfName == vppIf.GetName(){
+	for i, vppIf := range uce.dpConfig.Interfaces {
+		if clientIfName == vppIf.GetName() {
 			endpointIfToRm = PassThroughMemifs.VppIfs[clientIfName]
 			clientIfToRm = uce.dpConfig.Interfaces[i]
 			rmInx = i
@@ -199,7 +200,7 @@ func (uce *UniversalCNFEndpoint) Close(ctx context.Context, connection *connecti
 		removeConfig, err = uce.removeClientInterface(connection)
 	}
 	if err != nil && endpoint.Next(ctx) != nil {
-		logrus.Info(err)
+		logrus.Error(err)
 		return endpoint.Next(ctx).Close(ctx, connection)
 	}
 
